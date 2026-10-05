@@ -1,0 +1,7 @@
+Incident summary: Between 14:20 and 14:47, the order service responded to approximately thirty percent of requests with a timeout error.
+
+Root cause: With the overnight deployment, the database connection pool size for the stock query was reduced from twenty to five. During the afternoon peak, the connections in the pool were exhausted; new requests hit the thirty-second timeout limit while waiting for a connection. The retry mechanism made the load worse instead of fixing the situation, because each failed request was repeated three more times.
+
+Mitigation: The pool size was raised back to twenty in the configuration file and the service was restarted gradually. The error rate returned to its normal level as of 14:47.
+
+Permanent measures: A monitoring rule that alerts at eighty percent connection pool usage will be added. Exponential backoff and a circuit breaker will be added to the retry mechanism. Configuration changes will be approved by a second engineer before deployment.

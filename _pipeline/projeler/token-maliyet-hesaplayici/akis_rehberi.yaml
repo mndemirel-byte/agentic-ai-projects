@@ -1,0 +1,257 @@
+# Akış kod rehberi (kod-rehberi.html) girdisi.
+# konum: {fn: fonksiyon_adı} fonksiyonun satır aralığını, {capa: metin, uzunluk: n} çapadan başlayan n satırı gösterir.
+# kod alanı öğretici kısaltılmış koddur; birebir kaynak değildir.
+
+baslik: tokenhesap.py kod rehberi
+giris: Bir komutu terminale yazdığın andan tablonun ekrana basılmasına kadar kodun hangi fonksiyonlardan, hangi
+  sırayla geçtiğini adım adım izle. Her adımda kodun ne yaptığını, ilgili kod parçasını ve neden öyle yazıldığını
+  bulacaksın.
+bloklar:
+- anahtar: giris
+  bolum: Giriş noktası
+  aciklama: Komut satırını okur, işi doğru komuta yollar.
+- anahtar: veri
+  bolum: Veri yükleme
+  aciklama: pricing.yaml ve metin dosyasını okur.
+- anahtar: api
+  bolum: API çağrıları
+  aciklama: Anthropic SDK ile token sayar.
+- anahtar: hesap
+  bolum: Hesaplamalar
+  aciklama: Maliyet, doluluk oranı, etiket ve bar üretir.
+- anahtar: bicim
+  bolum: Biçimlendirme
+  aciklama: Türkçe sayı yazımı ve hizalı tablo basma.
+- anahtar: komut
+  bolum: Komutlar
+  aciklama: count, compare ve verify iş akışları.
+ortak_adimlar:
+- blok: giris
+  etiket: __main__
+  konum:
+    capa: if __name__
+    uzunluk: 2
+  baslik: Komutu yazarsın
+  ne: >-
+    Terminale komutu yazdığında Python dosyayı yukarıdan aşağıya okur. Bu sırada fonksiyonları yalnızca tanımlar,
+    hiçbirini çalıştırmaz. Dosyanın en altındaki iki satıra gelince asıl iş başlar: main() fonksiyonu çağrılır.
+  kod: |-
+    $ python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --models haiku-4-5
+
+    if __name__ == "__main__":
+        sys.exit(main())
+  neden: >-
+    if __name__ == "__main__" kalıbı, dosya doğrudan çalıştırıldığında main()'i başlatır; testler dosyayı import
+    ettiğinde ise hiçbir şey kendiliğinden çalışmaz. sys.exit, main()'in döndürdüğü sayıyı (0 = başarılı, 2 = hata)
+    terminale çıkış kodu olarak iletir.
+- blok: giris
+  etiket: build_parser()
+  konum:
+    fn: build_parser
+  baslik: Komut satırını parçala
+  ne: >-
+    build_parser(), argparse kütüphanesiyle programın hangi komutları ve seçenekleri kabul ettiğini tarif eder.
+    parse_args() terminaldeki yazıyı bu tarife göre parçalayıp tek bir args nesnesine koyar. Artık her seçeneğe
+    nokta ile erişilir.
+  kod: |-
+    args = build_parser().parse_args(argv)
+
+    args.command        # "count"
+    args.file           # "ornekler/2_eposta_tr.txt"
+    args.models         # "haiku-4-5"
+    args.output_tokens  # 1000  (verilmediği için varsayılan)
+  neden: >-
+    args bir sipariş fişi gibidir: kullanıcı ne istediyse fişe yazılır, kodun geri kalanı yalnızca fişe bakar. --output-tokens
+    gibi tireli seçenekler Python'da alt çizgiye dönüşür: args.output_tokens.
+- blok: veri
+  etiket: load_pricing()
+  konum:
+    fn: load_pricing
+  baslik: Fiyat dosyasını yükle
+  ne: >-
+    load_pricing(), pricing.yaml dosyasını açıp Python sözlüğüne (dict) çevirir. Sonra her modelde zorunlu alanların
+    (id, fiyatlar, context_window ve diğerleri) eksiksiz olup olmadığına bakar. Eksik varsa hemen anlaşılır bir
+    hata fırlatır.
+  kod: |-
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    for model in data["models"]:
+        missing = [field for field in REQUIRED_MODEL_FIELDS
+                   if field not in model]
+        if missing:
+            raise ValueError(f"... eksik alan: {missing}")
+  neden: >-
+    Fiyatlar değişir; kodu değiştirmeden yalnızca yaml dosyasını güncellersin. Bu, veriyi mantıktan ayırma ilkesidir.
+    with bloğu, iş bitince dosyayı otomatik olarak kapatır.
+- blok: giris
+  etiket: main()
+  konum:
+    fn: main
+  baslik: API istemcisini hazırla
+  ne: >-
+    Önce ANTHROPIC_API_KEY ortam değişkeni var mı diye bakılır. Yoksa program API'ye hiç gitmeden, ne yapman gerektiğini
+    söyleyen bir mesajla durur. Varsa anthropic.Anthropic() bir istemci (client) nesnesi oluşturur; anahtarı ortamdan
+    kendisi okur.
+  kod: |-
+    if client is None:
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            print("Hata: ANTHROPIC_API_KEY ... tanımlı değil.")
+            return 2
+        client = anthropic.Anthropic()
+  neden: >-
+    "if client is None" kontrolü testler için var: testler kendi sahte istemcilerini main()'e verir ve kod gerçek
+    API'ye para harcamadan denenir. Gerçek kullanımda client boş gelir ve gerçek istemci burada kurulur.
+akislar:
+- ad: count
+  adimlar:
+  - blok: komut
+    etiket: cmd_count()
+    konum:
+      fn: cmd_count
+    baslik: cmd_count işe başlar
+    ne: >-
+      main(), args.command "count" olduğu için işi cmd_count'a devreder. Bu fonksiyon önce metni okur, --models
+      seçeneğine göre model listesini süzer ve metni API'nin beklediği mesaj biçimine sokar.
+    kod: |-
+      text = read_text(args.file)
+      models = select_models(pricing, args.models)
+      messages = build_messages(text)
+
+      # messages şuna dönüşür:
+      [{"role": "user", "content": "Merhaba Ayşe Hanım, ..."}]
+    neden: >-
+      Claude API metni tek başına değil, rolü belli mesajlar listesi olarak alır (Ders 1.4). Token sayımı da bu
+      yapı üzerinden yapılır; bu yüzden sayılan değer metnin kendisinden biraz fazladır.
+  - blok: api
+    etiket: try_count()
+    konum: &id001
+      fn: try_count
+    baslik: Her model için token say
+    ne: >-
+      Bir for döngüsü seçilen modelleri tek tek dolaşır. Her turda try_count çağrılır; o da count_tokens API'sini
+      çağırır. Bu çağrıda model çalışmaz, cevap üretmez, ücret yazılmaz; yalnızca mesajın kaç token tuttuğu döner.
+    kod: |-
+      for model in models:
+          tokens, error = try_count(client, model, messages)
+
+      def count_input_tokens(client, model_id, messages):
+          response = client.messages.count_tokens(
+              model=model_id, messages=messages)
+          return response.input_tokens
+    neden: >-
+      Hesabının bir modele erişimi yoksa API hata döndürür; try_count bu hatayı yakalar ve o satıra "erişilemedi"
+      yazdırır. Program çökmez, diğer modellerle devam eder. Her model ayrı sayılır, çünkü tokenizer modele özgüdür
+      ve aynı metin farklı modellerde farklı sayı verebilir.
+  - blok: hesap
+    etiket: estimate_cost()
+    konum:
+      fn: estimate_cost
+    baslik: Maliyeti ve doluluğu hesapla
+    ne: >-
+      Token sayısı elde edilince dört küçük fonksiyon çalışır: estimate_cost maliyeti, context_ratio pencerenin
+      ne kadar dolduğunu, usage_label bu orana bir etiket, render_bar da metin çubuğunu üretir. Sayfanın altındaki
+      hesap alanı bu hesabın aynısını yapar.
+    kod: |-
+      cost = (input_tokens * model["input_per_mtok"]
+              + output_tokens * model["output_per_mtok"]) / 1_000_000
+
+      ratio = (input_tokens + output_tokens) / model["context_window"]
+
+      if ratio > 1:    return "TAŞMA"
+      if ratio >= 0.8: return "YÜKSEK"
+      if ratio >= 0.5: return "DİKKAT"
+      return "OK"
+    neden: >-
+      Fiyatlar milyon token başına verildiği için 1.000.000'a bölünür (Ders 1.4 §6.2). Çıktı da doluluğa eklenir,
+      çünkü model cevabını aynı pencerenin içinde üretir; girdi tek başına sığsa bile cevaba yer kalmayabilir (Ders
+      1.3 §3).
+  - blok: bicim
+    etiket: print_table()
+    konum: &id003
+      fn: print_table
+    baslik: Tabloyu bas ve bitir
+    ne: >-
+      Sayılar Türkçe yazıma çevrilir (1.234 ve $0,0035), satırlar print_table ile hizalı bir tabloya dönüşür. Modeller
+      farklı token sayısı verdiyse altına bir not düşülür. cmd_count 0 döndürür; bu değer main() üzerinden başarılı
+      çıkış kodu olarak terminale ulaşır.
+    kod: |-
+      def fmt_int(n):
+          return _tr_number(f"{n:,}")   # 1,234 -> 1.234
+
+      print_table(headers, rows, right_align=...)
+      if len(set(counts)) > 1:
+          print("Not: Aynı metin modele göre farklı token sayısı verdi ...")
+      return 0
+    neden: >-
+      Hesap ile biçim ayrı tutulur: estimate_cost ham sayı döndürür, fmt_usd onu okunur hâle getirir. Böylece hesabı
+      test etmek kolaylaşır ve görünümü değiştirmek hesabı bozmaz. --verify verildiyse bu noktada run_verify tek
+      bir gerçek çağrı yapıp tahmini usage ile karşılaştırır.
+- ad: compare
+  adimlar:
+  - blok: komut
+    etiket: cmd_compare()
+    konum: &id002
+      fn: cmd_compare
+    baslik: İki dosyayı oku
+    ne: >-
+      args.command "compare" olduğunda main() işi cmd_compare'e verir. Bu kez iki dosya okunur: aynı içeriğin Türkçe
+      ve İngilizce hâli. Karşılaştırmanın anlamlı olması için iki metnin aynı şeyi söylemesi gerekir.
+    kod: |-
+      $ python cozum/tokenhesap.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt
+
+      tr_text = read_text(args.tr_file)
+      en_text = read_text(args.en_file)
+      models  = select_models(pricing, args.models)
+    neden: >-
+      Farklı içerikleri karşılaştırırsan token farkının dilden mi içerikten mi geldiğini bilemezsin. Anlam aynı,
+      dil farklı olduğunda fark yalnızca tokenizer'ın dili nasıl böldüğünden gelir (Ders 1.3 §1.3).
+  - blok: api
+    etiket: try_count()
+    konum: *id001
+    baslik: Her model için iki sayım
+    ne: >-
+      Döngünün her turunda aynı model için iki ayrı count_tokens çağrısı yapılır: biri Türkçe, biri İngilizce metin
+      için. İkisinden biri hata verirse o model satırı "erişilemedi" olarak geçilir.
+    kod: |-
+      for model in models:
+          tr_tokens, tr_err = try_count(client, model, build_messages(tr_text))
+          en_tokens, en_err = try_count(client, model, build_messages(en_text))
+          if tr_err or en_err:
+              rows.append([..., "erişilemedi"])
+              continue
+    neden: >-
+      continue döngünün o turunu orada bırakır ve bir sonraki modele geçer. Hatalı modelle oran hesaplamaya çalışmak,
+      sıfıra bölme gibi yeni hatalar doğururdu.
+  - blok: komut
+    etiket: cmd_compare()
+    konum: *id002
+    baslik: Oranı ve ek maliyeti hesapla
+    ne: >-
+      TR token sayısı EN'ye bölünür. 1,30 çıkarsa Türkçe metin %30 daha fazla token kullanmış demektir. Bu fark
+      girdi fiyatıyla çarpılıp 1.000 çağrıya ölçeklenir; böylece küçük bir oran somut bir dolar tutarına dönüşür.
+    kod: |-
+      ratio = tr_tokens / en_tokens
+      ratios.append(ratio)
+      extra_cost = (tr_tokens - en_tokens) \
+          * model["input_per_mtok"] / 1_000_000 * 1000
+    neden: >-
+      Tek çağrıdaki fark kuruşun altında kalır ve önemsiz görünür. 1.000 çağrıya ölçeklendiğinde, çok dilli bir
+      üründe Türkçe için neden daha yüksek bütçe planlaman gerektiği görünür olur.
+  - blok: bicim
+    etiket: print_table()
+    konum: *id003
+    baslik: Tablo ve ortalama
+    ne: >-
+      Tablo basıldıktan sonra tüm modellerin oran ortalaması alınır ve tek cümlelik bir sonuç yazılır. Ortalama
+      1'den küçükse "daha az", büyükse "daha fazla" yazar. Fonksiyon 0 döndürerek biter.
+    kod: |-
+      avg = sum(ratios) / len(ratios)
+      direction = "daha fazla" if avg >= 1 else "daha az"
+      print(f"Ortalama: Türkçe metin ... {direction} girdi token'ı kullandı.")
+      return 0
+    neden: >-
+      Oran metnin türüne (e-posta, log, teknik doküman) ve modele göre değişir. Bu araç sana genel bir kural değil,
+      kendi verin için bir ölçüm verir; çıktıdaki "kendi verinle ölç" notu bu yüzden var.
+ekstra: akis_ekstra.html
+dipnot: Hesap alanındaki fiyat ve context değerleri pricing.yaml dosyasından alınmıştır. Fiyatlar değişebilir; güncel
+  değerler için Anthropic pricing sayfasını kontrol et.

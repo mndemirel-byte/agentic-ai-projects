@@ -1,0 +1,248 @@
+# Ölçüm tarihi: 2026-10-05
+
+==================================================================
+## rehber-1
+$ python cozum/adim_1.py count ornekler/1_kisa_tr.txt
+------------------------------------------------------------------
+Dosya: ornekler/1_kisa_tr.txt  |  86 karakter, 10 kelime
+Claude Haiku 4.5 girdi token: 41
+
+==================================================================
+## rehber-2a
+$ python cozum/adim_2.py count ornekler/1_kisa_tr.txt --baseline
+------------------------------------------------------------------
+Dosya: ornekler/1_kisa_tr.txt  |  86 karakter, 10 kelime
+Claude Haiku 4.5 girdi token: 41
+Taban (mesaj iskeleti): 8
+Net (metnin kendi payı, yaklaşık): 33
+
+==================================================================
+## rehber-2b
+$ python cozum/adim_2.py count ornekler/2_eposta_tr.txt --baseline
+------------------------------------------------------------------
+Dosya: ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+Claude Haiku 4.5 girdi token: 306
+Taban (mesaj iskeleti): 8
+Net (metnin kendi payı, yaklaşık): 298
+
+==================================================================
+## rehber-3
+$ python cozum/adim_3.py count ornekler/2_eposta_tr.txt --models haiku-4-5 --output-tokens 500 --monthly-calls 100000
+------------------------------------------------------------------
+Dosya: ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+Çıktı tahmini: 500 token (cevap + varsa thinking)
+
+Model             Girdi token  Maliyet/çağrı  Aylık (100.000 çağrı)
+----------------  -----------  -------------  ---------------------
+Claude Haiku 4.5          306        $0,0028                $280,60
+
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-4a
+$ python cozum/adim_4.py count ornekler/2_eposta_tr.txt --output-tokens 500 --monthly-calls 100000
+------------------------------------------------------------------
+Dosya: ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+Çıktı tahmini: 500 token (cevap + varsa thinking)
+
+Model              Girdi token  Maliyet/çağrı  Aylık (100.000 çağrı)
+-----------------  -----------  -------------  ---------------------
+Claude Haiku 4.5           306        $0,0028                $280,60
+Claude Sonnet 5.5          390        $0,0058                $578,00
+Claude Opus 5.5            390         $0,012              $1.156,00
+Claude Fable 5.1           390         $0,029              $2.890,00
+
+Not: Aynı metin modele göre farklı token sayısı verdi (306 – 390, fark %27,5). Tokenizer modele özgüdür; her model için ayrı say.
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-4b
+$ python cozum/adim_4.py count ornekler/3_teknik_tr.txt --output-tokens 500
+------------------------------------------------------------------
+Dosya: ornekler/3_teknik_tr.txt  |  949 karakter, 121 kelime
+Çıktı tahmini: 500 token (cevap + varsa thinking)
+
+Model              Girdi token  Maliyet/çağrı
+-----------------  -----------  -------------
+Claude Haiku 4.5           429        $0,0029
+Claude Sonnet 5.5          511        $0,0060
+Claude Opus 5.5            511         $0,012
+Claude Fable 5.1           511         $0,030
+
+Not: Aynı metin modele göre farklı token sayısı verdi (429 – 511, fark %19,1). Tokenizer modele özgüdür; her model için ayrı say.
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-5
+$ python cozum/adim_5.py count ornekler/uzun_log.txt --output-tokens 4000
+------------------------------------------------------------------
+Dosya: ornekler/uzun_log.txt  |  716.293 karakter, 61.677 kelime
+Çıktı tahmini: 4.000 token (cevap + varsa thinking)
+
+Model              Girdi token  Maliyet/çağrı  Context doluluğu
+-----------------  -----------  -------------  ---------------------------------
+Claude Haiku 4.5       372.018          $0,39  ████████████████████ %188,0 TAŞMA
+Claude Sonnet 5.5      422.647          $0,89  █████████░░░░░░░░░░░ %42,7 OK
+Claude Opus 5.5        422.647          $1,77  █████████░░░░░░░░░░░ %42,7 OK
+Claude Fable 5.1       422.647          $4,43  █████████░░░░░░░░░░░ %42,7 OK
+
+Not: Aynı metin modele göre farklı token sayısı verdi (372.018 – 422.647, fark %13,6). Tokenizer modele özgüdür; her model için ayrı say.
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-6a
+$ python cozum/adim_6.py compare ornekler/1_kisa_tr.txt ornekler/1_kisa_en.txt
+------------------------------------------------------------------
+Türkçe:   ornekler/1_kisa_tr.txt  |  86 karakter, 10 kelime
+İngilizce: ornekler/1_kisa_en.txt  |  85 karakter, 16 kelime
+
+Model              TR token  EN token  TR/EN  TR fazlası  1.000 çağrıda ek girdi maliyeti
+-----------------  --------  --------  -----  ----------  -------------------------------
+Claude Haiku 4.5         41        25   1,64         %64                           $0,016
+Claude Sonnet 5.5        52        34   1,53         %53                           $0,036
+Claude Opus 5.5          52        34   1,53         %53                           $0,072
+Claude Fable 5.1         52        34   1,53         %53                            $0,18
+
+Ortalama: Türkçe metin aynı içerik için %56 daha fazla girdi token'ı kullandı.
+Bu oran metin türüne ve modele göre değişir; kendi verinle ölç.
+
+==================================================================
+## rehber-6b
+$ python cozum/adim_6.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt
+------------------------------------------------------------------
+Türkçe:   ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+İngilizce: ornekler/2_eposta_en.txt  |  753 karakter, 126 kelime
+
+Model              TR token  EN token  TR/EN  TR fazlası  1.000 çağrıda ek girdi maliyeti
+-----------------  --------  --------  -----  ----------  -------------------------------
+Claude Haiku 4.5        306       166   1,84         %84                            $0,14
+Claude Sonnet 5.5       390       230   1,70         %70                            $0,32
+Claude Opus 5.5         390       230   1,70         %70                            $0,64
+Claude Fable 5.1        390       230   1,70         %70                            $1,60
+
+Ortalama: Türkçe metin aynı içerik için %73 daha fazla girdi token'ı kullandı.
+Bu oran metin türüne ve modele göre değişir; kendi verinle ölç.
+
+==================================================================
+## rehber-6c
+$ python cozum/adim_6.py compare ornekler/3_teknik_tr.txt ornekler/3_teknik_en.txt
+------------------------------------------------------------------
+Türkçe:   ornekler/3_teknik_tr.txt  |  949 karakter, 121 kelime
+İngilizce: ornekler/3_teknik_en.txt  |  994 karakter, 155 kelime
+
+Model              TR token  EN token  TR/EN  TR fazlası  1.000 çağrıda ek girdi maliyeti
+-----------------  --------  --------  -----  ----------  -------------------------------
+Claude Haiku 4.5        429       207   2,07        %107                            $0,22
+Claude Sonnet 5.5       511       308   1,66         %66                            $0,41
+Claude Opus 5.5         511       308   1,66         %66                            $0,81
+Claude Fable 5.1        511       308   1,66         %66                            $2,03
+
+Ortalama: Türkçe metin aynı içerik için %76 daha fazla girdi token'ı kullandı.
+Bu oran metin türüne ve modele göre değişir; kendi verinle ölç.
+
+==================================================================
+## rehber-7
+$ python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --models haiku-4-5 --verify
+------------------------------------------------------------------
+Dosya: ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+Çıktı tahmini: 1.000 token (cevap + varsa thinking)
+
+Model             Girdi token  Maliyet/çağrı  Context doluluğu
+----------------  -----------  -------------  ----------------------------
+Claude Haiku 4.5          306        $0,0053  ░░░░░░░░░░░░░░░░░░░░ %0,7 OK
+
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+Doğrulama (Claude Haiku 4.5, gerçek çağrı, max_tokens=300)
+                                    Girdi token  Çıktı token   Maliyet
+----------------------------------  -----------  -----------  --------
+Tahmin (count_tokens + max_tokens)          325          300   $0,0018
+Gerçek (usage)                              325          131  $0,00098
+Girdi farkı: +0 token. Faturada esas alınan değer usage'dır.
+Model yanıtı: Fatura entegrasyonu testlerinde yüzde 95 başarılı sonuç alınmış, kalan yüzde 5'lik sorunlu kayıtlar için otomatik kontrol sistemi önerilirken, canlıya geçmeden önce Ayşe Hanım'ın ekibinin bir hafta boyunca raporu incelemesi ve salı günü öğleden sonra yapılacak görüşmede detaylar konuşulması istenmektedir.
+
+==================================================================
+## demo-taban
+$ python cozum/tokenhesap.py count ornekler/1_kisa_tr.txt --baseline
+------------------------------------------------------------------
+Dosya: ornekler/1_kisa_tr.txt  |  86 karakter, 10 kelime
+Çıktı tahmini: 1.000 token (cevap + varsa thinking)
+
+Model              Girdi token  Taban  Net  Maliyet/çağrı  Context doluluğu
+-----------------  -----------  -----  ---  -------------  ----------------------------
+Claude Haiku 4.5            41      8   33        $0,0050  ░░░░░░░░░░░░░░░░░░░░ %0,5 OK
+Claude Sonnet 5.5           52      9   43         $0,010  ░░░░░░░░░░░░░░░░░░░░ %0,1 OK
+Claude Opus 5.5             52      9   43         $0,020  ░░░░░░░░░░░░░░░░░░░░ %0,1 OK
+Claude Fable 5.1            52      9   43         $0,051  ░░░░░░░░░░░░░░░░░░░░ %0,1 OK
+
+Not: Aynı metin modele göre farklı token sayısı verdi (41 – 52, fark %26,8). Tokenizer modele özgüdür; her model için ayrı say.
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-dort-model
+$ python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --output-tokens 500 --monthly-calls 100000
+------------------------------------------------------------------
+Dosya: ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+Çıktı tahmini: 500 token (cevap + varsa thinking)
+
+Model              Girdi token  Maliyet/çağrı  Aylık (100.000 çağrı)  Context doluluğu
+-----------------  -----------  -------------  ---------------------  ----------------------------
+Claude Haiku 4.5           306        $0,0028                $280,60  ░░░░░░░░░░░░░░░░░░░░ %0,4 OK
+Claude Sonnet 5.5          390        $0,0058                $578,00  ░░░░░░░░░░░░░░░░░░░░ %0,1 OK
+Claude Opus 5.5            390         $0,012              $1.156,00  ░░░░░░░░░░░░░░░░░░░░ %0,1 OK
+Claude Fable 5.1           390         $0,029              $2.890,00  ░░░░░░░░░░░░░░░░░░░░ %0,1 OK
+
+Not: Aynı metin modele göre farklı token sayısı verdi (306 – 390, fark %27,5). Tokenizer modele özgüdür; her model için ayrı say.
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-uzun-log
+$ python cozum/tokenhesap.py count ornekler/uzun_log.txt --output-tokens 4000
+------------------------------------------------------------------
+Dosya: ornekler/uzun_log.txt  |  716.293 karakter, 61.677 kelime
+Çıktı tahmini: 4.000 token (cevap + varsa thinking)
+
+Model              Girdi token  Maliyet/çağrı  Context doluluğu
+-----------------  -----------  -------------  ---------------------------------
+Claude Haiku 4.5       372.018          $0,39  ████████████████████ %188,0 TAŞMA
+Claude Sonnet 5.5      422.647          $0,89  █████████░░░░░░░░░░░ %42,7 OK
+Claude Opus 5.5        422.647          $1,77  █████████░░░░░░░░░░░ %42,7 OK
+Claude Fable 5.1       422.647          $4,43  █████████░░░░░░░░░░░ %42,7 OK
+
+Not: Aynı metin modele göre farklı token sayısı verdi (372.018 – 422.647, fark %13,6). Tokenizer modele özgüdür; her model için ayrı say.
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-tr-en-eposta
+$ python cozum/tokenhesap.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt
+------------------------------------------------------------------
+Türkçe:   ornekler/2_eposta_tr.txt  |  720 karakter, 93 kelime
+İngilizce: ornekler/2_eposta_en.txt  |  753 karakter, 126 kelime
+
+Model              TR token  EN token  TR/EN  TR fazlası  1.000 çağrıda ek girdi maliyeti
+-----------------  --------  --------  -----  ----------  -------------------------------
+Claude Haiku 4.5        306       166   1,84         %84                            $0,14
+Claude Sonnet 5.5       390       230   1,70         %70                            $0,32
+Claude Opus 5.5         390       230   1,70         %70                            $0,64
+Claude Fable 5.1        390       230   1,70         %70                            $1,60
+
+Ortalama: Türkçe metin aynı içerik için %73 daha fazla girdi token'ı kullandı.
+Bu oran metin türüne ve modele göre değişir; kendi verinle ölç.
+
+==================================================================
+## demo-tr-en-teknik
+$ python cozum/tokenhesap.py compare ornekler/3_teknik_tr.txt ornekler/3_teknik_en.txt
+------------------------------------------------------------------
+Türkçe:   ornekler/3_teknik_tr.txt  |  949 karakter, 121 kelime
+İngilizce: ornekler/3_teknik_en.txt  |  994 karakter, 155 kelime
+
+Model              TR token  EN token  TR/EN  TR fazlası  1.000 çağrıda ek girdi maliyeti
+-----------------  --------  --------  -----  ----------  -------------------------------
+Claude Haiku 4.5        429       207   2,07        %107                            $0,22
+Claude Sonnet 5.5       511       308   1,66         %66                            $0,41
+Claude Opus 5.5         511       308   1,66         %66                            $0,81
+Claude Fable 5.1        511       308   1,66         %66                            $2,03
+
+Ortalama: Türkçe metin aynı içerik için %76 daha fazla girdi token'ı kullandı.
+Bu oran metin türüne ve modele göre değişir; kendi verinle ölç.
+

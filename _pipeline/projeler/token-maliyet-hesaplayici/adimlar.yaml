@@ -1,0 +1,72 @@
+# Step-by-Step-GUIDE.md talimatlarının makine tarafından okunabilir karşılığı.
+# Simülasyon, adım 1 dosyasından başlayıp bu işlemleri sırayla uygular ve her adımın
+# sonunda dosyanın hedef ara sürümle aynı olduğunu doğrular. Rehberdeki bir talimat
+# değişirse burası da aynı şekilde güncellenmelidir.
+
+baslangic: cozum/adim_1.py
+
+adimlar:
+  - ad: Adım 2
+    hedef: cozum/adim_2.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "MODEL_NAME =", bosluk_once: true, icerik: {sabit: [cozum/adim_2.py, BASELINE_TEXT]}}
+      - {islem: fn_degistir, fn: cmd_count, icerik: {fn: [cozum/adim_2.py, cmd_count]}}
+      - islem: satir_sonrasi
+        capa: 'p_count.add_argument("file"'
+        icerik: {metin: "    p_count.add_argument(\"--baseline\", action=\"store_true\", help=\"Mesaj iskeletinin taban token'ını ve net metin token'ını göster\")"}
+
+  - ad: Adım 3
+    hedef: cozum/adim_3.py
+    islemler:
+      - {islem: bas_degistir, icerik: {bas: cozum/adim_3.py}}
+      - {islem: fn_oncesi, fn: read_text, icerik: {fnler: [cozum/adim_3.py, [load_pricing, select_models]]}}
+      - {islem: fn_sonrasi, fn: count_input_tokens, icerik: {fn: [cozum/adim_3.py, estimate_cost]}}
+      - {islem: fn_sonrasi, fn: estimate_cost, icerik: {fnler: [cozum/adim_3.py, [_tr_number, fmt_int, fmt_usd, print_table]]}}
+      - {islem: fn_degistir, fn: cmd_count, icerik: {fn: [cozum/adim_3.py, cmd_count]}}
+      - {islem: fn_degistir, fn: build_parser, icerik: {fn: [cozum/adim_3.py, build_parser]}}
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_3.py, main]}}
+
+  - ad: Adım 4
+    hedef: cozum/adim_4.py
+    islemler:
+      - {islem: fn_sonrasi, fn: count_input_tokens, icerik: {fn: [cozum/adim_4.py, try_count]}}
+      - {islem: fn_degistir, fn: cmd_count, icerik: {fn: [cozum/adim_4.py, cmd_count]}}
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_4.py, main]}}
+
+  - ad: Adım 5
+    hedef: cozum/adim_5.py
+    islemler:
+      - {islem: fn_sonrasi, fn: estimate_cost, icerik: {fnler: [cozum/adim_5.py, [context_ratio, usage_label, render_bar]]}}
+      - {islem: fn_sonrasi, fn: fmt_usd, icerik: {fn: [cozum/adim_5.py, fmt_pct]}}
+      - {islem: fn_degistir, fn: cmd_count, icerik: {fn: [cozum/adim_5.py, cmd_count]}}
+
+  - ad: Adım 6
+    hedef: cozum/adim_6.py
+    islemler:
+      - {islem: fn_sonrasi, fn: cmd_count, icerik: {fn: [cozum/adim_6.py, cmd_compare]}}
+      - {islem: fn_degistir, fn: build_parser, icerik: {fn: [cozum/adim_6.py, build_parser]}}
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_6.py, main]}}
+
+  - ad: Adım 7
+    hedef: cozum/tokenhesap.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "BASELINE_TEXT =", bosluk_once: true, icerik: {sabit: [cozum/tokenhesap.py, VERIFY_INSTRUCTION]}}
+      - {islem: fn_sonrasi, fn: cmd_count, icerik: {fn: [cozum/tokenhesap.py, run_verify]}}
+      - islem: fn_icinde_once
+        fn: cmd_count
+        satir: "    return 0"
+        icerik:
+          girinti: 4
+          metin: |
+            if args.verify:
+                print()
+                verify_model = select_models(pricing, args.verify_model)[0]
+                run_verify(client, verify_model, text, args.verify_max_tokens)
+      - islem: satir_sonrasi
+        capa: 'p_count.add_argument("--baseline"'
+        icerik:
+          girinti: 4
+          metin: |
+            p_count.add_argument("--verify", action="store_true", help="Tek gerçek çağrı yapıp tahmini usage ile karşılaştır (ücretli)")
+            p_count.add_argument("--verify-model", default="haiku-4-5", help="Doğrulama modeli (varsayılan: haiku-4-5)")
+            p_count.add_argument("--verify-max-tokens", type=int, default=300, help="Doğrulama çağrısının max_tokens değeri")

@@ -1,0 +1,8 @@
+Merhaba Ayşe Hanım,
+
+Geçen haftaki toplantımızda konuştuğumuz fatura entegrasyonu için ilk test sonuçlarını paylaşmak istiyorum. Muhasebe sisteminden gelen kayıtların yüzde doksan beşi sorunsuz eşleşti; kalan yüzde beşlik kısımda tarih formatı ve vergi numarası alanlarında tutarsızlıklar görüyoruz. Bu kayıtları elle düzeltmek yerine, eşleşmeyen satırları ayrı bir listeye alıp her sabah otomatik olarak raporlayan küçük bir kontrol adımı eklemeyi öneriyorum.
+
+Önümüzdeki perşembe günü sistemi canlıya almadan önce, sizin ekibinizden iki kişinin bu raporu bir hafta boyunca incelemesi bizim için çok değerli olur. Uygunsanız salı günü öğleden sonra yarım saatlik kısa bir görüşme ayarlayabiliriz.
+
+Saygılarımla,
+Mehmet

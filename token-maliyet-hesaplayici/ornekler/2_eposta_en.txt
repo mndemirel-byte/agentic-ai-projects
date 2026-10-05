@@ -1,0 +1,8 @@
+Hello Ms. Ayşe,
+
+I would like to share the first test results for the invoice integration we discussed in last week's meeting. Ninety-five percent of the records coming from the accounting system matched without any issues; in the remaining five percent we see inconsistencies in the date format and tax number fields. Instead of correcting these records by hand, I suggest adding a small validation step that moves the unmatched rows to a separate list and reports them automatically every morning.
+
+Before we take the system live next Thursday, it would be very valuable for us if two people from your team could review this report for one week. If you are available, we can schedule a short half-hour call on Tuesday afternoon.
+
+Best regards,
+Mehmet

@@ -1,0 +1,211 @@
+---
+title: "Token maliyet hesaplayıcı"
+slug: "token-maliyet-hesaplayici"
+course: "agentic-ai-dev"
+phase: "llm-okuryazarligi"
+type: "bireysel"
+difficulty: "baslangic"
+estimated_hours: 3
+description: "Çağrı öncesi çalışan bir CLI ile metnin token sayısını, model bazında maliyetini ve context window doluluğunu hesapla; Türkçe ile İngilizce'nin token verimliliğini karşılaştır."
+tags: ["token-counting", "count-tokens-api", "context-window", "maliyet-hesabi", "model-secimi"]
+repo_url: "https://github.com/mndemirel-byte/agentic-ai-projects/tree/main/token-maliyet-hesaplayici"
+demo_kind: "terminal"
+prerequisites_lessons:
+  - "tokenizasyon-ve-context"
+  - "ilk-api-cagrisi"
+  - "model-landscape"
+---
+
+## Ne yapacaksın?
+
+Bir metni modele göndermeden önce üç soruyu cevaplayan bir komut satırı aracı yazacaksın: bu metin kaç token tutuyor, hangi modelde kaça mal olur ve modelin context window'una sığar mı? Araç dört Claude modelini yan yana karşılaştıracak ve aynı içeriğin Türkçe ile İngilizce hâli arasındaki token farkını ölçecek.
+
+<ProjectDemo />
+
+## Bu proje neden var?
+
+Aşama 1 boyunca bir LLM'in metni nasıl gördüğünü, bir API çağrısının nasıl faturalandığını ve context window'un neden sınırlı olduğunu okudun. Bu proje o bilgiyi bir reflekse dönüştürüyor: bir çağrıyı yapmadan önce maliyetini ve sınırlarını ölçmek.
+
+Bu refleksin değeri ilk bakışta küçük görünür; tek bir çağrının maliyeti çoğu zaman bir kuruşun altındadır. Ancak bir agent pipeline'ı dakikada yüzlerce çağrı yapabilir ve her çağrıda binlerce token işleyebilir. Ders 1.4'teki ifadeyle: micro-cent düşünme, macro-dollar planla. Bu projede yazacağın araç, ilerleyen aşamalarda prompt tasarlarken, RAG context'ini parçalarken ve agent bütçesi koyarken sürekli başvuracağın bir ölçüm aletine dönüşecek.
+
+## İsterler
+
+Projenin sonunda `calisma/tokenhesap.py` dosyan aşağıdaki işleri yapıyor olmalı. Bu liste aynı zamanda projeyi bitirip bitirmediğini kontrol edeceğin ölçüttür.
+
+### `count` komutu
+
+`count` komutu bir metin dosyası alır ve her model için tek satırlık bir sonuç üreten bir tablo basar.
+
+- **Girdi token sayısı:** Her model için Token Counting API ile ayrı ayrı ölçülür. Token sayısı tahmin edilmez, karakter sayısından türetilmez ve başka bir sağlayıcının tokenizer'ıyla hesaplanmaz.
+- **Model seçimi:** `--models` seçeneği verilmezse `pricing.yaml` içindeki dört modelin tamamı hesaplanır. Verilirse yalnızca virgülle ayrılmış anahtarlar (ör. `haiku-4-5,sonnet-5-5`) hesaplanır. Bilinmeyen bir anahtar, geçerli anahtarları listeleyen bir hata mesajıyla sonuçlanır.
+- **Maliyet:** Çağrı başına maliyet, girdi ve çıktı token'larının kendi fiyatlarıyla çarpılmasıyla hesaplanır. Beklenen çıktı uzunluğu `--output-tokens` ile verilir; verilmezse 1.000 kabul edilir. `--monthly-calls` verilirse tabloya aylık toplam maliyet sütunu eklenir.
+- **Taban ölçümü:** `--baseline` verilirse tabloya iki sütun eklenir: mesaj iskeletinin token payı (Taban) ve metnin kendi payı (Net).
+- **Context doluluğu:** Girdi ile beklenen çıktının toplamı modelin context window'una oranlanır. Sonuç bir metin çubuğu, bir yüzde ve bir etiketle gösterilir: %50'nin altı `OK`, %50 ve üstü `DİKKAT`, %80 ve üstü `YÜKSEK`, %100'ün üstü `TAŞMA`.
+- **Uyarılar ve notlar:** Modeller aynı metin için farklı token sayısı verirse tablonun altına bu farkı belirten bir not yazılır. Beklenen çıktı bir modelin `max_output` sınırını aşıyorsa o model için bir uyarı yazılır.
+- **Doğrulama:** `--verify` verilirse tek bir gerçek çağrı yapılır ve `count_tokens` tahmini, yanıttaki `usage` değeriyle yan yana gösterilir. Bu, projedeki tek ücretli çağrıdır.
+
+### `compare` komutu
+
+`compare` komutu aynı içeriğin Türkçe ve İngilizce hâlini içeren iki dosya alır. Her model için iki metnin token sayısını, TR/EN oranını, Türkçenin yüzde kaç fazla token kullandığını ve bu farkın 1.000 çağrıdaki ek girdi maliyetini gösterir. Tablonun altına tüm modellerin ortalama oranı yazılır.
+
+### Davranış kuralları
+
+- **Fiyatlar koddan ayrıdır.** Model adları, model kimlikleri, fiyatlar, context window ve `max_output` değerleri yalnızca `pricing.yaml` dosyasından okunur; kodun içinde hiçbir fiyat yazılmaz.
+- **Hatalar anlaşılırdır.** API anahtarı tanımlı değilse program API'ye gitmeden durur ve ne yapılması gerektiğini söyler. Dosya bulunamazsa ya da model anahtarı yanlışsa tek satırlık bir hata mesajı basılır; Python hata dökümü (traceback) gösterilmez.
+- **Bir model çalışmazsa araç durmaz.** Hesabının bir modele erişimi yoksa o modelin satırına "erişilemedi" yazılır ve diğer modellerle devam edilir.
+- **Sayılar Türkçe yazılır.** Binlik ayırıcı nokta, ondalık ayırıcı virgüldür: `12.345` token, `$0,0035`, `%12,5`.
+- **Türkçe karakterler korunur.** Dosyalar UTF-8 olarak okunur.
+
+## Mimari
+
+Araç tek bir Python dosyasıdır ve altı bölümden oluşur. Veri yükleme bölümü `pricing.yaml` ile metin dosyasını okur. API çağrıları bölümü Anthropic SDK ile token sayar; programın API ile konuşan tek yeri burasıdır. Hesaplamalar bölümü maliyet, doluluk oranı ve etiketi üretir; API'ye hiç dokunmaz. Biçimlendirme bölümü sayıları Türkçe yazıma çevirir ve hizalı tabloyu basar. Komutlar bölümü `count` ve `compare` akışlarını yönetir ve diğer bölümlerdeki fonksiyonları sırayla çağırır. Giriş noktası komut satırını okur ve işi doğru komuta yollar.
+
+Bir `count` çağrısında veri şu yolu izler: komut satırı ayrıştırılır, fiyat dosyası yüklenir, API istemcisi kurulur, metin mesaj biçimine sokulur, her model için token sayılır, sayılardan maliyet ve doluluk hesaplanır, sonuç tabloya dökülür.
+
+Bu ayrımın pratik bir faydası var: hesaplama ve biçimlendirme fonksiyonları API'ye bağlı olmadığı için gerçek bir çağrı yapmadan test edilebilir. Örnek repodaki testler tam olarak bunu yapıyor.
+
+## Ön koşullar
+
+**Tamamlanmış olması gereken dersler**
+
+- `tokenizasyon-ve-context` (Ders 1.3): token, tokenizer, context window ve Türkçenin token faturası
+- `ilk-api-cagrisi` (Ders 1.4): mesaj yapısı, SDK kullanımı, `count_tokens`, `usage` ve maliyet hesabı
+- `model-landscape` (Ders 1.7): model katmanları, fiyat ve kapasite farkları
+
+**Gerekli araçlar**
+
+- Python 3.10 veya üzeri
+- Git ve bir GitHub hesabı
+- Bir Anthropic API anahtarı
+- Bir terminal ve bir kod editörü
+
+<Callout type="tip">
+Token Counting API çağrıları ücretlendirilmez; projenin neredeyse tamamı bu çağrılarla yürür. Ücretli olan tek çağrı rehberin 7. adımındaki doğrulamadır ve küçük bir metinle Haiku 4.5 üzerinde yapıldığında maliyeti bir sentin çok altında kalır.
+</Callout>
+
+## Örnek repo nasıl kullanılır?
+
+Proje, `agentic-ai-projects` reposunun `token-maliyet-hesaplayici` klasöründe duruyor. Klasörde başlangıç dosyaları, adım adım ara sürümler, tam çözüm ve iki kod rehberi var. Hepsini aynı anda açman gerekmiyor; aşağıdaki tablo hangisine ne zaman başvuracağını gösteriyor.
+
+| Yol | Ne işe yarar | Ne zaman kullanılır |
+|-----|--------------|---------------------|
+| `calisma/` | Kendi `tokenhesap.py` dosyanı yazacağın boş klasör | Projenin başından sonuna |
+| `pricing.yaml` | Dört modelin fiyat, context window ve max output değerleri | 3. adımdan itibaren kodun okur |
+| `ornekler/` | Üç Türkçe/İngilizce metin çifti ve uzun log üretici | Her adımın kontrol noktasında |
+| `cozum/adim_1.py` … `adim_6.py` | Her adımın sonunda dosyanın ulaşması gereken hâl | Bir adımı bitirdiğinde karşılaştırmak için |
+| `cozum/tokenhesap.py` | Tam çözüm; 7. adımın sonu | Projeyi bitirdiğinde ya da tamamen takıldığında |
+| `kod-rehberi.html` | Kodun çalışma akışını adım adım anlatan etkileşimli sayfa | Fonksiyonların hangi sırayla çağrıldığını görmek istediğinde |
+| `kod-rehberi-yan-yana.html` | Tam çözüm solda, her parçanın açıklaması sağda | Belirli bir satırın neden öyle yazıldığını merak ettiğinde |
+| `demo.html` | Bu sayfadaki demo kartının çevrimdışı açılabilen kopyası | Platform dışında demoyu izlemek istediğinde |
+| `tests/` | Gerçek API çağrısı yapmayan testler | Çözümün mantığını incelemek istediğinde |
+| `Step-by-Step-GUIDE.md` | Yedi adımlık rehber: kod, komutlar, beklenen çıktılar | Projenin başından sonuna |
+
+### Adım adım rehber
+
+Projenin yedi adımı, her adımın kodu, çalıştırma komutları, beklenen çıktıları ve yaygın hataları repodaki [Step-by-Step-GUIDE.md](https://github.com/mndemirel-byte/agentic-ai-projects/blob/main/token-maliyet-hesaplayici/Step-by-Step-GUIDE.md) dosyasında. Rehber, kodu sıfırdan `calisma/tokenhesap.py` dosyasında adım adım büyütmen için yazıldı; projeye başladığında bu sayfadaki isterleri okuduktan sonra rehberi aç ve sırayla ilerle.
+
+### Önerilen çalışma biçimi
+
+1. **Başlamadan önce demoyu izle.** Bu sayfanın başındaki demo kartı, bitmiş aracın altı komutunu ve her komuttaki parametrelerin anlamını gösteriyor. Neyi inşa edeceğini görmek, her adımın nereye gittiğini anlamayı kolaylaştırır.
+2. **Her adımda önce oku, sonra yaz.** Rehberdeki her adımın "Ne yapacaksın" ve "Neden" kısımlarını okumadan koda geçme. Kodu kopyalamak yerine elle yazmayı dene; kopyalayacaksan bile her satırı okuyarak geç.
+3. **Kontrol noktasında dur.** Her adımın sonundaki komutu çalıştır ve çıktını beklenen çıktıyla karşılaştır. Çıktı tutmuyorsa bir sonraki adıma geçme.
+4. **Takıldığında ara sürümle karşılaştır.** Dosyanı ilgili ara sürümle satır satır karşılaştır. Farkı görmek, çözümü baştan okumaktan daha öğreticidir.
+5. **Satırın nedenini rehberde ara.** Bir satırı anlamadıysan `kod-rehberi-yan-yana.html` sayfasında o fonksiyonun karşısındaki açıklamayı oku.
+
+Ara sürümle karşılaştırmak için:
+
+```bash
+diff calisma/tokenhesap.py cozum/adim_3.py
+```
+
+Ara sürüm dosyaları kendi başına da çalışır. Bir adımda dosyan bozulduysa ve ilerlemek istiyorsan, o adımın ara sürümünü çalışma klasörüne kopyalayıp oradan devam edebilirsin:
+
+```bash
+cp cozum/adim_3.py calisma/tokenhesap.py
+```
+
+<Callout type="trap">
+Tam çözümü baştan okuyup sonra "anladım" demek bu projenin amacını boşa çıkarır. Çözüm dosyası 350 satır civarında ve okununca kolay görünür; aynı kodu boş bir dosyadan yazmak ise bambaşka bir deneyimdir. Öğrenme, kendi yazdığın kodun hata verdiği ve nedenini bulduğun anlarda gerçekleşir. Çözümü yalnızca karşılaştırma için aç.
+</Callout>
+
+## Kurulum
+
+Önce repoyu GitHub'da kendi hesabına fork'la, sonra kendi kopyanı bilgisayarına indir. Aşağıdaki komutlarda `KULLANICI_ADIN` yerine kendi GitHub kullanıcı adını yaz.
+
+```bash
+git clone https://github.com/KULLANICI_ADIN/agentic-ai-projects.git
+cd agentic-ai-projects/token-maliyet-hesaplayici
+```
+
+Bir sanal ortam oluştur ve bağımlılıkları kur:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Windows'ta sanal ortamı etkinleştirmek için ikinci satır yerine `.venv\Scripts\activate` komutunu kullan.
+
+API anahtarını ortam değişkeni olarak tanımla:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+Windows PowerShell'de bunun karşılığı `$env:ANTHROPIC_API_KEY="sk-ant-..."` komutudur. Kurulumun tamamlandığını şu komutla doğrula:
+
+```bash
+python -c "import anthropic, yaml; print('Kurulum tamam')"
+```
+
+Ekranda `Kurulum tamam` yazısını görüyorsan hazırsın.
+
+<Callout type="warning">
+API anahtarını hiçbir zaman bir dosyaya yazıp repoya gönderme. Anahtar yalnızca ortam değişkeninde durmalı. Repodaki `.gitignore` dosyası `.env` dosyalarını zaten dışarıda bırakıyor, ama en güvenli yol anahtarı kodun hiçbir yerine yazmamaktır.
+</Callout>
+
+## Kontrol noktaları
+
+Projeyi teslim edilmiş saymadan önce aşağıdaki listeyi kendin için gözden geçir. Her madde, İsterler bölümündeki bir gereksinime karşılık gelir.
+
+- [ ] `count` komutu `--models` verilmeden dört modelin tamamını hesaplıyor.
+- [ ] Bilinmeyen bir model anahtarı (`--models gpt-5`) geçerli anahtarları listeleyen tek satırlık bir hata veriyor.
+- [ ] Tablodaki bir maliyeti elle doğruladın ve sonuç tuttu.
+- [ ] `--baseline` ile taban ve net değerleri görünüyor; taban farklı dosyalarda aynı.
+- [ ] Uzun log dosyasında Haiku 4.5 satırı `TAŞMA`, 1M'lik modeller `OK` gösteriyor.
+- [ ] `--output-tokens 70000` ile çalıştırınca Haiku 4.5 için max output uyarısı çıkıyor.
+- [ ] `compare` komutu üç metin çiftinde de çalışıyor ve ortalama oranı yazıyor.
+- [ ] `--verify` tahmin ile gerçeği yan yana gösteriyor.
+- [ ] API anahtarı tanımlı değilken (`unset ANTHROPIC_API_KEY`) program traceback yerine tek satırlık bir mesajla duruyor.
+- [ ] Kodda hiçbir fiyat ya da model kimliği yazılı değil; hepsi `pricing.yaml` dosyasından geliyor.
+
+## Bu projede pratik yaptığın kavramlar
+
+**Tokenizasyon ve tokenizer'ın modele özgü olması** (Ders 1.3 §1–2). Token sayısını tahmin etmedin, her model için ayrı ayrı ölçtün. Aynı metnin farklı modellerde farklı sayı verebildiğini kendi çıktında gördün.
+
+**Token Counting API ve çağrı öncesi ölçüm** (Ders 1.4 §6.1). Modeli çalıştırmadan ve ücret ödemeden bir isteğin boyutunu öğrendin; "bu istek sığar mı, bütçeyi aşar mı?" sorusunu çağrıdan önce cevapladın.
+
+**Tahmin ile kesin ölçüm arasındaki fark** (Ders 1.4 §6.1). `count_tokens` bir planlama aracıdır; faturada esas alınan değer yanıttaki `usage` alanıdır. İkisini yan yana koyarak hangisinin ne zaman kullanılacağını netleştirdin.
+
+**Girdi ve çıktı fiyat asimetrisi** (Ders 1.4 §6.2). Çıktı token'larının girdiden kat kat pahalı olduğunu ve yeni nesil modellerde düşünme (thinking) token'larının da çıktı olarak faturalandığını hesabına yansıttın.
+
+**Context window, rezerv ve taşma** (Ders 1.3 §3). Pencerenin yalnızca girdiyle değil, modelin üreteceği cevapla da dolduğunu; 200K ile 1M token'lık pencereler arasındaki farkın pratikte ne anlama geldiğini gördün.
+
+**Türkçenin token faturası** (Ders 1.3 §1.3). Eklemeli bir dilin aynı anlamı taşımak için kaç token harcadığını kendi örneklerinle ölçtün ve bu farkın çok dilli bir üründe bütçeye nasıl yansıdığını hesapladın.
+
+**Gerekçeli model seçimi** (Ders 1.7). Model seçiminin yalnızca kaliteyle değil, maliyet ve kapasiteyle de ilgili olduğunu; aynı iş yükünün dört modelde aylık hangi tutara ulaştığını rakamlarla gördün.
+
+**API çağrısının anatomisi ve hata yönetimi** (Ders 1.4 §1 ve §5). Mesaj yapısını, istemci kurulumunu ve bir modele erişim olmadığında programın çökmeden devam etmesini sağlayan hata yakalamayı uyguladın.
+
+## Genişletme fikirleri
+
+Projeyi bitirdiysen ve daha ileri gitmek istiyorsan, aşağıdaki özelliklerden birini ekleyebilirsin. Her biri sonraki aşamalardaki bir konuya köprü kurar.
+
+- **Çok turlu sohbet projeksiyonu.** Ders 1.4 §6.3'te her turda tüm geçmişin yeniden gönderildiğini gördün. `--turns 20` gibi bir seçenekle, her turda geçmişin büyüdüğü bir sohbetin toplam maliyetini ve hangi turda context window'un dolacağını hesapla.
+- **Prompt caching simülasyonu.** Uzun ve sabit bir system prompt'un her çağrıda yeniden işlenmesi yerine önbellekten okunması maliyeti ciddi biçimde düşürür. `pricing.yaml` dosyasına önbellek fiyatlarını ekleyip önbellekli ve önbelleksiz maliyeti karşılaştır. Bu konu Aşama 8'de ayrıntılı olarak işlenecek.
+- **Klasör girdisi.** Tek bir dosya yerine bir klasördeki tüm metin dosyalarını sayan ve toplamı veren bir mod ekle. Bir RAG sistemine yüklenecek doküman setinin boyutunu ölçmek için kullanışlı bir araca dönüşür.
+
+## Bitirdiğinde elinde ne olacak?
+
+Herhangi bir metin dosyasını dört modelde ölçen, maliyetini ve pencere doluluğunu tek bir tabloda gösteren, çalışan bir CLI aracı. Bu araç portfolyona ekleyebileceğin bir proje olmanın yanında, programın geri kalanında prompt'larını ve pipeline'larını ölçmek için kullanacağın kişisel bir alet olacak.

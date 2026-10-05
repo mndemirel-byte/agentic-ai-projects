@@ -1,0 +1,271 @@
+# Yan yana kod rehberi girdisi. Açıklamalar HTML içerebilir (<code>, <b>).
+# Çapa: parçanın başladığı satırın baştaki boşluklar atılmış hâliyle başladığı metin.
+
+dipnot: Kodu ilk kez okuyorsan en alttaki "Programın başladığı yer" bölümünden başlayıp yukarı doğru, çağrılan fonksiyonları
+  takip ederek ilerlemeyi de deneyebilirsin. Fiyat ve model değerleri pricing.yaml dosyasından okunur.
+bolumler:
+- anahtar: hazirlik
+  ad: Hazırlık
+  aciklama: Dosyanın tanıtımı, kullanılacak kütüphaneler ve sabit değerler.
+- anahtar: veri
+  ad: Veri yükleme
+  aciklama: Diskteki dosyaları okuyup programın kullanabileceği hâle getiren fonksiyonlar.
+- anahtar: api
+  ad: API çağrıları
+  aciklama: Anthropic API ile konuşan tek yer. Token sayımı burada yapılır.
+- anahtar: hesap
+  ad: Hesaplamalar
+  aciklama: API'ye dokunmayan, yalnızca sayılarla çalışan küçük fonksiyonlar.
+- anahtar: bicim
+  ad: Biçimlendirme
+  aciklama: Sayıları Türkçe yazıma çevirip ekrana düzgün bir tablo basan yardımcılar.
+- anahtar: komut
+  ad: Komutlar
+  aciklama: 'count ve compare komutlarının iş akışı: diğer bloklardaki fonksiyonları sırayla çağırır.'
+- anahtar: giris
+  ad: Giriş noktası
+  aciklama: 'Program buradan başlar: komut satırını okur ve işi doğru komuta yollar.'
+parcalar:
+- capa: '"""Token maliyet hesaplayıcı.'
+  bolum: hazirlik
+  baslik: 'Docstring: dosyanın kullanım kılavuzu'
+  aciklama: >-
+    Üç tırnak (<code>"""</code>) arasındaki metin bir <b>docstring</b>'dir. Python bunu çalıştırmaz; dosyanın ne
+    işe yaradığını ve nasıl kullanılacağını anlatan bir açıklamadır. Komut örneklerini buradan kopyalayıp terminalde
+    deneyebilirsin.
+- capa: import argparse
+  bolum: hazirlik
+  baslik: 'import: kullanılacak araçları çağır'
+  aciklama: >-
+    <code>import</code> satırları başka modülleri bu dosyaya getirir. İlk grup Python ile birlikte gelen standart
+    kütüphanedir: komut satırı (<code>argparse</code>), matematik (<code>math</code>), ortam değişkenleri (<code>os</code>),
+    sistem (<code>sys</code>) ve dosya yolları (<code>Path</code>). İkinci grup <code>pip install</code> ile kurduğun
+    dış paketlerdir: <code>anthropic</code> API için, <code>yaml</code> fiyat dosyası için.
+- capa: DEFAULT_PRICING_PATH =
+  bolum: hazirlik
+  baslik: Sabitler
+  aciklama: >-
+    Büyük harfle yazılan isimler <b>sabit</b>tir: program boyunca değişmeyen değerler. Fiyat dosyasının yolu, taban
+    ölçümü için kullanılan tek karakterlik mesaj ve <code>pricing.yaml</code>'da bulunması zorunlu alanlar burada
+    tanımlanır. Bu değerleri bir kez yukarıda tanımlamak, aynı metni kodun içinde tekrar tekrar yazmaktan korur.
+- capa: '# Veri yükleme'
+  fark: -1
+  bolum: veri
+  baslik: 'load_pricing: fiyat dosyasını oku ve kontrol et'
+  aciklama: >-
+    <code>with open(...)</code> dosyayı açar ve blok bitince otomatik kapatır. <code>yaml.safe_load</code> YAML
+    metnini bir Python sözlüğüne (<code>dict</code>) çevirir. Ardından her modelde zorunlu alanların olup olmadığına
+    bakılır; eksik varsa <code>raise ValueError</code> ile program anlaşılır bir hata mesajıyla durur. Fiyatların
+    kodda değil ayrı bir dosyada durması, fiyat değiştiğinde kodu değiştirmeden güncelleyebilmeni sağlar.
+- capa: def select_models
+  bolum: veri
+  baslik: 'select_models: hangi modeller hesaplanacak?'
+  aciklama: >-
+    <code>--models</code> verilmediyse tüm modeller döner. Verildiyse virgülle bölünür (<code>split(",")</code>)
+    ve her anahtar sözlükte aranır. <code>by_key</code> sözlüğü, modele anahtarıyla hızlıca ulaşmak için kurulur.
+    Bilinmeyen bir anahtar yazılırsa geçerli anahtarları listeleyen bir hata verilir; yazım hatası yapan kullanıcı
+    ne yazması gerektiğini hemen görür.
+- capa: def read_text
+  bolum: veri
+  baslik: 'read_text: metni oku'
+  aciklama: >-
+    Dosyayı UTF-8 kodlamasıyla okur; Türkçe karakterlerin (ş, ğ, ı) bozulmaması için kodlamayı açıkça belirtmek
+    önemlidir. Dosya adı yerine <code>-</code> verilirse metni klavyeden veya başka bir komutun çıktısından (standart
+    girdi) okur.
+- capa: '# API çağrıları'
+  fark: -1
+  bolum: api
+  baslik: 'build_messages: metni mesaj biçimine sok'
+  aciklama: >-
+    Claude API metni çıplak olarak değil, rolü belli mesajlardan oluşan bir liste olarak alır (Ders 1.4). Bu fonksiyon
+    metni <code>{"role": "user", "content": ...}</code> biçimine sokar. Token sayımı da bu yapı üzerinden yapılır;
+    bu yüzden sayılan değer metnin kendisinden birkaç token fazladır.
+- capa: def count_input_tokens
+  bolum: api
+  baslik: 'count_input_tokens: API''ye kaç token olduğunu sor'
+  aciklama: >-
+    Projenin kalbi bu iki satır. <code>client.messages.count_tokens</code> mesajı API'ye gönderir ama model çalışmaz,
+    cevap üretmez, ücret yazılmaz; yalnızca girdi token sayısı döner. Model adını parametre olarak alır, çünkü tokenizer
+    modele özgüdür: aynı metin farklı modellerde farklı sayı verebilir.
+- capa: def try_count
+  bolum: api
+  baslik: 'try_count: hataya dayanıklı sayım'
+  aciklama: >-
+    <code>try / except</code> bloğu, içindeki kod hata verirse programın çökmesini önler ve hatayı yakalar. Hesabının
+    bir modele erişimi yoksa API'nin döndürdüğü hata (<code>APIStatusError</code>) yakalanır ve fonksiyon <code>(None,
+    "HTTP 404")</code> gibi bir sonuç döner; tabloya "erişilemedi" yazılır ve diğer modellerle devam edilir. API
+    anahtarı hatası ise tüm modelleri etkilediği için <code>raise</code> ile yukarıya iletilir.
+- capa: '# Hesaplamalar'
+  fark: -1
+  bolum: hesap
+  baslik: 'estimate_cost: tek çağrının maliyeti'
+  aciklama: >-
+    Girdi ve çıktı token'ları kendi fiyatlarıyla çarpılıp toplanır, sonra 1.000.000'a bölünür; çünkü fiyatlar milyon
+    token başına verilir (Ders 1.4 §6.2). <code>1_000_000</code> yazımındaki alt çizgiler yalnızca okumayı kolaylaştırır,
+    Python bunları yok sayar.
+- capa: def context_ratio
+  bolum: hesap
+  baslik: 'context_ratio: pencere ne kadar dolu?'
+  aciklama: >-
+    Girdi ve beklenen çıktı toplanıp modelin context window'una bölünür. 0,5 sonucu "pencerenin yarısı dolu" demektir.
+    Çıktı da hesaba katılır, çünkü model cevabını aynı pencerenin içinde üretir; girdi tek başına sığsa bile cevaba
+    yer kalmayabilir (Ders 1.3 §3).
+- capa: def usage_label
+  bolum: hesap
+  baslik: 'usage_label: orana bir ad ver'
+  aciklama: >-
+    <code>if</code> koşulları yukarıdan aşağıya denenir ve ilk doğru olan <code>return</code> ile fonksiyondan çıkılır.
+    Bu yüzden sıra önemlidir: önce en büyük eşik (<code>&gt; 1</code>) kontrol edilir. Hiçbiri tutmazsa en alttaki
+    <code>"OK"</code> döner.
+- capa: def render_bar
+  bolum: hesap
+  baslik: 'render_bar: metinden ilerleme çubuğu'
+  aciklama: >-
+    Bir dizgiyi sayıyla çarpmak onu tekrarlar: <code>"█" * 5</code> beş dolu kutu üretir. Oran 1'i geçse bile çubuk
+    taşmasın diye <code>min(ratio, 1.0)</code> ile sınırlanır; taşma bilgisi zaten etikette yazar.
+- capa: '# Biçimlendirme (Türkçe sayı yazımı: binlik ayırıcı nokta, ondalık virgül)'
+  fark: -1
+  bolum: bicim
+  baslik: '_tr_number: İngilizce sayı yazımını Türkçeye çevir'
+  aciklama: >-
+    Python sayıları <code>1,234.56</code> biçiminde yazar; Türkçede ise <code>1.234,56</code> kullanılır. Virgül
+    ile nokta doğrudan yer değiştirilemez (biri diğerini ezer), bu yüzden virgül önce geçici bir işarete (<code>§</code>)
+    çevrilir. Fonksiyon adının alt çizgiyle başlaması "bu dosyanın iç yardımcısı" anlamına gelen bir Python geleneğidir.
+- capa: def fmt_int
+  bolum: bicim
+  baslik: 'fmt_int: tam sayıyı biçimle'
+  aciklama: >-
+    <code>f"{n:,}"</code> bir <b>f-string</b>'dir: süslü parantez içindeki değeri metne yerleştirir, <code>:,</code>
+    ise binlik ayırıcı ekler. Sonuç <code>_tr_number</code>'dan geçirilerek 12.345 biçimine getirilir.
+- capa: def fmt_usd
+  bolum: bicim
+  baslik: 'fmt_usd: dolar tutarını okunur yaz'
+  aciklama: >-
+    Maliyetler çok küçük olabildiği için ($0,00025 gibi) sabit iki ondalık yetmez. <code>math.log10</code> sayının
+    büyüklük basamağını bulur; ondalık sayısı buna göre ayarlanır ve ilk anlamlı rakamdan sonra bir basamak daha
+    gösterilir. Negatif tutarlar için fonksiyon kendini pozitif değerle yeniden çağırır ve başa eksi koyar.
+- capa: def fmt_pct
+  bolum: bicim
+  baslik: 'fmt_pct: yüzde yaz'
+  aciklama: >-
+    Oranı 100 ile çarpıp Türkçe yazımdaki gibi yüzde işaretini başa koyar (<code>%12,5</code>). Negatif değerlerde
+    eksi işareti yüzdenin önüne gelir (<code>-%4</code>).
+- capa: def print_table
+  bolum: bicim
+  baslik: 'print_table: hizalı tablo bas'
+  aciklama: >-
+    Önce her sütundaki en uzun hücre bulunur (<code>widths</code>). <code>zip(headers, *rows)</code> satırları sütunlara
+    çevirir. İçeride tanımlanan <code>line</code> fonksiyonu her hücreyi o genişliğe tamamlar: sayılar sağa (<code>rjust</code>),
+    metinler sola (<code>ljust</code>) yaslanır. Böylece ek bir kütüphane olmadan düzgün bir tablo çıkar.
+- capa: '# Komutlar'
+  fark: -1
+  bolum: komut
+  baslik: 'cmd_count başlar: girdileri hazırla'
+  aciklama: >-
+    <code>count</code> komutunun iş akışı. Önce metin okunur, modeller seçilir ve mesaj hazırlanır; böylece döngüye
+    girmeden her şey hazır olur. Ekrana dosyanın karakter ve kelime sayısı yazılır; <code>text.split()</code> metni
+    boşluklardan bölerek kelimeleri sayar.
+- capa: headers = ["Model", "Girdi token"]
+  bolum: komut
+  baslik: Tablo başlıklarını kur
+  aciklama: >-
+    Tablonun sütunları kullanıcının seçeneklerine göre değişir: <code>--baseline</code> verildiyse Taban ve Net,
+    <code>--monthly-calls</code> verildiyse Aylık sütunu eklenir. <code>+=</code> listeye yeni elemanlar ekler.
+    Sonda boş listeler oluşturulur: satırlar, token sayıları ve uyarılar döngü boyunca bunlara eklenecek.
+- capa: 'for model in models:'
+  bolum: komut
+  baslik: Model döngüsü ve hata satırı
+  aciklama: >-
+    <code>for</code> döngüsü her modeli sırayla işler. Sayım hata verdiyse satır tirelerle doldurulur ve son sütuna
+    hata yazılır. <code>continue</code> döngünün bu turunu bitirir ve bir sonraki modele geçer; hatalı modelle hesap
+    yapılmaya çalışılmaz.
+- capa: counts.append(tokens)
+  bolum: komut
+  baslik: Token ve taban sütunları
+  aciklama: >-
+    Başarılı sayım <code>counts</code> listesine eklenir; en sonda modeller arası fark bu listeden hesaplanacak.
+    <code>--baseline</code> verildiyse tek noktalık bir mesaj ayrıca sayılır. Bu, mesaj iskeletinin token maliyetini
+    gösterir; metnin kendi payı (Net) toplamdan bu taban çıkarılarak bulunur.
+- capa: cost =
+  bolum: komut
+  baslik: Maliyet, doluluk ve uyarı
+  aciklama: >-
+    Hesaplamalar bloğundaki fonksiyonlar burada çağrılır: maliyet, varsa aylık maliyet, doluluk oranı, çubuk ve
+    etiket satıra eklenir. Beklenen çıktı modelin üretebileceği en fazla token'ı (<code>max_output</code>) aşıyorsa
+    uyarı listeye alınır; tablo bittikten sonra basılacak.
+- capa: print_table(headers, rows, right_align=set(range(1, len(headers) - 1)))
+  bolum: komut
+  baslik: Sonuçları bas, gerekirse doğrula
+  aciklama: >-
+    Tablo basılır. <code>set(counts)</code> tekrarları atar; birden fazla farklı değer kaldıysa modeller aynı metin
+    için farklı token sayısı vermiş demektir ve bunu bir not olarak yazar. <code>--verify</code> verildiyse tek
+    bir gerçek çağrı yapılır. <code>return 0</code> "başarıyla bitti" anlamına gelir.
+- capa: def run_verify
+  bolum: komut
+  baslik: 'run_verify: tahmin ve gerçek çağrı'
+  aciklama: >-
+    Aynı mesaj önce <code>count_tokens</code> ile sayılır, sonra <code>messages.create</code> ile gerçekten modele
+    gönderilir. Bu çağrı ücretlidir; model bir cevap üretir ve yanıtta <code>usage</code> alanı gelir. <code>usage</code>,
+    faturada esas alınan kesin ölçümdür (Ders 1.4 §6.1).
+- capa: print(f"Doğrulama ({model['name']}, gerçek çağrı, max_tokens={max_tokens})")
+  bolum: komut
+  baslik: Tahmin ile gerçeği yan yana göster
+  aciklama: >-
+    İki satırlık bir tablo basılır: tahmin ve gerçek. Çağrıdan önce cevabın uzunluğu bilinemediği için tahmin satırında
+    çıktı olarak <code>max_tokens</code> üst sınırı kullanılır; bu en kötü durum maliyetidir. <code>{diff:+d}</code>
+    farkı işaretiyle (+1, -2) yazar. Son olarak modelin cevabındaki metin blokları birleştirilip gösterilir.
+- capa: def cmd_compare
+  bolum: komut
+  baslik: 'cmd_compare başlar: iki dosyayı oku'
+  aciklama: >-
+    <code>compare</code> komutu aynı içeriğin Türkçe ve İngilizce hâlini okur. Karşılaştırmanın anlamlı olması için
+    iki metnin aynı şeyi söylemesi gerekir; böylece token farkı yalnızca dilden kaynaklanır (Ders 1.3 §1.3). <code>a,
+    b = x, y</code> yazımı iki değişkene aynı satırda değer atar.
+- capa: 'for model in models:'
+  bolum: komut
+  baslik: Her model için iki sayım ve oran
+  aciklama: >-
+    Her model için iki ayrı sayım yapılır. Biri hata verirse satır "erişilemedi" olarak geçilir. Oran TR'nin EN'ye
+    bölünmesiyle bulunur: 1,30 sonucu Türkçenin %30 daha fazla token kullandığını gösterir. Fark girdi fiyatıyla
+    çarpılıp 1.000 çağrıya ölçeklenir; küçük bir oran böylece somut bir dolar tutarına dönüşür.
+- capa: print_table(headers, rows, right_align={1, 2, 3, 4, 5})
+  bolum: komut
+  baslik: Tablo ve ortalama sonuç
+  aciklama: >-
+    Tablo basıldıktan sonra tüm oranların ortalaması alınır: <code>sum(ratios) / len(ratios)</code>. Tek satırlık
+    <code>a if koşul else b</code> yazımıyla ortalamaya göre "daha fazla" ya da "daha az" seçilir. Son satır, oranın
+    metin türüne göre değiştiğini hatırlatır.
+- capa: '# Giriş noktası'
+  fark: -1
+  bolum: giris
+  baslik: 'build_parser: komut satırının tarifi'
+  aciklama: >-
+    <code>argparse</code> ile programın kabul ettiği komutlar (<code>count</code>, <code>compare</code>) ve seçenekler
+    tanımlanır. <code>add_subparsers</code> alt komutları, <code>add_argument</code> her seçeneği ekler. <code>type=int</code>
+    değeri sayıya çevirir, <code>default</code> verilmezse kullanılacak değeri, <code>action="store_true"</code>
+    ise değer almayan açma-kapama seçeneğini belirtir. <code>--help</code> çıktısı da buradaki <code>help</code>
+    metinlerinden otomatik üretilir.
+- capa: def main
+  bolum: giris
+  baslik: 'main: hazırlık ve istemci'
+  aciklama: >-
+    <code>parse_args</code> terminaldeki yazıyı okuyup <code>args</code> nesnesine koyar; artık <code>args.file</code>,
+    <code>args.output_tokens</code> gibi değerlere nokta ile erişilir. Fiyat dosyası yüklenir. API anahtarı yoksa
+    program API'ye hiç gitmeden açıklayıcı bir mesajla durur. <code>client=None</code> parametresi testlerin sahte
+    bir istemci vermesine izin verir; böylece testler para harcamadan çalışır.
+- capa: 'if args.command == "count":'
+  bolum: giris
+  baslik: İşi komuta yolla, hataları yakala
+  aciklama: >-
+    <code>args.command</code> değerine göre <code>cmd_count</code> ya da <code>cmd_compare</code> çağrılır. Altta
+    yakalanan hatalar kullanıcının düzeltebileceği türdendir: eksik dosya, hatalı model adı, geçersiz API anahtarı.
+    Her biri teknik bir hata dökümü yerine tek satırlık anlaşılır bir mesaj ve <code>2</code> çıkış koduyla sonlanır.
+- capa: if __name__
+  bolum: giris
+  baslik: Programın başladığı yer
+  aciklama: >-
+    Dosya doğrudan çalıştırıldığında (<code>python tokenhesap.py</code>) Python <code>__name__</code> değişkenine
+    <code>"__main__"</code> değerini verir ve <code>main()</code> çağrılır. Testler dosyayı <code>import</code>
+    ettiğinde bu koşul sağlanmaz ve hiçbir şey kendiliğinden çalışmaz. <code>sys.exit</code>, <code>main()</code>'in
+    döndürdüğü sayıyı terminale çıkış kodu olarak iletir. Kodu okumaya buradan başlayıp yukarı doğru fonksiyonları
+    takip etmek de iyi bir yöntemdir.

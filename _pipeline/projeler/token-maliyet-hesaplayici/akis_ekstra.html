@@ -1,0 +1,47 @@
+<!-- Akış rehberine eklenen projeye özgü bölüm. <script> içeriği sayfanın ana script'inden sonra çalışır; $ yardımcısı kullanılabilir. -->
+<section aria-labelledby="h-calc">
+  <h2 id="h-calc">Kendin dene: maliyet ve doluluk hesabı</h2>
+  <p class="sub">estimate_cost, context_ratio ve usage_label fonksiyonlarının yaptığı hesabın aynısı. Haiku'yu seçip girdiyi 200.000'e yaklaştır, sonra modeli değiştir.</p>
+  <div class="calc">
+    <div class="row"><label for="c-model">Model</label>
+      <select id="c-model"></select><span></span></div>
+    <div class="row"><label for="c-in">Girdi token</label><input type="range" id="c-in" min="0" max="1200000" step="1000" value="180000"><output id="c-in-o" for="c-in"></output></div>
+    <div class="row"><label for="c-out">Çıktı token</label><input type="range" id="c-out" min="0" max="128000" step="500" value="4000"><output id="c-out-o" for="c-out"></output></div>
+    <div class="results">
+      <div class="res"><span>estimate_cost</span><b id="r-cost"></b></div>
+      <div class="res"><span>context_ratio</span><b id="r-ratio"></b></div>
+      <div class="res"><span>usage_label</span><b id="r-label"></b></div>
+    </div>
+    <pre id="r-formula" style="margin-bottom:0"></pre>
+  </div>
+</section>
+<script>
+// Model verisi pipeline tarafından pricing.yaml dosyasından enjekte edilir.
+const PRICING = {{VERI:pricing.yaml}};
+const MODELS = PRICING.models.map(m => ({n: m.name, i: m.input_per_mtok, o: m.output_per_mtok, c: m.context_window}));
+MODELS.forEach((m, k) => { const o = document.createElement("option"); o.value = k; o.textContent = m.n; $("c-model").append(o); });
+const nf = new Intl.NumberFormat("tr-TR");
+function usd(x) {
+  if (x === 0) return "$0";
+  const d = x >= 1 ? 2 : Math.min(8, -Math.floor(Math.log10(x)) + 1);
+  return "$" + new Intl.NumberFormat("tr-TR", {minimumFractionDigits: d, maximumFractionDigits: d}).format(x);
+}
+function calc() {
+  const m = MODELS[+$("c-model").value], inp = +$("c-in").value, out = +$("c-out").value;
+  $("c-in-o").textContent = nf.format(inp);
+  $("c-out-o").textContent = nf.format(out);
+  const cost = (inp * m.i + out * m.o) / 1e6, r = (inp + out) / m.c;
+  const lab = r > 1 ? "TAŞMA" : r >= 0.8 ? "YÜKSEK" : r >= 0.5 ? "DİKKAT" : "OK";
+  $("r-cost").textContent = usd(cost);
+  $("r-ratio").textContent = "%" + new Intl.NumberFormat("tr-TR", {minimumFractionDigits: 1, maximumFractionDigits: 1}).format(r * 100);
+  $("r-label").textContent = lab;
+  $("r-label").style.color = lab === "TAŞMA" ? "var(--bad)" : lab === "OK" ? "var(--ok)" : "var(--warn)";
+  const filled = Math.min(20, Math.round(Math.min(r, 1) * 20));
+  $("r-formula").textContent =
+    "cost  = (" + nf.format(inp) + " × " + m.i + " + " + nf.format(out) + " × " + m.o + ") / 1.000.000 = " + usd(cost) + "\n" +
+    "ratio = (" + nf.format(inp) + " + " + nf.format(out) + ") / " + nf.format(m.c) + "\n" +
+    "bar   = " + "█".repeat(filled) + "░".repeat(20 - filled) + "  " + lab;
+}
+["c-model", "c-in", "c-out"].forEach(id => $(id).addEventListener("input", calc));
+calc();
+</script>

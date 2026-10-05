@@ -1,0 +1,7 @@
+Olay özeti: Sipariş servisi saat 14:20 ile 14:47 arasında isteklerin yaklaşık yüzde otuzuna zaman aşımı hatasıyla yanıt verdi.
+
+Kök neden: Gece yapılan dağıtımla birlikte stok sorgusunun veritabanı bağlantı havuzu boyutu yirmiden beşe düşürüldü. Öğleden sonraki yoğunlukta havuzdaki bağlantılar tükendi; yeni istekler bağlantı beklerken otuz saniyelik zaman aşımı sınırına takıldı. Yeniden deneme mekanizması bu durumu düzeltmek yerine yükü artırdı, çünkü her başarısız istek üç kez daha tekrarlandı.
+
+Yapılan müdahale: Havuz boyutu yapılandırma dosyasında yeniden yirmiye çıkarıldı ve servis kademeli olarak yeniden başlatıldı. Hata oranı 14:47 itibarıyla normal seviyesine döndü.
+
+Kalıcı önlemler: Bağlantı havuzu doluluğu için yüzde seksende uyarı veren bir izleme kuralı eklenecek. Yeniden deneme mekanizmasına üstel bekleme süresi ve devre kesici eklenecek. Yapılandırma değişiklikleri, dağıtımdan önce ikinci bir mühendisin onayından geçecek.

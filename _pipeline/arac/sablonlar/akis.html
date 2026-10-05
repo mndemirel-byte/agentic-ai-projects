@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{BASLIK_DUZ}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F7;--paper:#FFFFFF;--ink:#18202C;--ink-2:#4A5568;--ink-3:#748094;
+  --line:#D9DEE6;--accent:#2648B8;--accent-bg:#E7EDFC;--why:#0E6E60;--why-bg:#E3F3F0;
+  --code-bg:#F7F8FA;--ok:#1F7A3A;--warn:#9A5B05;--bad:#B4361A;
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#11151C;--paper:#181D26;--ink:#E7EBF1;--ink-2:#AEB8C6;--ink-3:#808B9B;
+  --line:#2B3340;--accent:#93AEFF;--accent-bg:#1E2A4A;--why:#6FD3BF;--why-bg:#14302B;
+  --code-bg:#12161D;--ok:#6FD38D;--warn:#F0B95A;--bad:#FF8D6B;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
+header{max-width:720px;margin-bottom:32px}
+h1{font-size:32px;line-height:1.2;font-weight:600;letter-spacing:-0.01em;margin:0 0 12px}
+h1 code{font-family:var(--mono);font-weight:500;font-size:0.92em;color:var(--accent)}
+.lede{color:var(--ink-2);margin:0;font-size:17px}
+h2{font-size:20px;font-weight:600;margin:0 0 6px}
+.sub{color:var(--ink-2);margin:0 0 16px;font-size:15px}
+section{margin-top:48px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:3px;margin-bottom:20px}
+.seg button{border:0;background:transparent;padding:7px 16px;border-radius:6px;font-family:var(--mono);font-size:14px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--accent-bg);color:var(--accent);font-weight:500}
+.tour{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+.rail{position:sticky;top:20px;margin:0;padding:0;list-style:none;border-left:2px solid var(--line)}
+.rail li{margin:0}
+.rail button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 12px 9px 18px;margin-left:-2px;border-left:2px solid transparent;color:var(--ink-3);font-size:14px;line-height:1.4}
+.rail button .n{font-family:var(--mono);font-size:12px;margin-right:8px}
+.rail button .fn{display:block;font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:2px}
+.rail button.done{color:var(--ink-2)}
+.rail button[aria-current="step"]{border-left-color:var(--accent);color:var(--ink);font-weight:500;background:var(--paper)}
+.rail button[aria-current="step"] .fn{color:var(--accent)}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px 28px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
+.block-tag{color:var(--accent);background:var(--accent-bg);padding:3px 10px;border-radius:5px;font-weight:500}
+.panel h3{font-size:22px;font-weight:600;margin:14px 0 8px;line-height:1.3}
+.what{margin:0;max-width:68ch}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.65;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:18px 0;overflow-x:auto;white-space:pre}
+.why{margin:0;padding:12px 16px;background:var(--why-bg);border-left:3px solid var(--why);color:var(--ink);font-size:15px;max-width:68ch}
+.why strong{color:var(--why);font-weight:600}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+.btn{border:1px solid var(--line);background:var(--paper);padding:8px 16px;border-radius:8px;font-size:14px}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.hint{font-size:13px;color:var(--ink-3)}
+.blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.blocks button{text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.blocks button:hover{border-color:var(--ink-3)}
+.blocks button.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.blocks .bn{font-weight:600;display:block}
+.blocks .bl{font-family:var(--mono);font-size:12px;color:var(--ink-3);display:block;margin:2px 0 6px}
+.blocks .bd{font-size:14px;color:var(--ink-2);display:block;line-height:1.5}
+.calc{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px 26px}
+.row{display:grid;grid-template-columns:130px minmax(0,1fr) 110px;align-items:center;gap:14px;margin:10px 0;font-size:15px}
+.row label{color:var(--ink-2)}
+.row output{font-family:var(--mono);text-align:right}
+select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.res{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.res span{display:block;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.res b{display:block;font-size:24px;font-weight:600;margin-top:2px}
+footer{margin-top:48px;color:var(--ink-3);font-size:13px}
+@media (max-width:760px){
+  .tour{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;display:flex;overflow-x:auto;border-left:0;border-bottom:2px solid var(--line)}
+  .rail button{border-left:0;border-bottom:2px solid transparent;margin:0 0 -2px;padding:8px 12px;white-space:nowrap}
+  .rail button .fn{display:none}
+  .rail button[aria-current="step"]{border-bottom-color:var(--accent)}
+  .panel,.calc{padding:18px}
+  .row{grid-template-columns:1fr;gap:4px}
+  .row output{text-align:left}
+  .results{grid-template-columns:1fr}
+  h1{font-size:26px}
+}
+@media (prefers-reduced-motion:no-preference){.panel.swap{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>{{BASLIK}}</h1>
+  <p class="lede">{{GIRIS}}</p>
+</header>
+
+<section style="margin-top:0" aria-labelledby="h-tour">
+  <h2 id="h-tour">Kod akışı</h2>
+  <p class="sub">Akışı seç, sonra adımları sırayla takip et. Klavyede sol ve sağ ok tuşlarıyla da ilerleyebilirsin.</p>
+  <div class="seg" role="group" aria-label="Akış seçimi" id="flows"></div>
+  <div class="tour">
+    <ol class="rail" id="rail" aria-label="Akış adımları"></ol>
+    <article class="panel" id="panel" aria-live="polite">
+      <div class="meta"><span class="block-tag" id="p-block"></span><span id="p-where"></span></div>
+      <h3 id="p-title"></h3>
+      <p class="what" id="p-what"></p>
+      <pre id="p-code"></pre>
+      <p class="why" id="p-why"></p>
+      <div class="nav">
+        <button type="button" class="btn" id="prev">Önceki adım</button>
+        <span class="hint" id="p-count"></span>
+        <button type="button" class="btn primary" id="next">Sonraki adım</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="h-blocks">
+  <h2 id="h-blocks">Dosyanın blokları</h2>
+  <p class="sub">{{DOSYA}} yorum satırlarıyla bölümlere ayrılmıştır. Bir bloğa tıkla, seçili akışta o bloğun ilk kullanıldığı adıma git.</p>
+  <div class="blocks" id="blocks"></div>
+</section>
+
+{{EKSTRA_HTML}}
+
+<footer>{{DIPNOT}}</footer>
+</div>
+<script>
+const AKIS = {{AKIS}};
+let flow = AKIS.akislar[0].ad, idx = 0;
+const $ = id => document.getElementById(id);
+const steps = () => AKIS.ortak_adimlar.concat(AKIS.akislar.find(a => a.ad === flow).adimlar);
+const BLOCKS = AKIS.bloklar;
+const blockName = id => BLOCKS.find(b => b.id === id).name;
+
+function render(animate) {
+  const s = steps(), st = s[idx];
+  $("p-block").textContent = blockName(st.b);
+  $("p-where").textContent = st.where;
+  $("p-title").textContent = st.title;
+  $("p-what").textContent = st.what;
+  $("p-code").textContent = st.code;
+  $("p-why").innerHTML = "";
+  const strong = document.createElement("strong");
+  strong.textContent = "Neden böyle? ";
+  $("p-why").append(strong, document.createTextNode(st.why));
+  $("p-count").textContent = (idx + 1) + " / " + s.length;
+  $("next").textContent = idx === s.length - 1 ? "Başa dön" : "Sonraki adım";
+
+  const rail = $("rail");
+  rail.innerHTML = "";
+  s.forEach((x, i) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    if (i < idx) b.className = "done";
+    if (i === idx) b.setAttribute("aria-current", "step");
+    const n = document.createElement("span"); n.className = "n"; n.textContent = String(i + 1).padStart(2, "0");
+    const fn = document.createElement("span"); fn.className = "fn"; fn.textContent = x.fn;
+    b.append(n, document.createTextNode(x.title), fn);
+    b.addEventListener("click", () => { idx = i; render(true); });
+    li.append(b); rail.append(li);
+    if (i === idx && animate && window.matchMedia("(max-width:760px)").matches) {
+      b.scrollIntoView({block: "nearest", inline: "center"});
+    }
+  });
+
+  document.querySelectorAll("#blocks button").forEach(c => c.classList.toggle("on", c.dataset.id === st.b));
+
+  if (animate) {
+    const p = $("panel");
+    p.classList.remove("swap"); void p.offsetWidth; p.classList.add("swap");
+  }
+}
+
+function move(n) { const L = steps().length; idx = (idx + n + L) % L; render(true); }
+
+function setFlow(f) {
+  flow = f; idx = 0;
+  document.querySelectorAll("#flows button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.flow === f)));
+  render(true);
+}
+
+$("prev").addEventListener("click", () => move(-1));
+$("next").addEventListener("click", () => move(1));
+AKIS.akislar.forEach((a, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.dataset.flow = a.ad; b.textContent = a.ad;
+  b.setAttribute("aria-pressed", String(i === 0));
+  b.addEventListener("click", () => setFlow(a.ad));
+  $("flows").append(b);
+});
+if (AKIS.akislar.length < 2) $("flows").hidden = true;
+document.addEventListener("keydown", e => {
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "select") return;
+  if (e.key === "ArrowRight") move(1);
+  if (e.key === "ArrowLeft") move(-1);
+});
+
+BLOCKS.forEach(b => {
+  const c = document.createElement("button");
+  c.type = "button"; c.dataset.id = b.id;
+  c.innerHTML = '<span class="bn"></span><span class="bl"></span><span class="bd"></span>';
+  c.querySelector(".bn").textContent = b.name;
+  c.querySelector(".bl").textContent = b.lines;
+  c.querySelector(".bd").textContent = b.desc;
+  c.addEventListener("click", () => {
+    const i = steps().findIndex(s => s.b === b.id);
+    if (i >= 0) { idx = i; render(true); $("panel").scrollIntoView({block: "nearest"}); }
+  });
+  $("blocks").append(c);
+});
+{{EKSTRA_JS}}
+render(false);
+</script>
+</body>
+</html>

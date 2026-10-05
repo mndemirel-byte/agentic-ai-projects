@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tokenhesap.py satır satır</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F5F7;--ink:#17202B;--ink-2:#465263;--ink-3:#6E7A8A;--line:rgba(23,32,43,.10);
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --k:#7A2A9E;--s:#9A4A0A;--c:#5B6878;--m:#0A6A87;--nf:#1D47C9;--nb:#0D6E64;
+  --r0-a:#EEF1F5;--r0-b:#E0E5EC;--r0-x:#5D6B80;
+  --r1-a:#E6F4F0;--r1-b:#D2EBE3;--r1-x:#13806C;
+  --r2-a:#E9EEFB;--r2-b:#D7E1F8;--r2-x:#2E55C9;
+  --r3-a:#FCF3E3;--r3-b:#F3E2C2;--r3-x:#A86A0C;
+  --r4-a:#F2EDFB;--r4-b:#E3D9F5;--r4-x:#6D45B8;
+  --r5-a:#EBF5E5;--r5-b:#D8EBCD;--r5-x:#3E7F23;
+  --r6-a:#FCECEF;--r6-b:#F3D9E0;--r6-x:#B23A5A;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0F1318;--ink:#E6EAF0;--ink-2:#B1BBC8;--ink-3:#8692A2;--line:rgba(255,255,255,.08);
+  --k:#D7A8F2;--s:#F0B98A;--c:#97A4B5;--m:#86D5EC;--nf:#A3BCFF;--nb:#79D9C9;
+  --r0-a:#191E26;--r0-b:#252C37;--r0-x:#9AA8BC;
+  --r1-a:#10251F;--r1-b:#1A3A32;--r1-x:#5FD0B8;
+  --r2-a:#131C31;--r2-b:#1F2D4F;--r2-x:#8FAEFF;
+  --r3-a:#261E10;--r3-b:#3A2E18;--r3-x:#F0B95A;
+  --r4-a:#1D182E;--r4-b:#2E2547;--r4-x:#B9A0F2;
+  --r5-a:#15230F;--r5-b:#22381A;--r5-x:#8FD46E;
+  --r6-a:#28131A;--r6-b:#3E1F29;--r6-x:#F28CA6;
+}}
+.t-0{--a:var(--r0-a);--b:var(--r0-b);--x:var(--r0-x)}
+.t-1{--a:var(--r1-a);--b:var(--r1-b);--x:var(--r1-x)}
+.t-2{--a:var(--r2-a);--b:var(--r2-b);--x:var(--r2-x)}
+.t-3{--a:var(--r3-a);--b:var(--r3-b);--x:var(--r3-x)}
+.t-4{--a:var(--r4-a);--b:var(--r4-b);--x:var(--r4-x)}
+.t-5{--a:var(--r5-a);--b:var(--r5-b);--x:var(--r5-x)}
+.t-6{--a:var(--r6-a);--b:var(--r6-b);--x:var(--r6-x)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:52px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1320px;margin:0 auto;padding:40px 24px 64px}
+header{max-width:760px;margin-bottom:28px}
+h1{font-size:32px;line-height:1.2;font-weight:600;margin:0 0 12px;letter-spacing:-.01em}
+h1 code{font-family:var(--mono);font-weight:500;font-size:.92em}
+.lede{margin:0;color:var(--ink-2);font-size:17px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
+.chip{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);background:var(--a);border:1px solid var(--line);padding:6px 12px;border-radius:999px;font-size:14px}
+.chip::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--x)}
+.chip:hover{border-color:var(--x)}
+.chip:focus-visible{outline:2px solid var(--x);outline-offset:2px}
+.cols{display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);font-size:13px;color:var(--ink-3);padding:0 0 8px;position:sticky;top:0;background:var(--bg);z-index:2}
+.cols div{padding:10px 18px 4px}
+.sheet{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sec-head{background:var(--b);border-top:3px solid var(--x);padding:18px 22px 14px}
+.sec-head h2{margin:0;font-size:19px;font-weight:600;color:var(--x)}
+.sec-head p{margin:2px 0 0;color:var(--ink-2);font-size:15px;max-width:80ch}
+.seg{display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);border-top:1px solid var(--line)}
+.seg.a{background:var(--a)}
+.seg.b{background:var(--b)}
+.code{min-width:0;overflow-x:auto;border-right:1px solid var(--line)}
+pre{margin:0;padding:14px 18px 14px 0;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--ink)}
+code{font-family:var(--mono)}
+.ln{display:inline-block;width:3.6em;padding-right:1.2em;text-align:right;color:var(--ink-3);opacity:.7;user-select:none}
+.note{padding:14px 22px 16px;border-left:4px solid var(--x)}
+.rng{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.note h3{margin:2px 0 6px;font-size:16px;font-weight:600;line-height:1.35}
+.note p{margin:0;color:var(--ink);font-size:15px;line-height:1.65;max-width:62ch}
+.note code{font-size:.88em;background:rgba(127,127,127,.14);padding:1px 5px;border-radius:4px}
+.note b{font-weight:600}
+.k{color:var(--k)}.s{color:var(--s)}.sd{color:var(--c);font-style:italic}.c{color:var(--c);font-style:italic}.m{color:var(--m)}.nf{color:var(--nf);font-weight:500}.nb{color:var(--nb)}
+footer{margin-top:28px;color:var(--ink-3);font-size:13px;max-width:80ch}
+@media (max-width:860px){
+  .cols{display:none}
+  .seg{grid-template-columns:minmax(0,1fr)}
+  .code{border-right:0}
+  .note{border-left:0;border-top:3px solid var(--x)}
+  h1{font-size:26px}
+  .wrap{padding:28px 14px 48px}
+}
+@media print{.cols{position:static}.legend{display:none}.seg{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><code>tokenhesap.py</code> satır satır</h1>
+  <p class="lede">Solda referans çözümün tamamı, sağda her kod parçasının karşısında ne yaptığı ve neden öyle yazıldığı var. Aynı renk aynı bloğa aittir; blok içindeki komşu parçalar iki tonla ayrılır. Dosya 355 satırdan oluşur ve yukarıdan aşağıya okunabilir.</p>
+  <nav class="legend" aria-label="Kod blokları"><a class="chip t-0" href="#b-hazirlik">Hazırlık</a><a class="chip t-1" href="#b-veri">Veri yükleme</a><a class="chip t-2" href="#b-api">API çağrıları</a><a class="chip t-3" href="#b-hesap">Hesaplamalar</a><a class="chip t-4" href="#b-bicim">Biçimlendirme</a><a class="chip t-5" href="#b-komut">Komutlar</a><a class="chip t-6" href="#b-giris">Giriş noktası</a></nav>
+</header>
+<div class="cols" aria-hidden="true"><div>Kod</div><div>Açıklama</div></div>
+<main class="sheet">
+<div class="sec-head t-0" id="b-hazirlik"><h2>Hazırlık</h2><p>Dosyanın tanıtımı, kullanılacak kütüphaneler ve sabit değerler.</p></div>
+<div class="seg t-0 a"><div class="code"><pre><code><span class="ln">1</span><span class="sd">"""Token maliyet hesaplayıcı.</span>
+<span class="ln">2</span>
+<span class="ln">3</span><span class="sd">Bir metni modele göndermeden ÖNCE şu sorulara cevap verir:</span>
+<span class="ln">4</span><span class="sd">  - Bu metin her modelde kaç girdi token'ı tutuyor?</span>
+<span class="ln">5</span><span class="sd">  - Tek çağrı ve aylık hacimde maliyeti ne olur?</span>
+<span class="ln">6</span><span class="sd">  - Modelin context window'unun ne kadarını dolduruyor?</span>
+<span class="ln">7</span><span class="sd">  - Aynı içeriğin Türkçe ve İngilizce hâli arasında token farkı ne?</span>
+<span class="ln">8</span>
+<span class="ln">9</span><span class="sd">Kullanım:</span>
+<span class="ln">10</span><span class="sd">    python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt</span>
+<span class="ln">11</span><span class="sd">    python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --models haiku-4-5,sonnet-5-5 --output-tokens 800</span>
+<span class="ln">12</span><span class="sd">    python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --monthly-calls 100000 --baseline</span>
+<span class="ln">13</span><span class="sd">    python cozum/tokenhesap.py count ornekler/1_kisa_tr.txt --verify</span>
+<span class="ln">14</span><span class="sd">    python cozum/tokenhesap.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt</span>
+<span class="ln">15</span><span class="sd">"""</span></code></pre></div><div class="note"><div class="rng">satır 1–15</div><h3>Docstring: dosyanın kullanım kılavuzu</h3><p>Üç tırnak (<code>"""</code>) arasındaki metin bir <b>docstring</b>'dir. Python bunu çalıştırmaz; dosyanın ne işe yaradığını ve nasıl kullanılacağını anlatan bir açıklamadır. Komut örneklerini buradan kopyalayıp terminalde deneyebilirsin.</p></div></div>
+<div class="seg t-0 b"><div class="code"><pre><code><span class="ln">17</span><span class="k">import</span> argparse
+<span class="ln">18</span><span class="k">import</span> math
+<span class="ln">19</span><span class="k">import</span> os
+<span class="ln">20</span><span class="k">import</span> sys
+<span class="ln">21</span><span class="k">from</span> pathlib <span class="k">import</span> Path
+<span class="ln">22</span>
+<span class="ln">23</span><span class="k">import</span> anthropic
+<span class="ln">24</span><span class="k">import</span> yaml</code></pre></div><div class="note"><div class="rng">satır 17–24</div><h3>import: kullanılacak araçları çağır</h3><p><code>import</code> satırları başka modülleri bu dosyaya getirir. İlk grup Python ile birlikte gelen standart kütüphanedir: komut satırı (<code>argparse</code>), matematik (<code>math</code>), ortam değişkenleri (<code>os</code>), sistem (<code>sys</code>) ve dosya yolları (<code>Path</code>). İkinci grup <code>pip install</code> ile kurduğun dış paketlerdir: <code>anthropic</code> API için, <code>yaml</code> fiyat dosyası için.</p></div></div>
+<div class="seg t-0 a"><div class="code"><pre><code><span class="ln">26</span>DEFAULT_PRICING_PATH = Path(__file__).resolve().parent.parent / <span class="s">"</span><span class="s">pricing.yaml</span><span class="s">"</span>
+<span class="ln">27</span>
+<span class="ln">28</span><span class="c"># Taban ölçümü için kullanılan en kısa anlamlı mesaj. API boş metin kabul etmez.</span>
+<span class="ln">29</span>BASELINE_TEXT = <span class="s">"</span><span class="s">.</span><span class="s">"</span>
+<span class="ln">30</span>
+<span class="ln">31</span><span class="c"># --verify modunda modele gönderilen talimat. count_tokens ve gerçek çağrı</span>
+<span class="ln">32</span><span class="c"># AYNI mesajı kullanır; böylece tahmin ile gerçek ölçüm karşılaştırılabilir.</span>
+<span class="ln">33</span>VERIFY_INSTRUCTION = <span class="s">"</span><span class="s">Aşağıdaki metni tek cümleyle özetle:</span><span class="s">\n</span><span class="s">\n</span><span class="s">"</span>
+<span class="ln">34</span>
+<span class="ln">35</span>MODELS_HELP = <span class="s">"</span><span class="s">Virgülle ayrılmış model anahtarları, ör. haiku-4-5,sonnet-5-5 (varsayılan: hepsi)</span><span class="s">"</span>
+<span class="ln">36</span>
+<span class="ln">37</span>REQUIRED_MODEL_FIELDS = (<span class="s">"</span><span class="s">key</span><span class="s">"</span>, <span class="s">"</span><span class="s">name</span><span class="s">"</span>, <span class="s">"</span><span class="s">id</span><span class="s">"</span>, <span class="s">"</span><span class="s">input_per_mtok</span><span class="s">"</span>, <span class="s">"</span><span class="s">output_per_mtok</span><span class="s">"</span>, <span class="s">"</span><span class="s">context_window</span><span class="s">"</span>, <span class="s">"</span><span class="s">max_output</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 26–37</div><h3>Sabitler</h3><p>Büyük harfle yazılan isimler <b>sabit</b>tir: program boyunca değişmeyen değerler. Fiyat dosyasının yolu, taban ölçümü için kullanılan tek karakterlik mesaj ve <code>pricing.yaml</code>'da bulunması zorunlu alanlar burada tanımlanır. Bu değerleri bir kez yukarıda tanımlamak, aynı metni kodun içinde tekrar tekrar yazmaktan korur.</p></div></div>
+<div class="sec-head t-1" id="b-veri"><h2>Veri yükleme</h2><p>Diskteki dosyaları okuyup programın kullanabileceği hâle getiren fonksiyonlar.</p></div>
+<div class="seg t-1 a"><div class="code"><pre><code><span class="ln">40</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">41</span><span class="c"># Veri yükleme</span>
+<span class="ln">42</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">43</span>
+<span class="ln">44</span><span class="k">def</span> <span class="nf">load_pricing</span>(path: Path) -&gt; <span class="nb">dict</span>:
+<span class="ln">45</span>    <span class="sd">"""pricing.yaml dosyasını okur ve zorunlu alanları doğrular."""</span>
+<span class="ln">46</span>    <span class="k">with</span> <span class="nb">open</span>(path, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>) <span class="k">as</span> f:
+<span class="ln">47</span>        data = yaml.safe_load(f)
+<span class="ln">48</span>    <span class="k">for</span> model <span class="k">in</span> data[<span class="s">"</span><span class="s">models</span><span class="s">"</span>]:
+<span class="ln">49</span>        missing = [field <span class="k">for</span> field <span class="k">in</span> REQUIRED_MODEL_FIELDS <span class="k">if</span> field <span class="k">not</span> <span class="k">in</span> model]
+<span class="ln">50</span>        <span class="k">if</span> missing:
+<span class="ln">51</span>            <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">pricing.yaml: </span><span class="s">'</span><span class="s">{</span>model.get(<span class="s">'</span><span class="s">key</span><span class="s">'</span>, <span class="s">'</span><span class="s">?</span><span class="s">'</span>)<span class="s">}</span><span class="s">'</span><span class="s"> modelinde eksik alan: </span><span class="s">{</span><span class="s">'</span><span class="s">, </span><span class="s">'</span>.join(missing)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">52</span>    <span class="k">return</span> data</code></pre></div><div class="note"><div class="rng">satır 40–52</div><h3>load_pricing: fiyat dosyasını oku ve kontrol et</h3><p><code>with open(...)</code> dosyayı açar ve blok bitince otomatik kapatır. <code>yaml.safe_load</code> YAML metnini bir Python sözlüğüne (<code>dict</code>) çevirir. Ardından her modelde zorunlu alanların olup olmadığına bakılır; eksik varsa <code>raise ValueError</code> ile program anlaşılır bir hata mesajıyla durur. Fiyatların kodda değil ayrı bir dosyada durması, fiyat değiştiğinde kodu değiştirmeden güncelleyebilmeni sağlar.</p></div></div>
+<div class="seg t-1 b"><div class="code"><pre><code><span class="ln">55</span><span class="k">def</span> <span class="nf">select_models</span>(pricing: <span class="nb">dict</span>, keys_csv: <span class="nb">str</span> | <span class="k">None</span>) -&gt; <span class="nb">list</span>[<span class="nb">dict</span>]:
+<span class="ln">56</span>    <span class="sd">"""--models parametresine göre model listesini döndürür (boşsa hepsi)."""</span>
+<span class="ln">57</span>    models = pricing[<span class="s">"</span><span class="s">models</span><span class="s">"</span>]
+<span class="ln">58</span>    <span class="k">if</span> <span class="k">not</span> keys_csv:
+<span class="ln">59</span>        <span class="k">return</span> models
+<span class="ln">60</span>    by_key = {m[<span class="s">"</span><span class="s">key</span><span class="s">"</span>]: m <span class="k">for</span> m <span class="k">in</span> models}
+<span class="ln">61</span>    selected = []
+<span class="ln">62</span>    <span class="k">for</span> key <span class="k">in</span> (k.strip() <span class="k">for</span> k <span class="k">in</span> keys_csv.split(<span class="s">"</span><span class="s">,</span><span class="s">"</span>) <span class="k">if</span> k.strip()):
+<span class="ln">63</span>        <span class="k">if</span> key <span class="k">not</span> <span class="k">in</span> by_key:
+<span class="ln">64</span>            valid = <span class="s">"</span><span class="s">, </span><span class="s">"</span>.join(by_key)
+<span class="ln">65</span>            <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">Bilinmeyen model anahtarı: </span><span class="s">'</span><span class="s">{</span>key<span class="s">}</span><span class="s">'</span><span class="s">. Geçerli anahtarlar: </span><span class="s">{</span>valid<span class="s">}</span><span class="s">"</span>)
+<span class="ln">66</span>        selected.append(by_key[key])
+<span class="ln">67</span>    <span class="k">return</span> selected</code></pre></div><div class="note"><div class="rng">satır 55–67</div><h3>select_models: hangi modeller hesaplanacak?</h3><p><code>--models</code> verilmediyse tüm modeller döner. Verildiyse virgülle bölünür (<code>split(",")</code>) ve her anahtar sözlükte aranır. <code>by_key</code> sözlüğü, modele anahtarıyla hızlıca ulaşmak için kurulur. Bilinmeyen bir anahtar yazılırsa geçerli anahtarları listeleyen bir hata verilir; yazım hatası yapan kullanıcı ne yazması gerektiğini hemen görür.</p></div></div>
+<div class="seg t-1 a"><div class="code"><pre><code><span class="ln">70</span><span class="k">def</span> <span class="nf">read_text</span>(path: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">71</span>    <span class="sd">"""Dosyayı UTF-8 olarak okur; '-' verilirse standart girdiden okur."""</span>
+<span class="ln">72</span>    <span class="k">if</span> path == <span class="s">"</span><span class="s">-</span><span class="s">"</span>:
+<span class="ln">73</span>        <span class="k">return</span> sys.stdin.read()
+<span class="ln">74</span>    <span class="k">return</span> Path(path).read_text(encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 70–74</div><h3>read_text: metni oku</h3><p>Dosyayı UTF-8 kodlamasıyla okur; Türkçe karakterlerin (ş, ğ, ı) bozulmaması için kodlamayı açıkça belirtmek önemlidir. Dosya adı yerine <code>-</code> verilirse metni klavyeden veya başka bir komutun çıktısından (standart girdi) okur.</p></div></div>
+<div class="sec-head t-2" id="b-api"><h2>API çağrıları</h2><p>Anthropic API ile konuşan tek yer. Token sayımı burada yapılır.</p></div>
+<div class="seg t-2 a"><div class="code"><pre><code><span class="ln">77</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">78</span><span class="c"># API çağrıları</span>
+<span class="ln">79</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">80</span>
+<span class="ln">81</span><span class="k">def</span> <span class="nf">build_messages</span>(text: <span class="nb">str</span>) -&gt; <span class="nb">list</span>[<span class="nb">dict</span>]:
+<span class="ln">82</span>    <span class="k">return</span> [{<span class="s">"</span><span class="s">role</span><span class="s">"</span>: <span class="s">"</span><span class="s">user</span><span class="s">"</span>, <span class="s">"</span><span class="s">content</span><span class="s">"</span>: text}]</code></pre></div><div class="note"><div class="rng">satır 77–82</div><h3>build_messages: metni mesaj biçimine sok</h3><p>Claude API metni çıplak olarak değil, rolü belli mesajlardan oluşan bir liste olarak alır (Ders 1.4). Bu fonksiyon metni <code>{"role": "user", "content": ...}</code> biçimine sokar. Token sayımı da bu yapı üzerinden yapılır; bu yüzden sayılan değer metnin kendisinden birkaç token fazladır.</p></div></div>
+<div class="seg t-2 b"><div class="code"><pre><code><span class="ln">85</span><span class="k">def</span> <span class="nf">count_input_tokens</span>(client, model_id: <span class="nb">str</span>, messages: <span class="nb">list</span>[<span class="nb">dict</span>]) -&gt; <span class="nb">int</span>:
+<span class="ln">86</span>    <span class="sd">"""Token Counting API ile girdi token sayısını döndürür. Model çalışmaz, ücret yazılmaz."""</span>
+<span class="ln">87</span>    response = client.messages.count_tokens(model=model_id, messages=messages)
+<span class="ln">88</span>    <span class="k">return</span> response.input_tokens</code></pre></div><div class="note"><div class="rng">satır 85–88</div><h3>count_input_tokens: API&#x27;ye kaç token olduğunu sor</h3><p>Projenin kalbi bu iki satır. <code>client.messages.count_tokens</code> mesajı API'ye gönderir ama model çalışmaz, cevap üretmez, ücret yazılmaz; yalnızca girdi token sayısı döner. Model adını parametre olarak alır, çünkü tokenizer modele özgüdür: aynı metin farklı modellerde farklı sayı verebilir.</p></div></div>
+<div class="seg t-2 a"><div class="code"><pre><code><span class="ln">91</span><span class="k">def</span> <span class="nf">try_count</span>(client, model: <span class="nb">dict</span>, messages: <span class="nb">list</span>[<span class="nb">dict</span>]) -&gt; <span class="nb">tuple</span>[<span class="nb">int</span> | <span class="k">None</span>, <span class="nb">str</span> | <span class="k">None</span>]:
+<span class="ln">92</span>    <span class="sd">"""Bir model için sayım yapar; o modele erişim yoksa hatayı tabloya yansıtmak üzere döndürür."""</span>
+<span class="ln">93</span>    <span class="k">try</span>:
+<span class="ln">94</span>        <span class="k">return</span> count_input_tokens(client, model[<span class="s">"</span><span class="s">id</span><span class="s">"</span>], messages), <span class="k">None</span>
+<span class="ln">95</span>    <span class="k">except</span> anthropic.AuthenticationError:
+<span class="ln">96</span>        <span class="k">raise</span>  <span class="c"># API anahtarı sorunu tüm modelleri etkiler; yukarıda ele alınır</span>
+<span class="ln">97</span>    <span class="k">except</span> anthropic.APIStatusError <span class="k">as</span> e:
+<span class="ln">98</span>        <span class="k">return</span> <span class="k">None</span>, <span class="s">f</span><span class="s">"</span><span class="s">HTTP </span><span class="s">{</span>e.status_code<span class="s">}</span><span class="s">"</span>
+<span class="ln">99</span>    <span class="k">except</span> anthropic.APIConnectionError:
+<span class="ln">100</span>        <span class="k">return</span> <span class="k">None</span>, <span class="s">"</span><span class="s">bağlantı hatası</span><span class="s">"</span></code></pre></div><div class="note"><div class="rng">satır 91–100</div><h3>try_count: hataya dayanıklı sayım</h3><p><code>try / except</code> bloğu, içindeki kod hata verirse programın çökmesini önler ve hatayı yakalar. Hesabının bir modele erişimi yoksa API'nin döndürdüğü hata (<code>APIStatusError</code>) yakalanır ve fonksiyon <code>(None, "HTTP 404")</code> gibi bir sonuç döner; tabloya "erişilemedi" yazılır ve diğer modellerle devam edilir. API anahtarı hatası ise tüm modelleri etkilediği için <code>raise</code> ile yukarıya iletilir.</p></div></div>
+<div class="sec-head t-3" id="b-hesap"><h2>Hesaplamalar</h2><p>API'ye dokunmayan, yalnızca sayılarla çalışan küçük fonksiyonlar.</p></div>
+<div class="seg t-3 a"><div class="code"><pre><code><span class="ln">103</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">104</span><span class="c"># Hesaplamalar</span>
+<span class="ln">105</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">106</span>
+<span class="ln">107</span><span class="k">def</span> <span class="nf">estimate_cost</span>(model: <span class="nb">dict</span>, input_tokens: <span class="nb">int</span>, output_tokens: <span class="nb">int</span>) -&gt; <span class="nb">float</span>:
+<span class="ln">108</span>    <span class="sd">"""Tek çağrının USD maliyeti. Fiyatlar 1M token başına."""</span>
+<span class="ln">109</span>    <span class="k">return</span> (input_tokens * model[<span class="s">"</span><span class="s">input_per_mtok</span><span class="s">"</span>] + output_tokens * model[<span class="s">"</span><span class="s">output_per_mtok</span><span class="s">"</span>]) / <span class="m">1_000_000</span></code></pre></div><div class="note"><div class="rng">satır 103–109</div><h3>estimate_cost: tek çağrının maliyeti</h3><p>Girdi ve çıktı token'ları kendi fiyatlarıyla çarpılıp toplanır, sonra 1.000.000'a bölünür; çünkü fiyatlar milyon token başına verilir (Ders 1.4 §6.2). <code>1_000_000</code> yazımındaki alt çizgiler yalnızca okumayı kolaylaştırır, Python bunları yok sayar.</p></div></div>
+<div class="seg t-3 b"><div class="code"><pre><code><span class="ln">112</span><span class="k">def</span> <span class="nf">context_ratio</span>(model: <span class="nb">dict</span>, input_tokens: <span class="nb">int</span>, output_tokens: <span class="nb">int</span>) -&gt; <span class="nb">float</span>:
+<span class="ln">113</span>    <span class="sd">"""Girdi + çıktı rezervinin context window'a oranı."""</span>
+<span class="ln">114</span>    <span class="k">return</span> (input_tokens + output_tokens) / model[<span class="s">"</span><span class="s">context_window</span><span class="s">"</span>]</code></pre></div><div class="note"><div class="rng">satır 112–114</div><h3>context_ratio: pencere ne kadar dolu?</h3><p>Girdi ve beklenen çıktı toplanıp modelin context window'una bölünür. 0,5 sonucu "pencerenin yarısı dolu" demektir. Çıktı da hesaba katılır, çünkü model cevabını aynı pencerenin içinde üretir; girdi tek başına sığsa bile cevaba yer kalmayabilir (Ders 1.3 §3).</p></div></div>
+<div class="seg t-3 a"><div class="code"><pre><code><span class="ln">117</span><span class="k">def</span> <span class="nf">usage_label</span>(ratio: <span class="nb">float</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">118</span>    <span class="k">if</span> ratio &gt; <span class="m">1</span>:
+<span class="ln">119</span>        <span class="k">return</span> <span class="s">"</span><span class="s">TAŞMA</span><span class="s">"</span>
+<span class="ln">120</span>    <span class="k">if</span> ratio &gt;= <span class="m">0.8</span>:
+<span class="ln">121</span>        <span class="k">return</span> <span class="s">"</span><span class="s">YÜKSEK</span><span class="s">"</span>
+<span class="ln">122</span>    <span class="k">if</span> ratio &gt;= <span class="m">0.5</span>:
+<span class="ln">123</span>        <span class="k">return</span> <span class="s">"</span><span class="s">DİKKAT</span><span class="s">"</span>
+<span class="ln">124</span>    <span class="k">return</span> <span class="s">"</span><span class="s">OK</span><span class="s">"</span></code></pre></div><div class="note"><div class="rng">satır 117–124</div><h3>usage_label: orana bir ad ver</h3><p><code>if</code> koşulları yukarıdan aşağıya denenir ve ilk doğru olan <code>return</code> ile fonksiyondan çıkılır. Bu yüzden sıra önemlidir: önce en büyük eşik (<code>&gt; 1</code>) kontrol edilir. Hiçbiri tutmazsa en alttaki <code>"OK"</code> döner.</p></div></div>
+<div class="seg t-3 b"><div class="code"><pre><code><span class="ln">127</span><span class="k">def</span> <span class="nf">render_bar</span>(ratio: <span class="nb">float</span>, width: <span class="nb">int</span> = <span class="m">20</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">128</span>    filled = <span class="nb">min</span>(width, <span class="nb">round</span>(<span class="nb">min</span>(ratio, <span class="m">1.0</span>) * width))
+<span class="ln">129</span>    <span class="k">return</span> <span class="s">"</span><span class="s">█</span><span class="s">"</span> * filled + <span class="s">"</span><span class="s">░</span><span class="s">"</span> * (width - filled)</code></pre></div><div class="note"><div class="rng">satır 127–129</div><h3>render_bar: metinden ilerleme çubuğu</h3><p>Bir dizgiyi sayıyla çarpmak onu tekrarlar: <code>"█" * 5</code> beş dolu kutu üretir. Oran 1'i geçse bile çubuk taşmasın diye <code>min(ratio, 1.0)</code> ile sınırlanır; taşma bilgisi zaten etikette yazar.</p></div></div>
+<div class="sec-head t-4" id="b-bicim"><h2>Biçimlendirme</h2><p>Sayıları Türkçe yazıma çevirip ekrana düzgün bir tablo basan yardımcılar.</p></div>
+<div class="seg t-4 a"><div class="code"><pre><code><span class="ln">132</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">133</span><span class="c"># Biçimlendirme (Türkçe sayı yazımı: binlik ayırıcı nokta, ondalık virgül)</span>
+<span class="ln">134</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">135</span>
+<span class="ln">136</span><span class="k">def</span> <span class="nf">_tr_number</span>(formatted: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">137</span>    <span class="k">return</span> formatted.replace(<span class="s">"</span><span class="s">,</span><span class="s">"</span>, <span class="s">"</span><span class="s">§</span><span class="s">"</span>).replace(<span class="s">"</span><span class="s">.</span><span class="s">"</span>, <span class="s">"</span><span class="s">,</span><span class="s">"</span>).replace(<span class="s">"</span><span class="s">§</span><span class="s">"</span>, <span class="s">"</span><span class="s">.</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 132–137</div><h3>_tr_number: İngilizce sayı yazımını Türkçeye çevir</h3><p>Python sayıları <code>1,234.56</code> biçiminde yazar; Türkçede ise <code>1.234,56</code> kullanılır. Virgül ile nokta doğrudan yer değiştirilemez (biri diğerini ezer), bu yüzden virgül önce geçici bir işarete (<code>§</code>) çevrilir. Fonksiyon adının alt çizgiyle başlaması "bu dosyanın iç yardımcısı" anlamına gelen bir Python geleneğidir.</p></div></div>
+<div class="seg t-4 b"><div class="code"><pre><code><span class="ln">140</span><span class="k">def</span> <span class="nf">fmt_int</span>(n: <span class="nb">int</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">141</span>    <span class="k">return</span> _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span>n<span class="s">:</span><span class="s">,</span><span class="s">}</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 140–141</div><h3>fmt_int: tam sayıyı biçimle</h3><p><code>f"{n:,}"</code> bir <b>f-string</b>'dir: süslü parantez içindeki değeri metne yerleştirir, <code>:,</code> ise binlik ayırıcı ekler. Sonuç <code>_tr_number</code>'dan geçirilerek 12.345 biçimine getirilir.</p></div></div>
+<div class="seg t-4 a"><div class="code"><pre><code><span class="ln">144</span><span class="k">def</span> <span class="nf">fmt_usd</span>(x: <span class="nb">float</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">145</span>    <span class="k">if</span> x == <span class="m">0</span>:
+<span class="ln">146</span>        <span class="k">return</span> <span class="s">"</span><span class="s">$0</span><span class="s">"</span>
+<span class="ln">147</span>    <span class="k">if</span> x &lt; <span class="m">0</span>:
+<span class="ln">148</span>        <span class="k">return</span> <span class="s">"</span><span class="s">-</span><span class="s">"</span> + fmt_usd(-x)
+<span class="ln">149</span>    <span class="c"># 1 doların altındaki tutarlarda ilk anlamlı basamaktan sonra bir basamak daha göster:</span>
+<span class="ln">150</span>    <span class="c"># 0,35 → $0,35  |  0,0035 → $0,0035  |  0,00012 → $0,00012</span>
+<span class="ln">151</span>    decimals = <span class="m">2</span> <span class="k">if</span> x &gt;= <span class="m">1</span> <span class="k">else</span> <span class="nb">min</span>(<span class="m">8</span>, -math.floor(math.log10(x)) + <span class="m">1</span>)
+<span class="ln">152</span>    <span class="k">return</span> <span class="s">"</span><span class="s">$</span><span class="s">"</span> + _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span>x<span class="s">:</span><span class="s">,.</span><span class="s">{</span>decimals<span class="s">}</span><span class="s">f</span><span class="s">}</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 144–152</div><h3>fmt_usd: dolar tutarını okunur yaz</h3><p>Maliyetler çok küçük olabildiği için ($0,00025 gibi) sabit iki ondalık yetmez. <code>math.log10</code> sayının büyüklük basamağını bulur; ondalık sayısı buna göre ayarlanır ve ilk anlamlı rakamdan sonra bir basamak daha gösterilir. Negatif tutarlar için fonksiyon kendini pozitif değerle yeniden çağırır ve başa eksi koyar.</p></div></div>
+<div class="seg t-4 b"><div class="code"><pre><code><span class="ln">155</span><span class="k">def</span> <span class="nf">fmt_pct</span>(ratio: <span class="nb">float</span>, decimals: <span class="nb">int</span> = <span class="m">1</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">156</span>    sign = <span class="s">"</span><span class="s">-</span><span class="s">"</span> <span class="k">if</span> ratio &lt; <span class="m">0</span> <span class="k">else</span> <span class="s">"</span><span class="s">"</span>
+<span class="ln">157</span>    <span class="k">return</span> sign + <span class="s">"</span><span class="s">%</span><span class="s">"</span> + _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span><span class="nb">abs</span>(ratio) * <span class="m">100</span><span class="s">:</span><span class="s">.</span><span class="s">{</span>decimals<span class="s">}</span><span class="s">f</span><span class="s">}</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 155–157</div><h3>fmt_pct: yüzde yaz</h3><p>Oranı 100 ile çarpıp Türkçe yazımdaki gibi yüzde işaretini başa koyar (<code>%12,5</code>). Negatif değerlerde eksi işareti yüzdenin önüne gelir (<code>-%4</code>).</p></div></div>
+<div class="seg t-4 a"><div class="code"><pre><code><span class="ln">160</span><span class="k">def</span> <span class="nf">print_table</span>(headers: <span class="nb">list</span>[<span class="nb">str</span>], rows: <span class="nb">list</span>[<span class="nb">list</span>[<span class="nb">str</span>]], right_align: <span class="nb">set</span>[<span class="nb">int</span>]) -&gt; <span class="k">None</span>:
+<span class="ln">161</span>    widths = [<span class="nb">max</span>(<span class="nb">len</span>(<span class="nb">str</span>(cell)) <span class="k">for</span> cell <span class="k">in</span> column) <span class="k">for</span> column <span class="k">in</span> <span class="nb">zip</span>(headers, *rows)]
+<span class="ln">162</span>
+<span class="ln">163</span>    <span class="k">def</span> <span class="nf">line</span>(cells):
+<span class="ln">164</span>        parts = []
+<span class="ln">165</span>        <span class="k">for</span> i, cell <span class="k">in</span> <span class="nb">enumerate</span>(cells):
+<span class="ln">166</span>            parts.append(<span class="nb">str</span>(cell).rjust(widths[i]) <span class="k">if</span> i <span class="k">in</span> right_align <span class="k">else</span> <span class="nb">str</span>(cell).ljust(widths[i]))
+<span class="ln">167</span>        <span class="k">return</span> <span class="s">"</span><span class="s">  </span><span class="s">"</span>.join(parts).rstrip()
+<span class="ln">168</span>
+<span class="ln">169</span>    <span class="nb">print</span>(line(headers))
+<span class="ln">170</span>    <span class="nb">print</span>(<span class="s">"</span><span class="s">  </span><span class="s">"</span>.join(<span class="s">"</span><span class="s">-</span><span class="s">"</span> * w <span class="k">for</span> w <span class="k">in</span> widths))
+<span class="ln">171</span>    <span class="k">for</span> row <span class="k">in</span> rows:
+<span class="ln">172</span>        <span class="nb">print</span>(line(row))</code></pre></div><div class="note"><div class="rng">satır 160–172</div><h3>print_table: hizalı tablo bas</h3><p>Önce her sütundaki en uzun hücre bulunur (<code>widths</code>). <code>zip(headers, *rows)</code> satırları sütunlara çevirir. İçeride tanımlanan <code>line</code> fonksiyonu her hücreyi o genişliğe tamamlar: sayılar sağa (<code>rjust</code>), metinler sola (<code>ljust</code>) yaslanır. Böylece ek bir kütüphane olmadan düzgün bir tablo çıkar.</p></div></div>
+<div class="sec-head t-5" id="b-komut"><h2>Komutlar</h2><p>count ve compare komutlarının iş akışı: diğer bloklardaki fonksiyonları sırayla çağırır.</p></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">175</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">176</span><span class="c"># Komutlar</span>
+<span class="ln">177</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">178</span>
+<span class="ln">179</span><span class="k">def</span> <span class="nf">cmd_count</span>(args, client, pricing: <span class="nb">dict</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">180</span>    text = read_text(args.file)
+<span class="ln">181</span>    models = select_models(pricing, args.models)
+<span class="ln">182</span>    messages = build_messages(text)
+<span class="ln">183</span>
+<span class="ln">184</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Dosya: </span><span class="s">{</span>args.file<span class="s">}</span><span class="s">  |  </span><span class="s">{</span>fmt_int(<span class="nb">len</span>(text))<span class="s">}</span><span class="s"> karakter, </span><span class="s">{</span>fmt_int(<span class="nb">len</span>(text.split()))<span class="s">}</span><span class="s"> kelime</span><span class="s">"</span>)
+<span class="ln">185</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Çıktı tahmini: </span><span class="s">{</span>fmt_int(args.output_tokens)<span class="s">}</span><span class="s"> token (cevap + varsa thinking)</span><span class="s">"</span>)
+<span class="ln">186</span>    <span class="nb">print</span>()</code></pre></div><div class="note"><div class="rng">satır 175–186</div><h3>cmd_count başlar: girdileri hazırla</h3><p><code>count</code> komutunun iş akışı. Önce metin okunur, modeller seçilir ve mesaj hazırlanır; böylece döngüye girmeden her şey hazır olur. Ekrana dosyanın karakter ve kelime sayısı yazılır; <code>text.split()</code> metni boşluklardan bölerek kelimeleri sayar.</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">188</span>    headers = [<span class="s">"</span><span class="s">Model</span><span class="s">"</span>, <span class="s">"</span><span class="s">Girdi token</span><span class="s">"</span>]
+<span class="ln">189</span>    <span class="k">if</span> args.baseline:
+<span class="ln">190</span>        headers += [<span class="s">"</span><span class="s">Taban</span><span class="s">"</span>, <span class="s">"</span><span class="s">Net</span><span class="s">"</span>]
+<span class="ln">191</span>    headers += [<span class="s">"</span><span class="s">Maliyet/çağrı</span><span class="s">"</span>]
+<span class="ln">192</span>    <span class="k">if</span> args.monthly_calls:
+<span class="ln">193</span>        headers += [<span class="s">f</span><span class="s">"</span><span class="s">Aylık (</span><span class="s">{</span>fmt_int(args.monthly_calls)<span class="s">}</span><span class="s"> çağrı)</span><span class="s">"</span>]
+<span class="ln">194</span>    headers += [<span class="s">"</span><span class="s">Context doluluğu</span><span class="s">"</span>]
+<span class="ln">195</span>
+<span class="ln">196</span>    rows, counts, warnings = [], [], []</code></pre></div><div class="note"><div class="rng">satır 188–196</div><h3>Tablo başlıklarını kur</h3><p>Tablonun sütunları kullanıcının seçeneklerine göre değişir: <code>--baseline</code> verildiyse Taban ve Net, <code>--monthly-calls</code> verildiyse Aylık sütunu eklenir. <code>+=</code> listeye yeni elemanlar ekler. Sonda boş listeler oluşturulur: satırlar, token sayıları ve uyarılar döngü boyunca bunlara eklenecek.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">197</span>    <span class="k">for</span> model <span class="k">in</span> models:
+<span class="ln">198</span>        tokens, error = try_count(client, model, messages)
+<span class="ln">199</span>        <span class="k">if</span> error:
+<span class="ln">200</span>            rows.append([model[<span class="s">"</span><span class="s">name</span><span class="s">"</span>]] + [<span class="s">"</span><span class="s">-</span><span class="s">"</span>] * (<span class="nb">len</span>(headers) - <span class="m">2</span>) + [<span class="s">f</span><span class="s">"</span><span class="s">erişilemedi (</span><span class="s">{</span>error<span class="s">}</span><span class="s">)</span><span class="s">"</span>])
+<span class="ln">201</span>            <span class="k">continue</span></code></pre></div><div class="note"><div class="rng">satır 197–201</div><h3>Model döngüsü ve hata satırı</h3><p><code>for</code> döngüsü her modeli sırayla işler. Sayım hata verdiyse satır tirelerle doldurulur ve son sütuna hata yazılır. <code>continue</code> döngünün bu turunu bitirir ve bir sonraki modele geçer; hatalı modelle hesap yapılmaya çalışılmaz.</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">203</span>        counts.append(tokens)
+<span class="ln">204</span>        row = [model[<span class="s">"</span><span class="s">name</span><span class="s">"</span>], fmt_int(tokens)]
+<span class="ln">205</span>        <span class="k">if</span> args.baseline:
+<span class="ln">206</span>            base, _ = try_count(client, model, build_messages(BASELINE_TEXT))
+<span class="ln">207</span>            row += [fmt_int(base) <span class="k">if</span> base <span class="k">is</span> <span class="k">not</span> <span class="k">None</span> <span class="k">else</span> <span class="s">"</span><span class="s">-</span><span class="s">"</span>,
+<span class="ln">208</span>                    fmt_int(tokens - base) <span class="k">if</span> base <span class="k">is</span> <span class="k">not</span> <span class="k">None</span> <span class="k">else</span> <span class="s">"</span><span class="s">-</span><span class="s">"</span>]</code></pre></div><div class="note"><div class="rng">satır 203–208</div><h3>Token ve taban sütunları</h3><p>Başarılı sayım <code>counts</code> listesine eklenir; en sonda modeller arası fark bu listeden hesaplanacak. <code>--baseline</code> verildiyse tek noktalık bir mesaj ayrıca sayılır. Bu, mesaj iskeletinin token maliyetini gösterir; metnin kendi payı (Net) toplamdan bu taban çıkarılarak bulunur.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">210</span>        cost = estimate_cost(model, tokens, args.output_tokens)
+<span class="ln">211</span>        row.append(fmt_usd(cost))
+<span class="ln">212</span>        <span class="k">if</span> args.monthly_calls:
+<span class="ln">213</span>            row.append(fmt_usd(cost * args.monthly_calls))
+<span class="ln">214</span>
+<span class="ln">215</span>        ratio = context_ratio(model, tokens, args.output_tokens)
+<span class="ln">216</span>        row.append(<span class="s">f</span><span class="s">"</span><span class="s">{</span>render_bar(ratio)<span class="s">}</span><span class="s"> </span><span class="s">{</span>fmt_pct(ratio)<span class="s">}</span><span class="s"> </span><span class="s">{</span>usage_label(ratio)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">217</span>        rows.append(row)
+<span class="ln">218</span>
+<span class="ln">219</span>        <span class="k">if</span> args.output_tokens &gt; model[<span class="s">"</span><span class="s">max_output</span><span class="s">"</span>]:
+<span class="ln">220</span>            warnings.append(<span class="s">f</span><span class="s">"</span><span class="s">{</span>model[<span class="s">'</span><span class="s">name</span><span class="s">'</span>]<span class="s">}</span><span class="s">: çıktı tahmini, modelin max output sınırını </span><span class="s">"</span>
+<span class="ln">221</span>                            <span class="s">f</span><span class="s">"</span><span class="s">(</span><span class="s">{</span>fmt_int(model[<span class="s">'</span><span class="s">max_output</span><span class="s">'</span>])<span class="s">}</span><span class="s">) aşıyor.</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 210–221</div><h3>Maliyet, doluluk ve uyarı</h3><p>Hesaplamalar bloğundaki fonksiyonlar burada çağrılır: maliyet, varsa aylık maliyet, doluluk oranı, çubuk ve etiket satıra eklenir. Beklenen çıktı modelin üretebileceği en fazla token'ı (<code>max_output</code>) aşıyorsa uyarı listeye alınır; tablo bittikten sonra basılacak.</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">223</span>    print_table(headers, rows, right_align=<span class="nb">set</span>(<span class="nb">range</span>(<span class="m">1</span>, <span class="nb">len</span>(headers) - <span class="m">1</span>)))
+<span class="ln">224</span>    <span class="nb">print</span>()
+<span class="ln">225</span>
+<span class="ln">226</span>    <span class="k">if</span> <span class="nb">len</span>(<span class="nb">set</span>(counts)) &gt; <span class="m">1</span>:
+<span class="ln">227</span>        low, high = <span class="nb">min</span>(counts), <span class="nb">max</span>(counts)
+<span class="ln">228</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Not: Aynı metin modele göre farklı token sayısı verdi </span><span class="s">"</span>
+<span class="ln">229</span>              <span class="s">f</span><span class="s">"</span><span class="s">(</span><span class="s">{</span>fmt_int(low)<span class="s">}</span><span class="s"> – </span><span class="s">{</span>fmt_int(high)<span class="s">}</span><span class="s">, fark </span><span class="s">{</span>fmt_pct(high / low - <span class="m">1</span>)<span class="s">}</span><span class="s">). </span><span class="s">"</span>
+<span class="ln">230</span>              <span class="s">f</span><span class="s">"</span><span class="s">Tokenizer modele özgüdür; her model için ayrı say.</span><span class="s">"</span>)
+<span class="ln">231</span>    <span class="k">for</span> warning <span class="k">in</span> warnings:
+<span class="ln">232</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Uyarı: </span><span class="s">{</span>warning<span class="s">}</span><span class="s">"</span>)
+<span class="ln">233</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Fiyat kaynağı: pricing.yaml (güncelleme: </span><span class="s">{</span>pricing[<span class="s">'</span><span class="s">updated</span><span class="s">'</span>]<span class="s">}</span><span class="s">)</span><span class="s">"</span>)
+<span class="ln">234</span>
+<span class="ln">235</span>    <span class="k">if</span> args.verify:
+<span class="ln">236</span>        <span class="nb">print</span>()
+<span class="ln">237</span>        verify_model = select_models(pricing, args.verify_model)[<span class="m">0</span>]
+<span class="ln">238</span>        run_verify(client, verify_model, text, args.verify_max_tokens)
+<span class="ln">239</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 223–239</div><h3>Sonuçları bas, gerekirse doğrula</h3><p>Tablo basılır. <code>set(counts)</code> tekrarları atar; birden fazla farklı değer kaldıysa modeller aynı metin için farklı token sayısı vermiş demektir ve bunu bir not olarak yazar. <code>--verify</code> verildiyse tek bir gerçek çağrı yapılır. <code>return 0</code> "başarıyla bitti" anlamına gelir.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">242</span><span class="k">def</span> <span class="nf">run_verify</span>(client, model: <span class="nb">dict</span>, text: <span class="nb">str</span>, max_tokens: <span class="nb">int</span>) -&gt; <span class="k">None</span>:
+<span class="ln">243</span>    <span class="sd">"""Tek bir gerçek çağrı yapıp count_tokens tahminini usage ile karşılaştırır.</span>
+<span class="ln">244</span>
+<span class="ln">245</span><span class="sd">    Çağrı öncesinde çıktı uzunluğu bilinemez; tahmin satırında çıktı için</span>
+<span class="ln">246</span><span class="sd">    max_tokens üst sınırı kullanılır (en kötü durum maliyeti).</span>
+<span class="ln">247</span><span class="sd">    """</span>
+<span class="ln">248</span>    messages = build_messages(VERIFY_INSTRUCTION + text)
+<span class="ln">249</span>    estimated = count_input_tokens(client, model[<span class="s">"</span><span class="s">id</span><span class="s">"</span>], messages)
+<span class="ln">250</span>    response = client.messages.create(model=model[<span class="s">"</span><span class="s">id</span><span class="s">"</span>], max_tokens=max_tokens, messages=messages)
+<span class="ln">251</span>    usage = response.usage</code></pre></div><div class="note"><div class="rng">satır 242–251</div><h3>run_verify: tahmin ve gerçek çağrı</h3><p>Aynı mesaj önce <code>count_tokens</code> ile sayılır, sonra <code>messages.create</code> ile gerçekten modele gönderilir. Bu çağrı ücretlidir; model bir cevap üretir ve yanıtta <code>usage</code> alanı gelir. <code>usage</code>, faturada esas alınan kesin ölçümdür (Ders 1.4 §6.1).</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">253</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Doğrulama (</span><span class="s">{</span>model[<span class="s">'</span><span class="s">name</span><span class="s">'</span>]<span class="s">}</span><span class="s">, gerçek çağrı, max_tokens=</span><span class="s">{</span>max_tokens<span class="s">}</span><span class="s">)</span><span class="s">"</span>)
+<span class="ln">254</span>    print_table(
+<span class="ln">255</span>        [<span class="s">"</span><span class="s">"</span>, <span class="s">"</span><span class="s">Girdi token</span><span class="s">"</span>, <span class="s">"</span><span class="s">Çıktı token</span><span class="s">"</span>, <span class="s">"</span><span class="s">Maliyet</span><span class="s">"</span>],
+<span class="ln">256</span>        [
+<span class="ln">257</span>            [<span class="s">"</span><span class="s">Tahmin (count_tokens + max_tokens)</span><span class="s">"</span>, fmt_int(estimated), fmt_int(max_tokens),
+<span class="ln">258</span>             fmt_usd(estimate_cost(model, estimated, max_tokens))],
+<span class="ln">259</span>            [<span class="s">"</span><span class="s">Gerçek (usage)</span><span class="s">"</span>, fmt_int(usage.input_tokens), fmt_int(usage.output_tokens),
+<span class="ln">260</span>             fmt_usd(estimate_cost(model, usage.input_tokens, usage.output_tokens))],
+<span class="ln">261</span>        ],
+<span class="ln">262</span>        right_align={<span class="m">1</span>, <span class="m">2</span>, <span class="m">3</span>},
+<span class="ln">263</span>    )
+<span class="ln">264</span>    diff = usage.input_tokens - estimated
+<span class="ln">265</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Girdi farkı: </span><span class="s">{</span>diff<span class="s">:</span><span class="s">+d</span><span class="s">}</span><span class="s"> token. Faturada esas alınan değer usage</span><span class="s">'</span><span class="s">dır.</span><span class="s">"</span>)
+<span class="ln">266</span>    answer = <span class="s">"</span><span class="s">"</span>.join(block.text <span class="k">for</span> block <span class="k">in</span> response.content <span class="k">if</span> <span class="nb">getattr</span>(block, <span class="s">"</span><span class="s">type</span><span class="s">"</span>, <span class="s">"</span><span class="s">"</span>) == <span class="s">"</span><span class="s">text</span><span class="s">"</span>).strip()
+<span class="ln">267</span>    <span class="k">if</span> answer:
+<span class="ln">268</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Model yanıtı: </span><span class="s">{</span>answer<span class="s">}</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 253–268</div><h3>Tahmin ile gerçeği yan yana göster</h3><p>İki satırlık bir tablo basılır: tahmin ve gerçek. Çağrıdan önce cevabın uzunluğu bilinemediği için tahmin satırında çıktı olarak <code>max_tokens</code> üst sınırı kullanılır; bu en kötü durum maliyetidir. <code>{diff:+d}</code> farkı işaretiyle (+1, -2) yazar. Son olarak modelin cevabındaki metin blokları birleştirilip gösterilir.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">271</span><span class="k">def</span> <span class="nf">cmd_compare</span>(args, client, pricing: <span class="nb">dict</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">272</span>    tr_text, en_text = read_text(args.tr_file), read_text(args.en_file)
+<span class="ln">273</span>    models = select_models(pricing, args.models)
+<span class="ln">274</span>
+<span class="ln">275</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Türkçe:   </span><span class="s">{</span>args.tr_file<span class="s">}</span><span class="s">  |  </span><span class="s">{</span>fmt_int(<span class="nb">len</span>(tr_text))<span class="s">}</span><span class="s"> karakter, </span><span class="s">{</span>fmt_int(<span class="nb">len</span>(tr_text.split()))<span class="s">}</span><span class="s"> kelime</span><span class="s">"</span>)
+<span class="ln">276</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">İngilizce: </span><span class="s">{</span>args.en_file<span class="s">}</span><span class="s">  |  </span><span class="s">{</span>fmt_int(<span class="nb">len</span>(en_text))<span class="s">}</span><span class="s"> karakter, </span><span class="s">{</span>fmt_int(<span class="nb">len</span>(en_text.split()))<span class="s">}</span><span class="s"> kelime</span><span class="s">"</span>)
+<span class="ln">277</span>    <span class="nb">print</span>()
+<span class="ln">278</span>
+<span class="ln">279</span>    headers = [<span class="s">"</span><span class="s">Model</span><span class="s">"</span>, <span class="s">"</span><span class="s">TR token</span><span class="s">"</span>, <span class="s">"</span><span class="s">EN token</span><span class="s">"</span>, <span class="s">"</span><span class="s">TR/EN</span><span class="s">"</span>, <span class="s">"</span><span class="s">TR fazlası</span><span class="s">"</span>, <span class="s">"</span><span class="s">1.000 çağrıda ek girdi maliyeti</span><span class="s">"</span>]
+<span class="ln">280</span>    rows, ratios = [], []</code></pre></div><div class="note"><div class="rng">satır 271–280</div><h3>cmd_compare başlar: iki dosyayı oku</h3><p><code>compare</code> komutu aynı içeriğin Türkçe ve İngilizce hâlini okur. Karşılaştırmanın anlamlı olması için iki metnin aynı şeyi söylemesi gerekir; böylece token farkı yalnızca dilden kaynaklanır (Ders 1.3 §1.3). <code>a, b = x, y</code> yazımı iki değişkene aynı satırda değer atar.</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">281</span>    <span class="k">for</span> model <span class="k">in</span> models:
+<span class="ln">282</span>        tr_tokens, tr_err = try_count(client, model, build_messages(tr_text))
+<span class="ln">283</span>        en_tokens, en_err = try_count(client, model, build_messages(en_text))
+<span class="ln">284</span>        <span class="k">if</span> tr_err <span class="k">or</span> en_err:
+<span class="ln">285</span>            rows.append([model[<span class="s">"</span><span class="s">name</span><span class="s">"</span>], <span class="s">"</span><span class="s">-</span><span class="s">"</span>, <span class="s">"</span><span class="s">-</span><span class="s">"</span>, <span class="s">"</span><span class="s">-</span><span class="s">"</span>, <span class="s">"</span><span class="s">-</span><span class="s">"</span>, <span class="s">f</span><span class="s">"</span><span class="s">erişilemedi (</span><span class="s">{</span>tr_err <span class="k">or</span> en_err<span class="s">}</span><span class="s">)</span><span class="s">"</span>])
+<span class="ln">286</span>            <span class="k">continue</span>
+<span class="ln">287</span>        ratio = tr_tokens / en_tokens
+<span class="ln">288</span>        ratios.append(ratio)
+<span class="ln">289</span>        extra_cost = (tr_tokens - en_tokens) * model[<span class="s">"</span><span class="s">input_per_mtok</span><span class="s">"</span>] / <span class="m">1_000_000</span> * <span class="m">1000</span>
+<span class="ln">290</span>        rows.append([
+<span class="ln">291</span>            model[<span class="s">"</span><span class="s">name</span><span class="s">"</span>], fmt_int(tr_tokens), fmt_int(en_tokens),
+<span class="ln">292</span>            _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span>ratio<span class="s">:</span><span class="s">.2f</span><span class="s">}</span><span class="s">"</span>), fmt_pct(ratio - <span class="m">1</span>, <span class="m">0</span>), fmt_usd(extra_cost),
+<span class="ln">293</span>        ])</code></pre></div><div class="note"><div class="rng">satır 281–293</div><h3>Her model için iki sayım ve oran</h3><p>Her model için iki ayrı sayım yapılır. Biri hata verirse satır "erişilemedi" olarak geçilir. Oran TR'nin EN'ye bölünmesiyle bulunur: 1,30 sonucu Türkçenin %30 daha fazla token kullandığını gösterir. Fark girdi fiyatıyla çarpılıp 1.000 çağrıya ölçeklenir; küçük bir oran böylece somut bir dolar tutarına dönüşür.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">295</span>    print_table(headers, rows, right_align={<span class="m">1</span>, <span class="m">2</span>, <span class="m">3</span>, <span class="m">4</span>, <span class="m">5</span>})
+<span class="ln">296</span>    <span class="nb">print</span>()
+<span class="ln">297</span>    <span class="k">if</span> ratios:
+<span class="ln">298</span>        avg = <span class="nb">sum</span>(ratios) / <span class="nb">len</span>(ratios)
+<span class="ln">299</span>        direction = <span class="s">"</span><span class="s">daha fazla</span><span class="s">"</span> <span class="k">if</span> avg &gt;= <span class="m">1</span> <span class="k">else</span> <span class="s">"</span><span class="s">daha az</span><span class="s">"</span>
+<span class="ln">300</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Ortalama: Türkçe metin aynı içerik için </span><span class="s">{</span>fmt_pct(<span class="nb">abs</span>(avg - <span class="m">1</span>), <span class="m">0</span>)<span class="s">}</span><span class="s"> </span><span class="s">{</span>direction<span class="s">}</span><span class="s"> girdi token</span><span class="s">'</span><span class="s">ı kullandı.</span><span class="s">"</span>)
+<span class="ln">301</span>        <span class="nb">print</span>(<span class="s">"</span><span class="s">Bu oran metin türüne ve modele göre değişir; kendi verinle ölç.</span><span class="s">"</span>)
+<span class="ln">302</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 295–302</div><h3>Tablo ve ortalama sonuç</h3><p>Tablo basıldıktan sonra tüm oranların ortalaması alınır: <code>sum(ratios) / len(ratios)</code>. Tek satırlık <code>a if koşul else b</code> yazımıyla ortalamaya göre "daha fazla" ya da "daha az" seçilir. Son satır, oranın metin türüne göre değiştiğini hatırlatır.</p></div></div>
+<div class="sec-head t-6" id="b-giris"><h2>Giriş noktası</h2><p>Program buradan başlar: komut satırını okur ve işi doğru komuta yollar.</p></div>
+<div class="seg t-6 a"><div class="code"><pre><code><span class="ln">305</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">306</span><span class="c"># Giriş noktası</span>
+<span class="ln">307</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">308</span>
+<span class="ln">309</span><span class="k">def</span> <span class="nf">build_parser</span>() -&gt; argparse.ArgumentParser:
+<span class="ln">310</span>    parser = argparse.ArgumentParser(prog=<span class="s">"</span><span class="s">tokenhesap</span><span class="s">"</span>, description=<span class="s">"</span><span class="s">Çağrı öncesi token, maliyet ve context hesaplayıcı.</span><span class="s">"</span>)
+<span class="ln">311</span>    parser.add_argument(<span class="s">"</span><span class="s">--pricing</span><span class="s">"</span>, default=<span class="nb">str</span>(DEFAULT_PRICING_PATH), help=<span class="s">"</span><span class="s">Fiyat dosyası (varsayılan: pricing.yaml)</span><span class="s">"</span>)
+<span class="ln">312</span>    sub = parser.add_subparsers(dest=<span class="s">"</span><span class="s">command</span><span class="s">"</span>, required=<span class="k">True</span>)
+<span class="ln">313</span>
+<span class="ln">314</span>    p_count = sub.add_parser(<span class="s">"</span><span class="s">count</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Bir metnin token, maliyet ve context doluluğunu hesapla</span><span class="s">"</span>)
+<span class="ln">315</span>    p_count.add_argument(<span class="s">"</span><span class="s">file</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Metin dosyası (</span><span class="s">'</span><span class="s">-</span><span class="s">'</span><span class="s"> ile standart girdi)</span><span class="s">"</span>)
+<span class="ln">316</span>    p_count.add_argument(<span class="s">"</span><span class="s">--models</span><span class="s">"</span>, help=MODELS_HELP)
+<span class="ln">317</span>    p_count.add_argument(<span class="s">"</span><span class="s">--output-tokens</span><span class="s">"</span>, <span class="nb">type</span>=<span class="nb">int</span>, default=<span class="m">1000</span>, help=<span class="s">"</span><span class="s">Beklenen çıktı token</span><span class="s">'</span><span class="s">ı (varsayılan: 1000)</span><span class="s">"</span>)
+<span class="ln">318</span>    p_count.add_argument(<span class="s">"</span><span class="s">--monthly-calls</span><span class="s">"</span>, <span class="nb">type</span>=<span class="nb">int</span>, default=<span class="m">0</span>, help=<span class="s">"</span><span class="s">Aylık çağrı sayısı; verilirse aylık maliyet gösterilir</span><span class="s">"</span>)
+<span class="ln">319</span>    p_count.add_argument(<span class="s">"</span><span class="s">--baseline</span><span class="s">"</span>, action=<span class="s">"</span><span class="s">store_true</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Mesaj iskeletinin taban token</span><span class="s">'</span><span class="s">ını ve net metin token</span><span class="s">'</span><span class="s">ını göster</span><span class="s">"</span>)
+<span class="ln">320</span>    p_count.add_argument(<span class="s">"</span><span class="s">--verify</span><span class="s">"</span>, action=<span class="s">"</span><span class="s">store_true</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Tek gerçek çağrı yapıp tahmini usage ile karşılaştır (ücretli)</span><span class="s">"</span>)
+<span class="ln">321</span>    p_count.add_argument(<span class="s">"</span><span class="s">--verify-model</span><span class="s">"</span>, default=<span class="s">"</span><span class="s">haiku-4-5</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Doğrulama modeli (varsayılan: haiku-4-5)</span><span class="s">"</span>)
+<span class="ln">322</span>    p_count.add_argument(<span class="s">"</span><span class="s">--verify-max-tokens</span><span class="s">"</span>, <span class="nb">type</span>=<span class="nb">int</span>, default=<span class="m">300</span>, help=<span class="s">"</span><span class="s">Doğrulama çağrısının max_tokens değeri</span><span class="s">"</span>)
+<span class="ln">323</span>
+<span class="ln">324</span>    p_compare = sub.add_parser(<span class="s">"</span><span class="s">compare</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Aynı içeriğin Türkçe ve İngilizce token sayılarını karşılaştır</span><span class="s">"</span>)
+<span class="ln">325</span>    p_compare.add_argument(<span class="s">"</span><span class="s">tr_file</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Türkçe metin dosyası</span><span class="s">"</span>)
+<span class="ln">326</span>    p_compare.add_argument(<span class="s">"</span><span class="s">en_file</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">İngilizce metin dosyası</span><span class="s">"</span>)
+<span class="ln">327</span>    p_compare.add_argument(<span class="s">"</span><span class="s">--models</span><span class="s">"</span>, help=MODELS_HELP)
+<span class="ln">328</span>    <span class="k">return</span> parser</code></pre></div><div class="note"><div class="rng">satır 305–328</div><h3>build_parser: komut satırının tarifi</h3><p><code>argparse</code> ile programın kabul ettiği komutlar (<code>count</code>, <code>compare</code>) ve seçenekler tanımlanır. <code>add_subparsers</code> alt komutları, <code>add_argument</code> her seçeneği ekler. <code>type=int</code> değeri sayıya çevirir, <code>default</code> verilmezse kullanılacak değeri, <code>action="store_true"</code> ise değer almayan açma-kapama seçeneğini belirtir. <code>--help</code> çıktısı da buradaki <code>help</code> metinlerinden otomatik üretilir.</p></div></div>
+<div class="seg t-6 b"><div class="code"><pre><code><span class="ln">331</span><span class="k">def</span> <span class="nf">main</span>(argv: <span class="nb">list</span>[<span class="nb">str</span>] | <span class="k">None</span> = <span class="k">None</span>, client=<span class="k">None</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">332</span>    args = build_parser().parse_args(argv)
+<span class="ln">333</span>
+<span class="ln">334</span>    <span class="k">try</span>:
+<span class="ln">335</span>        pricing = load_pricing(Path(args.pricing))
+<span class="ln">336</span>        <span class="k">if</span> client <span class="k">is</span> <span class="k">None</span>:
+<span class="ln">337</span>            <span class="k">if</span> <span class="k">not</span> os.environ.get(<span class="s">"</span><span class="s">ANTHROPIC_API_KEY</span><span class="s">"</span>):
+<span class="ln">338</span>                <span class="nb">print</span>(<span class="s">"</span><span class="s">Hata: ANTHROPIC_API_KEY ortam değişkeni tanımlı değil.</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">339</span>                <span class="k">return</span> <span class="m">2</span>
+<span class="ln">340</span>            client = anthropic.Anthropic()</code></pre></div><div class="note"><div class="rng">satır 331–340</div><h3>main: hazırlık ve istemci</h3><p><code>parse_args</code> terminaldeki yazıyı okuyup <code>args</code> nesnesine koyar; artık <code>args.file</code>, <code>args.output_tokens</code> gibi değerlere nokta ile erişilir. Fiyat dosyası yüklenir. API anahtarı yoksa program API'ye hiç gitmeden açıklayıcı bir mesajla durur. <code>client=None</code> parametresi testlerin sahte bir istemci vermesine izin verir; böylece testler para harcamadan çalışır.</p></div></div>
+<div class="seg t-6 a"><div class="code"><pre><code><span class="ln">342</span>        <span class="k">if</span> args.command == <span class="s">"</span><span class="s">count</span><span class="s">"</span>:
+<span class="ln">343</span>            <span class="k">return</span> cmd_count(args, client, pricing)
+<span class="ln">344</span>        <span class="k">return</span> cmd_compare(args, client, pricing)
+<span class="ln">345</span>
+<span class="ln">346</span>    <span class="k">except</span> (ValueError, FileNotFoundError) <span class="k">as</span> e:
+<span class="ln">347</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Hata: </span><span class="s">{</span>e<span class="s">}</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">348</span>        <span class="k">return</span> <span class="m">2</span>
+<span class="ln">349</span>    <span class="k">except</span> anthropic.AuthenticationError:
+<span class="ln">350</span>        <span class="nb">print</span>(<span class="s">"</span><span class="s">Hata: API anahtarı geçersiz. ANTHROPIC_API_KEY değerini kontrol et.</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">351</span>        <span class="k">return</span> <span class="m">2</span></code></pre></div><div class="note"><div class="rng">satır 342–351</div><h3>İşi komuta yolla, hataları yakala</h3><p><code>args.command</code> değerine göre <code>cmd_count</code> ya da <code>cmd_compare</code> çağrılır. Altta yakalanan hatalar kullanıcının düzeltebileceği türdendir: eksik dosya, hatalı model adı, geçersiz API anahtarı. Her biri teknik bir hata dökümü yerine tek satırlık anlaşılır bir mesaj ve <code>2</code> çıkış koduyla sonlanır.</p></div></div>
+<div class="seg t-6 b"><div class="code"><pre><code><span class="ln">354</span><span class="k">if</span> __name__ == <span class="s">"</span><span class="s">__main__</span><span class="s">"</span>:
+<span class="ln">355</span>    sys.exit(main())</code></pre></div><div class="note"><div class="rng">satır 354–355</div><h3>Programın başladığı yer</h3><p>Dosya doğrudan çalıştırıldığında (<code>python tokenhesap.py</code>) Python <code>__name__</code> değişkenine <code>"__main__"</code> değerini verir ve <code>main()</code> çağrılır. Testler dosyayı <code>import</code> ettiğinde bu koşul sağlanmaz ve hiçbir şey kendiliğinden çalışmaz. <code>sys.exit</code>, <code>main()</code>'in döndürdüğü sayıyı terminale çıkış kodu olarak iletir. Kodu okumaya buradan başlayıp yukarı doğru fonksiyonları takip etmek de iyi bir yöntemdir.</p></div></div>
+</main>
+<footer>Kodu ilk kez okuyorsan en alttaki "Programın başladığı yer" bölümünden başlayıp yukarı doğru, çağrılan fonksiyonları takip ederek ilerlemeyi de deneyebilirsin. Fiyat ve model değerleri pricing.yaml dosyasından okunur.</footer>
+</div>
+</body>
+</html>

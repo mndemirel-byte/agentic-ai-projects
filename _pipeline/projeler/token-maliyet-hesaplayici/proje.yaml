@@ -1,0 +1,156 @@
+# Proje hazırlama pipeline'ı: token-maliyet-hesaplayici
+# Bu dosya pipeline'ın projeye özgü tek ayar dosyasıdır. Ayrıntı: _pipeline/README.md
+
+slug: token-maliyet-hesaplayici
+baslik: Token maliyet hesaplayıcı
+yazim_modu: manuel          # manuel: öğrenci kodu kendisi yazar
+demo_kind: terminal
+
+# Tam çözüm ve ara sürümler (proje klasörüne göre)
+cozum: cozum/tokenhesap.py
+ara_surumler:
+  - cozum/adim_1.py
+  - cozum/adim_2.py
+  - cozum/adim_3.py
+  - cozum/adim_4.py
+  - cozum/adim_5.py
+  - cozum/adim_6.py
+
+# Ölçüm: gerçek API ile çalıştırılan komutlar. Rehberdeki beklenen çıktılar ve demo bu
+# çıktılardan üretilir. Rehber ölçümleri ara sürümleri, demo ölçümleri tam çözümü çalıştırır.
+olcum:
+  hazirlik:
+    - python ornekler/uzun_log_uret.py
+  calistirmalar:
+    - {ad: rehber-1,  komut: "python cozum/adim_1.py count ornekler/1_kisa_tr.txt"}
+    - {ad: rehber-2a, komut: "python cozum/adim_2.py count ornekler/1_kisa_tr.txt --baseline"}
+    - {ad: rehber-2b, komut: "python cozum/adim_2.py count ornekler/2_eposta_tr.txt --baseline"}
+    - {ad: rehber-3,  komut: "python cozum/adim_3.py count ornekler/2_eposta_tr.txt --models haiku-4-5 --output-tokens 500 --monthly-calls 100000"}
+    - {ad: rehber-4a, komut: "python cozum/adim_4.py count ornekler/2_eposta_tr.txt --output-tokens 500 --monthly-calls 100000"}
+    - {ad: rehber-4b, komut: "python cozum/adim_4.py count ornekler/3_teknik_tr.txt --output-tokens 500"}
+    - {ad: rehber-5,  komut: "python cozum/adim_5.py count ornekler/uzun_log.txt --output-tokens 4000"}
+    - {ad: rehber-6a, komut: "python cozum/adim_6.py compare ornekler/1_kisa_tr.txt ornekler/1_kisa_en.txt"}
+    - {ad: rehber-6b, komut: "python cozum/adim_6.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt"}
+    - {ad: rehber-6c, komut: "python cozum/adim_6.py compare ornekler/3_teknik_tr.txt ornekler/3_teknik_en.txt"}
+    - {ad: rehber-7,  komut: "python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --models haiku-4-5 --verify"}
+    - {ad: demo-taban,      komut: "python cozum/tokenhesap.py count ornekler/1_kisa_tr.txt --baseline"}
+    - {ad: demo-dort-model, komut: "python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt --output-tokens 500 --monthly-calls 100000"}
+    - {ad: demo-uzun-log,   komut: "python cozum/tokenhesap.py count ornekler/uzun_log.txt --output-tokens 4000"}
+    - {ad: demo-tr-en-eposta, komut: "python cozum/tokenhesap.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt"}
+    - {ad: demo-tr-en-teknik, komut: "python cozum/tokenhesap.py compare ornekler/3_teknik_tr.txt ornekler/3_teknik_en.txt"}
+  # Rehberde komutlar öğrencinin dosyasıyla gösterilir
+  gosterim:
+    cozum/adim_1.py: calisma/tokenhesap.py
+    cozum/adim_2.py: calisma/tokenhesap.py
+    cozum/adim_3.py: calisma/tokenhesap.py
+    cozum/adim_4.py: calisma/tokenhesap.py
+    cozum/adim_5.py: calisma/tokenhesap.py
+    cozum/adim_6.py: calisma/tokenhesap.py
+    cozum/tokenhesap.py: calisma/tokenhesap.py
+  # Önizleme ölçümü (API anahtarı olmadan): bu dosyadaki SahteIstemci kullanılır
+  sahte_istemci: sahte_istemci.py
+
+# Üretilecek içerik: platform → _pipeline/cikti/{slug}/, repo → proje klasörü
+icerik:
+  - {sablon: project.template.mdx, hedef: project.mdx, yer: platform}
+  - {sablon: guide.template.md, hedef: Step-by-Step-GUIDE.md, yer: repo}
+
+demo:
+  baslik: "Token maliyet hesaplayıcı"
+  parser_fonksiyonu: build_parser
+  dosya_alanlari: [file, tr_file, en_file, pricing]
+  varsayilan_etiketleri:
+    pricing: pricing.yaml
+    monthly_calls: "yok, sütun gösterilmez"
+  sahneler:
+    - olcum: demo-taban
+      baslik: Taban ölçümü (kısa metin)
+      aciklama: Kısa bir cümleyi say. Taban sütunu mesaj iskeletinin payını, Net sütunu metnin kendi payını gösterir.
+    - olcum: demo-dort-model
+      baslik: Dört model (e-posta)
+      aciklama: "Bir iş e-postasını dört modelde ölç: token sayısı, çağrı başına maliyet ve ayda 100.000 çağrının tutarı."
+    - olcum: demo-uzun-log
+      baslik: Context doluluğu (uzun log)
+      aciklama: Uzun bir log dosyası Haiku'nun 200K penceresini neredeyse iki kez aşar; aynı metin 1M'lik modellerde pencerenin yarısını bile doldurmaz.
+    - olcum: demo-tr-en-eposta
+      baslik: TR/EN karşılaştırma (e-posta)
+      aciklama: "Aynı e-postanın Türkçe ve İngilizce hâli: dil farkı token faturasına nasıl yansıyor?"
+    - olcum: demo-tr-en-teknik
+      baslik: TR/EN karşılaştırma (teknik metin)
+      aciklama: Aynı karşılaştırma bir olay raporunda. Oran metin türüne göre değişir.
+    - olcum: rehber-7
+      baslik: Tahmin vs gerçek (tek gerçek çağrı)
+      aciklama: "Tek bir gerçek çağrı: count_tokens tahmini ile faturada esas alınan usage değeri yan yana."
+  parametreler:
+    genel --pricing:
+      aciklama: >-
+        Fiyat ve model bilgilerinin okunacağı YAML dosyası. Verilmezse proje klasöründeki pricing.yaml kullanılır.
+        Alt komuttan önce yazılır. Farklı bir fiyat senaryosunu (ör. indirimli fiyatlar) denemek için kullanışlıdır.
+      ornek: python cozum/tokenhesap.py --pricing fiyatlar_2027.yaml count ornekler/1_kisa_tr.txt
+    count count:
+      aciklama: >-
+        Bir metin dosyasının her modelde kaç girdi token'ı tuttuğunu, çağrı başına maliyetini ve context window doluluğunu
+        hesaplar. Aracın ana komutudur.
+      ornek: python cozum/tokenhesap.py count ornekler/2_eposta_tr.txt
+    count file:
+      aciklama: >-
+        Ölçülecek metin dosyası. Dosya UTF-8 olarak okunur. Dosya yolu yerine - yazarsan metin standart girdiden okunur;
+        böylece başka bir komutun çıktısını doğrudan ölçebilirsin.
+      ornek: cat notlar.txt | python cozum/tokenhesap.py count -
+    count --models:
+      aciklama: >-
+        Hesaplanacak modeller, pricing.yaml içindeki anahtarlarla ve virgülle ayrılarak yazılır: haiku-4-5, sonnet-5-5,
+        opus-5-5, fable-5-1. Verilmezse dört modelin tamamı hesaplanır. Yanlış bir anahtar yazarsan geçerli anahtarların
+        listesi gösterilir.
+      ornek: --models haiku-4-5,sonnet-5-5
+    count --output-tokens:
+      aciklama: >-
+        Modelin üretmesini beklediğin çıktı token sayısı. Maliyet hesabında çıktı fiyatıyla çarpılır ve context doluluğuna
+        eklenir. Düşünme (thinking) token'ları da çıktı olarak faturalandığı için bu değere dahil edilmelidir. Modelin
+        max output sınırını aşarsa uyarı verilir.
+      ornek: --output-tokens 500
+    count --monthly-calls:
+      aciklama: >-
+        Aynı çağrının ayda kaç kez yapılacağı. Verilirse tabloya aylık toplam maliyet sütunu eklenir. Tek çağrıda
+        önemsiz görünen farkların ölçeklendiğinde ne kadar büyüdüğünü görmek için kullanılır.
+      ornek: --monthly-calls 100000
+    count --baseline:
+      aciklama: >-
+        Değer almayan bir açma-kapama seçeneğidir. Verilirse neredeyse boş bir mesaj ayrıca sayılır ve tabloya iki
+        sütun eklenir: Taban, mesaj iskeletinin token payıdır; Net, metnin kendi payıdır. Kısa metinlerde iskeletin
+        payı belirgin biçimde büyüktür.
+      ornek: --baseline
+    count --verify:
+      aciklama: >-
+        Değer almayan bir açma-kapama seçeneğidir. Verilirse tek bir gerçek çağrı yapılır ve count_tokens tahmini,
+        yanıttaki usage değeriyle yan yana gösterilir. Projedeki tek ücretli işlemdir; küçük bir metin ve ucuz bir
+        modelle kullanılmalıdır.
+      ornek: --verify
+    count --verify-model:
+      aciklama: >-
+        Doğrulama çağrısının yapılacağı model anahtarı. Yalnızca --verify ile birlikte anlamlıdır. Varsayılan en ucuz
+        model olan haiku-4-5'tir; pahalı bir model seçmek doğrulamanın maliyetini katlar.
+      ornek: --verify --verify-model sonnet-5-5
+    count --verify-max-tokens:
+      aciklama: >-
+        Doğrulama çağrısında modelin üretebileceği en fazla çıktı token'ı. Çağrıdan önce cevabın uzunluğu bilinemediği
+        için tahmin satırında çıktı olarak bu üst sınır kullanılır. Yalnızca --verify ile birlikte anlamlıdır.
+      ornek: --verify --verify-max-tokens 150
+    compare compare:
+      aciklama: >-
+        Aynı içeriğin Türkçe ve İngilizce hâlini her modelde sayar; TR/EN oranını, Türkçenin yüzde kaç fazla token
+        kullandığını ve bu farkın 1.000 çağrıdaki ek maliyetini gösterir.
+      ornek: python cozum/tokenhesap.py compare ornekler/2_eposta_tr.txt ornekler/2_eposta_en.txt
+    compare tr_file:
+      aciklama: >-
+        Türkçe metin dosyası. İlk konumsal argümandır. Karşılaştırmanın anlamlı olması için İngilizce dosyayla aynı
+        içeriği taşımalıdır.
+      ornek: ornekler/3_teknik_tr.txt
+    compare en_file:
+      aciklama: Türkçe dosyanın İngilizce çevirisi. İkinci konumsal argümandır.
+      ornek: ornekler/3_teknik_en.txt
+    compare --models:
+      aciklama: >-
+        count komutundaki ile aynı: hesaplanacak modelleri virgülle ayrılmış anahtarlarla seçer. Verilmezse dört model
+        karşılaştırılır.
+      ornek: --models haiku-4-5,opus-5-5

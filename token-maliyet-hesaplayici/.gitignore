@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+ornekler/uzun_log.txt
