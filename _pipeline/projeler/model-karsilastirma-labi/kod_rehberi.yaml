@@ -1,0 +1,330 @@
+# Yan yana kod rehberi girdisi. Açıklamalar HTML içerebilir (<code>, <b>).
+# Çapa: parçanın başladığı satırın baştaki boşluklar atılmış hâliyle başladığı metin.
+
+dipnot: Kodu ilk kez okuyorsan en alttaki "Programın başladığı yer" bölümünden başlayıp yukarı doğru, çağrılan fonksiyonları
+  takip ederek ilerlemeyi de deneyebilirsin. Fiyat ve model değerleri pricing.yaml dosyasından okunur.
+bolumler:
+- anahtar: hazirlik
+  ad: Hazırlık
+  aciklama: Dosyanın tanıtımı, kullanılacak kütüphaneler ve sabit değerler.
+- anahtar: veri
+  ad: Veri ve kayıt
+  aciklama: Fiyat ve görev dosyalarını okuyan, sonuçları JSONL olarak yazıp geri okuyan fonksiyonlar.
+- anahtar: api
+  ad: API çağrıları
+  aciklama: Anthropic API ile konuşan tek yer. Streaming çağrı burada yapılır ve süreler burada ölçülür.
+- anahtar: hesap
+  ad: Hesaplamalar
+  aciklama: API'ye dokunmayan, yalnızca sayılar ve metinle çalışan küçük fonksiyonlar; otomatik kontroller dahil.
+- anahtar: bicim
+  ad: Biçimlendirme
+  aciklama: Sayıları ve süreleri Türkçe yazıma çevirip ekrana düzgün bir tablo basan yardımcılar.
+- anahtar: komut
+  ad: Komutlar
+  aciklama: 'run, report, show ve rate komutlarının iş akışı: diğer bloklardaki fonksiyonları sırayla çağırır.'
+- anahtar: giris
+  ad: Giriş noktası
+  aciklama: 'Program buradan başlar: komut satırını okur ve işi doğru komuta yollar.'
+parcalar:
+- capa: '"""Model karşılaştırma lab''ı.'
+  bolum: hazirlik
+  baslik: 'Docstring: dosyanın kullanım kılavuzu'
+  aciklama: >-
+    Üç tırnak (<code>"""</code>) arasındaki metin bir <b>docstring</b>'dir. Python bunu çalıştırmaz; dosyanın ne işe
+    yaradığını ve nasıl kullanılacağını anlatır. Dört komutun (<code>run</code>, <code>report</code>, <code>show</code>,
+    <code>rate</code>) örneklerini buradan kopyalayıp terminalde deneyebilirsin.
+- capa: import argparse
+  bolum: hazirlik
+  baslik: 'import: kullanılacak araçları çağır'
+  aciklama: >-
+    İlk grup Python ile gelen standart kütüphanedir: komut satırı (<code>argparse</code>), JSON yazıp okuma
+    (<code>json</code>), matematik (<code>math</code>), ortam değişkenleri (<code>os</code>), karıştırma
+    (<code>random</code>), sistem (<code>sys</code>), süre ölçümü (<code>time</code>), tarih ve dosya yolları. İkinci
+    grup <code>pip install</code> ile kurduğun dış paketlerdir: <code>anthropic</code> API için, <code>yaml</code> görev
+    ve fiyat dosyaları için.
+- capa: PROJECT_DIR =
+  bolum: hazirlik
+  baslik: Sabitler
+  aciklama: >-
+    Büyük harfle yazılan isimler <b>sabit</b>tir. Proje klasörü dosyanın konumundan hesaplanır; böylece araç hangi
+    klasörden çalıştırılırsa çalıştırılsın <code>pricing.yaml</code> ve <code>sonuclar/</code> doğru yerde bulunur.
+    <code>CHECK_KINDS</code> görev dosyasında tanınan kontrol türlerini, <code>LABELS</code> etiketsiz görünümde model
+    adlarının yerine geçen harfleri tutar.
+- capa: '# Veri yükleme'
+  fark: -1
+  bolum: veri
+  baslik: 'load_pricing: fiyat dosyasını oku ve kontrol et'
+  aciklama: >-
+    <code>with open(...)</code> dosyayı açar ve blok bitince otomatik kapatır. <code>yaml.safe_load</code> YAML metnini
+    bir Python sözlüğüne (<code>dict</code>) çevirir. Ardından her modelde zorunlu alanların olup olmadığına bakılır;
+    eksik varsa <code>raise ValueError</code> ile program anlaşılır bir mesajla durur. Fiyatların kodda değil ayrı bir
+    dosyada durması, fiyat değiştiğinde kodu değiştirmeden güncelleyebilmeni sağlar.
+- capa: def select_models
+  bolum: veri
+  baslik: 'select_models: hangi modeller çalıştırılacak?'
+  aciklama: >-
+    <code>--models</code> verilmediyse tüm modeller döner. Verildiyse virgülle bölünür (<code>split(",")</code>) ve her
+    anahtar sözlükte aranır. Bilinmeyen bir anahtar yazılırsa geçerli anahtarları listeleyen bir hata verilir; yazım
+    hatası yapan kullanıcı ne yazması gerektiğini hemen görür.
+- capa: def load_tasks
+  bolum: veri
+  baslik: 'load_tasks: görev dosyasını oku ve doğrula'
+  aciklama: >-
+    Görev dosyası da YAML'dır. Fonksiyon üç şeyi kontrol eder: <code>gorevler</code> listesi boş mu, her görevde
+    <code>ad</code> ve <code>prompt</code> var mı, kontrol türleri <code>CHECK_KINDS</code> içinde mi. Yazım hatalı bir
+    kontrol (ör. <code>icermeli</code> yerine <code>icermelı</code>) sessizce yok sayılmak yerine daha dosya yüklenirken
+    yakalanır; aksi hâlde o kontrol hiç çalışmaz ve puanlar yanıltıcı olurdu.
+- capa: '# API çağrıları'
+  fark: -1
+  bolum: api
+  baslik: 'build_messages: prompt''u mesaj biçimine sok'
+  aciklama: >-
+    Claude API metni çıplak olarak değil, rolü belli mesajlardan oluşan bir liste olarak alır (Ders 1.4 §1). Bu
+    fonksiyon prompt'u <code>{"role": "user", "content": ...}</code> biçimine sokar. System talimatı bu listeye
+    girmez; Anthropic API'sinde ayrı bir <code>system</code> alanı olarak gönderilir.
+- capa: def stream_call
+  bolum: api
+  baslik: 'stream_call: projenin kalbi'
+  aciklama: >-
+    <code>client.messages.stream</code> yanıtı parça parça akıtır (Ders 1.4 §4.1). Çağrıdan hemen önce
+    <code>time.perf_counter()</code> ile saat başlatılır; ilk metin parçası geldiğinde <code>first</code> işaretlenir,
+    akış bitince <code>end</code> alınır. İlk token süresi <code>first - start</code>, toplam süre <code>end - start</code>'tır.
+    <code>get_final_message()</code> akış bittikten sonra <code>usage</code> ve <code>stop_reason</code> alanlarını verir;
+    akış sırasında bunlar henüz yoktur. <code>kwargs</code> sözlüğü, <code>system</code> yalnızca varsa eklensin diye
+    kurulur; <code>kwargs.update(extra or {})</code> modele özgü ek ayarları (pricing.yaml > cagri_ayarlari) isteğe
+    katar ve <code>**kwargs</code> sözlüğü fonksiyona adlı parametreler olarak açar. Bu projede ek ayarlar düşünmeyi
+    (thinking) en aza indirir: düşünme token'ları metin akışına girmez ama çıktı olarak faturalanır ve bütçeyi tüketir.
+- capa: def try_call
+  bolum: api
+  baslik: 'try_call: hataya dayanıklı çağrı'
+  aciklama: >-
+    <code>try / except</code> bloğu, içindeki kod hata verirse programın çökmesini önler. Hesabının bir modele erişimi
+    yoksa API'nin döndürdüğü hata (<code>APIStatusError</code>) yakalanır ve fonksiyon <code>(None, "HTTP 404")</code>
+    gibi bir sonuç döner; tabloya "erişilemedi" yazılır ve diğer modellerle devam edilir (Ders 1.4 §5). API anahtarı
+    hatası ise tüm modelleri etkilediği için <code>raise</code> ile yukarıya iletilir. Modelin <code>cagri_ayarlari</code>
+    sözlüğü de buradan <code>stream_call</code>'a iletilir; kod ayarların içeriğini bilmez.
+- capa: '# Hesaplamalar'
+  fark: -1
+  bolum: hesap
+  baslik: 'estimate_cost: tek çağrının maliyeti'
+  aciklama: >-
+    Girdi ve çıktı token'ları kendi fiyatlarıyla çarpılıp toplanır, sonra 1.000.000'a bölünür; çünkü fiyatlar milyon
+    token başına verilir (Ders 1.4 §6.2). Bu projede token sayıları tahmin değil, yanıtın <code>usage</code> alanından
+    gelen kesin değerlerdir; maliyet faturadakiyle aynıdır.
+- capa: def tokens_per_second
+  bolum: hesap
+  baslik: 'tokens_per_second: üretim hızı'
+  aciklama: >-
+    Toplam süreden ilk token süresi çıkarılınca modelin yalnızca <b>üretim</b> için harcadığı süre kalır; çıktı token
+    sayısı buna bölünür. Dört beş token'lık bir yanıtta bu süre birkaç milisaniyedir ve bölme sonucu anlamsız büyür;
+    bu yüzden 50 ms'nin altında <code>None</code> döner ve tabloda "-" görünür. Ölçemediğin değeri uydurmamak,
+    bu projenin tamamına yayılan bir ilkedir.
+- capa: def _parse_json
+  bolum: hesap
+  baslik: '_parse_json: JSON''u çöz, çözemezsen None'
+  aciklama: >-
+    Modeller yasaklansa bile bazen JSON'u <code>```</code> kod bloğuna sarar. Fonksiyon bu işaretleri temizleyip
+    <code>json.loads</code> ile çözmeyi dener; başarısız olursa hata fırlatmak yerine <code>None</code> döner. Kontrol
+    fonksiyonu bu <code>None</code> değerini "geçerli JSON değil" olarak puanlar. Not: <code>icermemeli: ["```"]</code>
+    kontrolü ayrıca kod bloğu kullanımını cezalandırır; ikisi farklı şeyleri ölçer.
+- capa: def check_output
+  bolum: hesap
+  baslik: 'check_output: çıktıyı kurallara göre puanla'
+  aciklama: >-
+    Görev dosyasındaki her kontrol türü için bir <code>elif</code> dalı var. Metin önce küçük harfe çevrilir ki
+    "Fatura" ile "fatura" aynı sayılsın. Başarısız kontroller <code>failed</code> listesine açıklamasıyla eklenir;
+    puan, geçen kontrollerin oranıdır. Kontrol yoksa puan <code>None</code>'dır: "0 puan" ile "puanlanmadı" farklı
+    şeylerdir ve tabloda farklı görünmelidir.
+- capa: def mean
+  bolum: hesap
+  baslik: 'mean: ortalama'
+  aciklama: >-
+    Üç satırlık bir yardımcı ama rapor boyunca onlarca kez çağrılır. <code>statistics.mean</code> de kullanılabilirdi;
+    boş listede ne olacağını kendi kodunda görmek için elle yazıldı. Boş listeyle çağrılmaması raporu hazırlayan
+    fonksiyonun sorumluluğudur.
+- capa: '# Biçimlendirme (Türkçe sayı yazımı: binlik ayırıcı nokta, ondalık virgül)'
+  fark: -1
+  bolum: bicim
+  baslik: '_tr_number: İngilizce sayı yazımını Türkçeye çevir'
+  aciklama: >-
+    Python sayıları <code>1,234.56</code> biçiminde yazar; Türkçede <code>1.234,56</code> kullanılır. Virgül ile nokta
+    doğrudan yer değiştirilemez (biri diğerini ezer), bu yüzden virgül önce geçici bir işarete (<code>§</code>) çevrilir.
+    Fonksiyon adının alt çizgiyle başlaması "bu dosyanın iç yardımcısı" anlamına gelen bir Python geleneğidir.
+- capa: def fmt_int
+  bolum: bicim
+  baslik: 'fmt_int: tam sayıyı biçimle'
+  aciklama: >-
+    <code>f"{n:,}"</code> bir <b>f-string</b>'dir: süslü parantez içindeki değeri metne yerleştirir, <code>:,</code>
+    ise binlik ayırıcı ekler. Sonuç <code>_tr_number</code>'dan geçirilerek 12.345 biçimine getirilir.
+- capa: def fmt_usd
+  bolum: bicim
+  baslik: 'fmt_usd: dolar tutarını okunur yaz'
+  aciklama: >-
+    Maliyetler çok küçük olabildiği için ($0,00025 gibi) sabit iki ondalık yetmez. <code>math.log10</code> sayının
+    büyüklük basamağını bulur; ondalık sayısı buna göre ayarlanır ve ilk anlamlı rakamdan sonra bir basamak daha
+    gösterilir.
+- capa: def fmt_sec
+  bolum: bicim
+  baslik: 'fmt_sec: süreyi okunur yaz'
+  aciklama: >-
+    Bir saniyenin altındaki süreler milisaniye olarak tam sayıyla (<code>320 ms</code>), üstündekiler iki ondalıkla
+    saniye olarak (<code>1,84 s</code>) yazılır. Aynı sütunda iki birim görmek ilk bakışta tuhaf gelebilir; ama
+    "0,05 s" yerine "50 ms" okumak gecikme farklarını çok daha hızlı kavratır.
+- capa: def fmt_pct
+  bolum: bicim
+  baslik: 'fmt_pct: yüzde yaz'
+  aciklama: >-
+    Oranı 100 ile çarpıp Türkçe yazımdaki gibi yüzde işaretini başa koyar (<code>%90</code>). Varsayılan olarak ondalık
+    göstermez; otomatik puanlarda ondalık hassasiyet yanıltıcı bir kesinlik izlenimi verirdi.
+- capa: def fmt_speed
+  bolum: bicim
+  baslik: 'fmt_speed, fmt_score, fmt_rating: "yok" değerini düzgün göster'
+  aciklama: >-
+    Üç fonksiyon da aynı kalıbı izler: değer <code>None</code> ise "-" yazar, değilse biçimler. Hız tam sayı, otomatik
+    puan yüzde, etiketsiz puan <code>4,3/5</code> biçimindedir. "Ölçülmedi" durumunu sıfırla karıştırmamak için bu
+    ayrım tabloya kadar taşınır.
+- capa: def print_table
+  bolum: bicim
+  baslik: 'print_table: hizalı tablo bas'
+  aciklama: >-
+    Önce her sütundaki en uzun hücre bulunur (<code>widths</code>). <code>zip(headers, *rows)</code> satırları sütunlara
+    çevirir. İçeride tanımlanan <code>line</code> fonksiyonu her hücreyi o genişliğe tamamlar: sayılar sağa (<code>rjust</code>),
+    metinler sola (<code>ljust</code>) yaslanır.
+- capa: '# Kayıt (JSONL: her satır bir JSON nesnesi)'
+  fark: -1
+  bolum: veri
+  baslik: 'default_results_path ve save_results: sonuçları JSONL''e yaz'
+  aciklama: >-
+    JSONL, her satırı bağımsız bir JSON nesnesi olan metin dosyasıdır. Tek bir büyük JSON dizisine göre iki avantajı
+    var: sonuna satır eklemek kolaydır (<code>append=True</code> ile <code>"a"</code> modunda açılır) ve dosya yarım
+    kalsa bile önceki satırlar okunabilir. <code>ensure_ascii=False</code> Türkçe karakterlerin <code>ç</code> gibi
+    kaçış dizilerine çevrilmeden yazılmasını sağlar.
+- capa: def load_results
+  bolum: veri
+  baslik: 'load_results: kayıtları geri oku'
+  aciklama: >-
+    Dosya satır satır okunur; boş satırlar atlanır. İki tür kayıt vardır: <code>calistirma</code> (bir görev-model
+    çiftinin ölçümü) ve <code>puan</code> (etiketsiz puan). Hiç çalıştırma kaydı yoksa anlamlı bir hatayla durulur; aksi
+    hâlde rapor boş listelerde ortalama almaya çalışıp anlaşılmaz bir hata verirdi.
+- capa: def runs_for_task
+  bolum: veri
+  baslik: 'runs_for_task: bir görevin çıktılarını süz'
+  aciklama: >-
+    Etiketsiz görünüm bir görevin model çıktılarını ister. Yalnızca ilk tekrar (<code>tekrar == 1</code>) alınır ki
+    <code>--repeat</code> ile çalıştırılmış dosyalarda her model bir kez görünsün. Görev adı yanlış yazılmışsa hata
+    mesajı dosyadaki görev adlarını listeler.
+- capa: def anonymize
+  bolum: veri
+  baslik: 'anonymize: karıştır ve harf ver'
+  aciklama: >-
+    <code>random.Random(seed)</code> tohumlu bir rastgele sayı üreteci kurar: aynı tohum her seferinde aynı karışıklığı
+    verir. Tohum dosya adı ile görev adından türetildiği için <code>show</code> ve <code>rate</code> komutları ayrı
+    çalıştırılsa da aynı eşlemeyi kullanır; A harfi iki komutta da aynı modeli gösterir. <code>zip(LABELS, shuffled)</code>
+    harfleri karıştırılmış kayıtlarla eşler.
+- capa: '# Komutlar'
+  fark: -1
+  bolum: komut
+  baslik: 'cmd_run başlar: görevler, modeller, çıkış dosyası'
+  aciklama: >-
+    <code>run</code> komutunun iş akışı. Görevler ve modeller yüklenir, sonuç dosyasının yolu belirlenir (verilmediyse
+    görev dosyasının adından türetilir). Ekrana setin özeti yazılır. Henüz hiçbir çağrı yapılmadı; döngüye girmeden her
+    şey hazır.
+- capa: 'for repeat in range(1, args.repeat + 1):'
+  bolum: komut
+  baslik: 'Üç iç içe döngü: görev × model × tekrar'
+  aciklama: >-
+    Her görev için her model, <code>--repeat</code> kadar çalıştırılır. Çağrı hata verdiyse satır tirelerle doldurulur,
+    <code>failures</code> listesine not düşülür ve <code>continue</code> ile sonraki tekrara geçilir. Başarılıysa maliyet
+    hesaplanır, çıktı kontrollerden geçirilir ve <code>stop_reason</code>'a bakılarak yanıtın <code>max_tokens</code>
+    sınırına takılıp takılmadığı (<code>cut</code>) belirlenir (Ders 1.4 §5.3).
+- capa: 'records.append({'
+  bolum: komut
+  baslik: Kayıt sözlüğü
+  aciklama: >-
+    Bir çalıştırmaya ait her şey tek bir sözlükte toplanır: zaman damgası, görev, model, tekrar numarası, süreler,
+    token sayıları, maliyet, puan, başarısız kontroller ve yanıtın kendisi. Süreler <code>round(..., 3)</code> ile
+    milisaniye hassasiyetine yuvarlanır. Yanıt metni de kaydedilir; <code>show</code> komutu buradan okur ve ücretli
+    çağrı yapmadan çalışır.
+- capa: 'name = model["name"] if args.repeat == 1'
+  bolum: komut
+  baslik: Tablo satırı ve kayıt
+  aciklama: >-
+    Tekrar varsa model adına <code>#2</code> gibi bir ek konur. Tablo satırındaki her değer biçimlendirme
+    fonksiyonlarından geçer; "(kesildi)" notu çıktı token sayısının yanına yazılır. Görev bittiğinde tablo basılır;
+    tüm görevler bittiğinde kayıtlar dosyaya yazılır ve başarısız çağrılar varsa tek satırlık bir uyarı verilir.
+- capa: def summarize
+  bolum: komut
+  baslik: 'summarize: kayıtları model başına özetle'
+  aciklama: >-
+    <code>dict.fromkeys(...)</code> model anahtarlarını ilk görüldükleri sırayla ve tekrarsız listeler. Her model için
+    süre, hız, çıktı uzunluğu ve maliyet ortalamaları; en küçük ve en büyük toplam süre; otomatik puan ortalaması
+    (yalnızca puanlanmış görevlerden) ve varsa etiketsiz puan ortalaması hesaplanır. Rapor bu sözlük listesinden
+    beslenir; ekrana hiçbir şey yazmaz.
+- capa: def decision_lines
+  bolum: komut
+  baslik: 'decision_lines: tablodan karar cümlelerine'
+  aciklama: >-
+    <code>min</code> ve <code>max</code> fonksiyonlarına verilen <code>key=lambda s: ...</code>, karşılaştırmanın hangi
+    alana göre yapılacağını söyler. En hızlı ilk token, en ucuz model ve en yüksek puan bulunur; otomatik puanların
+    yayılımı (en yüksek − en düşük) hesaplanır. Bu son satır projenin ana mesajıdır: puanlar yakınsa kararı kalite
+    değil, hız ve maliyet verdirir (Ders 1.7 §4).
+- capa: def cmd_report
+  bolum: komut
+  baslik: 'cmd_report: tabloyu kur ve bas'
+  aciklama: >-
+    Sütunlar veriye göre değişir: <code>--monthly-calls</code> verildiyse aylık maliyet, etiketsiz puan varsa Etiketsiz
+    sütunu eklenir. Tekrarlı ölçümde tablo altına süre aralıkları yazılır. Sonda karar satırları ve fiyat kaynağı
+    basılır; <code>--model-card</code> verildiyse karar kaydı dosyaya yazılır. Fonksiyon API'ye hiç dokunmaz.
+- capa: def write_model_card
+  bolum: komut
+  baslik: 'write_model_card: karar kaydı'
+  aciklama: >-
+    Markdown satırları bir listede toplanıp <code>"\n".join</code> ile birleştirilir. Tablo ve ölçümün söyledikleri
+    koddan gelir; seçilen model, gerekçe, yedek model ve yeniden değerlendirme tarihi boş bırakılır. Kararı araç
+    değil sen verirsin; araç yalnızca kararın dayanacağı sayıları hazırlar (Ders 1.7 §7, adım 7).
+- capa: def cmd_show
+  bolum: komut
+  baslik: 'cmd_show: etiketsiz görünüm'
+  aciklama: >-
+    Görevin çıktıları süzülür, karıştırılır ve harflerle basılır. Model adı hiçbir yerde geçmez; ekranda yalnızca
+    yanıt metinleri vardır. Üstteki satır bir sonraki adımı (hangi komutla puanlanacağını) hatırlatır.
+- capa: def parse_scores
+  bolum: komut
+  baslik: 'parse_scores: puan girdisini doğrula'
+  aciklama: >-
+    <code>"A=4,B=3"</code> metni virgülden bölünür, her parça <code>partition("=")</code> ile harf ve değere ayrılır.
+    Harf listede yoksa, değer sayı değilse ya da 1–5 dışındaysa hata verilir. Eksik harf de hatadır: yarım puanlama
+    kaydedilmez. Kullanıcı girdisini kullanmadan önce doğrulamak, tüm komut satırı araçlarında geçerli bir alışkanlıktır.
+- capa: def cmd_rate
+  bolum: komut
+  baslik: 'cmd_rate: puanla, etiketleri aç, kaydet'
+  aciklama: >-
+    Eşleme <code>anonymize</code> ile yeniden kurulur; tohum aynı olduğu için <code>show</code>'daki harfler aynı
+    modellere düşer. <code>--scores</code> verilmediyse <code>input()</code> ile her harf için puan sorulur. Sonra etiketler
+    açılır: harf, model, senin puanın, otomatik puan ve maliyet yan yana. Puan kayıtları dosyanın sonuna eklenir
+    (<code>append=True</code>); çalıştırma kayıtlarına dokunulmaz.
+- capa: '# Giriş noktası'
+  fark: -1
+  bolum: giris
+  baslik: 'build_parser: komutları ve seçenekleri tarif et'
+  aciklama: >-
+    <code>argparse</code> ile programın kabul ettiği her şey burada tanımlanır. <code>add_subparsers</code> dört alt
+    komut yaratır; her birinin kendi konumsal argümanları ve seçenekleri vardır. <code>type=int</code> metni sayıya
+    çevirir, <code>action="store_true"</code> değer almayan bayrak tanımlar, <code>default</code> seçenek verilmediğinde
+    kullanılacak değeri söyler. <code>help</code> metinleri <code>--help</code> çıktısında ve demo kartındaki parametre
+    listesinde görünür.
+- capa: def main
+  bolum: giris
+  baslik: 'main: işi doğru komuta yolla'
+  aciklama: >-
+    Önce fiyat dosyası yüklenir. <code>report</code>, <code>show</code> ve <code>rate</code> API istemcisi gerektirmez;
+    hemen ilgili fonksiyona gidilir. Yalnızca <code>run</code> için anahtar kontrol edilip istemci kurulur.
+    <code>client=None</code> parametresi testlerin sahte istemci vermesine izin verir. <code>try / except</code>
+    kullanıcı hatalarını tek satırlık mesaja çevirir; 2 çıkış kodu "kullanıcı hatası" anlamına gelir.
+- capa: if __name__
+  bolum: giris
+  baslik: Programın başladığı yer
+  aciklama: >-
+    Dosya doğrudan çalıştırıldığında <code>__name__</code> değeri <code>"__main__"</code> olur ve <code>main()</code>
+    çağrılır. Testler dosyayı <code>import</code> ettiğinde bu koşul sağlanmaz ve hiçbir şey kendiliğinden çalışmaz.
+    <code>sys.exit</code> dönen sayıyı terminale çıkış kodu olarak iletir.

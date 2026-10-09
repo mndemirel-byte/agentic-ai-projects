@@ -1,0 +1,58 @@
+# Claude API model fiyatları ve kapasiteleri
+# Kaynak: https://platform.claude.com/docs/en/about-claude/pricing
+#         https://platform.claude.com/docs/en/about-claude/models/overview
+# Fiyatlar 1 milyon token (MTok) başına, USD, standart API (batch ve cache hariç).
+# API fiyatları değişebilir: üretimde kullanmadan önce kaynak sayfayı kontrol et
+# ve "updated" alanını güncelle.
+#
+# cagri_ayarlari: modele özgü ek istek parametreleri; araç bunları olduğu gibi isteğe ekler.
+# Bu projede düşünmeyi (thinking) her modelde en aza indiren ayar seçilmiştir; böylece
+# modeller olabildiğince eşit koşulda ölçülür. Modeller aynı parametreyi kabul etmez
+# (Ekim 2026: Haiku "disabled", Sonnet "between_tools", Opus/Fable "adaptive" + effort);
+# API değişirse yalnızca bu alan güncellenir, kod değişmez.
+
+updated: "2026-10-05"
+currency: "USD"
+
+models:
+  - key: "haiku-4-5"
+    name: "Claude Haiku 4.5"
+    id: "claude-haiku-4-5-20251001"
+    input_per_mtok: 1.00
+    output_per_mtok: 5.00
+    context_window: 200000
+    max_output: 64000
+    cagri_ayarlari:
+      thinking: {type: disabled}
+
+  - key: "sonnet-5-5"
+    name: "Claude Sonnet 5.5"
+    id: "claude-sonnet-5-5"
+    input_per_mtok: 2.00
+    output_per_mtok: 10.00
+    context_window: 1000000
+    max_output: 128000
+    cagri_ayarlari:
+      thinking: {type: between_tools}
+
+  - key: "opus-5-5"
+    name: "Claude Opus 5.5"
+    id: "claude-opus-5-5"
+    input_per_mtok: 4.00
+    output_per_mtok: 20.00
+    context_window: 1000000
+    max_output: 128000
+    cagri_ayarlari:
+      thinking: {type: adaptive}
+      output_config: {effort: low}
+
+  - key: "fable-5-1"
+    name: "Claude Fable 5.1"
+    id: "claude-fable-5-1"
+    input_per_mtok: 10.00
+    output_per_mtok: 50.00
+    context_window: 1000000
+    max_output: 128000
+    cagri_ayarlari:
+      thinking: {type: adaptive}
+      output_config: {effort: low}

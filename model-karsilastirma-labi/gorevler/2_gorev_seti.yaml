@@ -1,0 +1,74 @@
+# Görev seti: beş Türkçe görev, Ders 1.7 §3'teki üç kapasite katmanına yayılmış.
+# Her görevde modele gönderilecek prompt, isteğe bağlı system talimatı ve çıktıyı
+# otomatik puanlayan kontroller bulunur. Kontrol türleri:
+#   icermeli        listedeki metinlerin HEPSİ çıktıda geçmeli (büyük/küçük harf duyarsız)
+#   icermeli_biri   listedeki metinlerden EN AZ BİRİ geçmeli
+#   icermemeli      listedeki metinlerin HİÇBİRİ geçmemeli
+#   max_kelime      çıktı en fazla bu kadar kelime olmalı
+#   json            çıktı geçerli JSON olmalı ve listedeki alanları içermeli
+# Her kontrol eşit ağırlıktadır; puan = geçen kontrol / toplam kontrol × 100.
+
+ad: Görev seti
+gorevler:
+  - ad: siniflandirma
+    tier: 1
+    system: Sen bir müşteri destek yönlendirme asistanısın.
+    prompt: |-
+      Aşağıdaki müşteri mesajını şu dört kategoriden biriyle etiketle: fatura, teknik, iade, diger.
+      Yalnızca kategori adını küçük harfle yaz; başka hiçbir şey yazma.
+
+      Mesaj: "Merhaba, bu ay kartımdan iki kez 349 TL çekilmiş ama tek aboneliğim var. Fazla çekilen tutarın ne zaman iade edileceğini öğrenmek istiyorum."
+    kontroller:
+      icermeli: ["fatura"]
+      max_kelime: 2
+
+  - ad: veri_cikarma
+    tier: 1
+    prompt: |-
+      Aşağıdaki e-postadan sipariş bilgilerini çıkar ve yalnızca şu alanları içeren tek bir JSON nesnesi olarak yaz:
+      siparis_no (metin), tutar (sayı, TL), teslim_tarihi (YYYY-AA-GG biçiminde metin).
+      JSON dışında hiçbir şey yazma; kod bloğu işareti kullanma.
+
+      E-posta:
+      Sayın Yetkili, 3 Ekim 2026 tarihinde verdiğim TR-48213 numaralı siparişin teslimatı 12 Ekim 2026 olarak görünüyor.
+      Fatura tutarı 2.480,00 TL olarak kesildi; ancak sepette 2.280,00 TL görmüştüm. Farkın nedenini öğrenebilir miyim?
+    kontroller:
+      json: ["siparis_no", "tutar", "teslim_tarihi"]
+      icermeli: ["TR-48213", "2026-10-12"]
+      icermemeli: ["```"]
+
+  - ad: ozet
+    tier: 2
+    system: Yanıtlarını Türkçe ver.
+    prompt: |-
+      Aşağıdaki olay raporunu en fazla iki cümleyle özetle. Kök nedeni ve alınan önlemi mutlaka belirt.
+
+      Rapor:
+      9 Ekim 2026 saat 14:05'te ödeme servisine gelen isteklerin %38'i zaman aşımıyla başarısız olmaya başladı.
+      İlk şüphe veritabanı yüküydü; ancak metrikler normaldi. 14:40'ta ekip, ödeme servisinin banka
+      entegrasyonuna giderken kullandığı TLS sertifikasının o sabah süresinin dolduğunu ve bağlantıların
+      el sıkışma aşamasında reddedildiğini tespit etti. Sertifika 14:55'te yenilendi; başarısız istekler
+      15:10'a kadar sıfıra indi. Toplam etki 65 dakika sürdü ve yaklaşık 1.900 ödeme denemesi etkilendi.
+      Önlem olarak sertifika süresi dolmadan 30 gün önce uyaran bir izleme kuralı eklendi.
+    kontroller:
+      icermeli: ["sertifika"]
+      icermeli_biri: ["izleme", "uyarı", "uyaran", "alarm"]
+      max_kelime: 60
+
+  - ad: kod
+    tier: 2
+    prompt: |-
+      Python'da, sayı listesi alıp medyanını döndüren `medyan` adında bir fonksiyon yaz.
+      Liste boşsa ValueError fırlatsın. Yalnızca kodu yaz; açıklama, örnek kullanım ve kod bloğu işareti ekleme.
+    kontroller:
+      icermeli: ["def medyan", "return", "ValueError"]
+      icermemeli: ["import numpy", "import statistics", "```"]
+
+  - ad: muhakeme
+    tier: 3
+    prompt: |-
+      Bir toplantı 09:45'te başladı ve toplam 2 saat 35 dakika sürdü. Bu süreye 20 dakikalık bir ara dahildir.
+      Toplantı saat kaçta bitti? Yalnızca saati SS:DD biçiminde yaz; açıklama ekleme.
+    kontroller:
+      icermeli_biri: ["12:20", "12.20"]
+      max_kelime: 3

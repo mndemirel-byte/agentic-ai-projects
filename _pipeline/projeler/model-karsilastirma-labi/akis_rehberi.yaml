@@ -1,0 +1,341 @@
+# Akış kod rehberi (kod-rehberi.html) girdisi.
+# konum: {fn: fonksiyon_adı} fonksiyonun satır aralığını, {capa: metin, uzunluk: n} çapadan başlayan n satırı gösterir.
+# kod alanı öğretici kısaltılmış koddur; birebir kaynak değildir.
+
+baslik: modellab.py kod rehberi
+giris: Bir komutu terminale yazdığın andan tablonun ekrana basılmasına kadar kodun hangi fonksiyonlardan, hangi
+  sırayla geçtiğini adım adım izle. Üç akış var; run ücretli çağrıları yapar, report ve rate kaydedilmiş sonuçlarla
+  çalışır. Her adımda kodun ne yaptığını, ilgili kod parçasını ve neden öyle yazıldığını bulacaksın.
+bloklar:
+- anahtar: giris
+  bolum: Giriş noktası
+  aciklama: Komut satırını okur, işi doğru komuta yollar.
+- anahtar: veri
+  bolum: Veri yükleme
+  aciklama: pricing.yaml ve görev dosyasını okur.
+- anahtar: api
+  bolum: API çağrıları
+  aciklama: Streaming çağrı yapar ve süreleri ölçer.
+- anahtar: hesap
+  bolum: Hesaplamalar
+  aciklama: Maliyet, üretim hızı, otomatik puan ve ortalama.
+- anahtar: bicim
+  bolum: Biçimlendirme
+  aciklama: Türkçe sayı yazımı, süre biçimi ve hizalı tablo.
+- anahtar: kayit
+  bolum: Kayıt
+  aciklama: JSONL yazma, okuma, süzme ve etiketsiz karıştırma.
+- anahtar: komut
+  bolum: Komutlar
+  aciklama: run, report, show ve rate iş akışları.
+ortak_adimlar:
+- blok: giris
+  etiket: __main__
+  konum:
+    capa: if __name__
+    uzunluk: 2
+  baslik: Komutu yazarsın
+  ne: >-
+    Terminale komutu yazdığında Python dosyayı yukarıdan aşağıya okur. Bu sırada fonksiyonları yalnızca tanımlar,
+    hiçbirini çalıştırmaz. Dosyanın en altındaki iki satıra gelince asıl iş başlar: main() fonksiyonu çağrılır.
+  kod: |-
+    $ python cozum/modellab.py run gorevler/2_gorev_seti.yaml
+
+    if __name__ == "__main__":
+        sys.exit(main())
+  neden: >-
+    if __name__ == "__main__" kalıbı, dosya doğrudan çalıştırıldığında main()'i başlatır; testler dosyayı import
+    ettiğinde ise hiçbir şey kendiliğinden çalışmaz. sys.exit, main()'in döndürdüğü sayıyı (0 = başarılı, 2 = hata)
+    terminale çıkış kodu olarak iletir.
+- blok: giris
+  etiket: build_parser()
+  konum:
+    fn: build_parser
+  baslik: Komut satırını parçala
+  ne: >-
+    build_parser(), argparse ile programın dört alt komutunu ve seçeneklerini tarif eder. parse_args() terminaldeki
+    yazıyı bu tarife göre parçalayıp tek bir args nesnesine koyar. Artık her seçeneğe nokta ile erişilir.
+  kod: |-
+    args = build_parser().parse_args(argv)
+
+    args.command     # "run"
+    args.tasks       # "gorevler/2_gorev_seti.yaml"
+    args.models      # None  (verilmedi: hepsi)
+    args.max_tokens  # 300   (varsayılan)
+    args.repeat      # 1     (varsayılan)
+  neden: >-
+    args bir sipariş fişi gibidir: kullanıcı ne istediyse fişe yazılır, kodun geri kalanı yalnızca fişe bakar.
+    --max-tokens gibi tireli seçenekler Python'da alt çizgiye dönüşür: args.max_tokens.
+- blok: veri
+  etiket: load_pricing()
+  konum:
+    fn: load_pricing
+  baslik: Fiyat dosyasını yükle
+  ne: >-
+    load_pricing(), pricing.yaml dosyasını açıp Python sözlüğüne çevirir ve her modelde zorunlu alanların eksiksiz
+    olup olmadığına bakar. Dört komut da bu dosyayı okur; report ve rate bile maliyet sütunlarını buradan değil,
+    kaydedilmiş maliyetlerden gösterir ama fiyat kaynağı satırı için tarihi buradan alır.
+  kod: |-
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    for model in data["models"]:
+        missing = [field for field in REQUIRED_MODEL_FIELDS
+                   if field not in model]
+        if missing:
+            raise ValueError(f"... eksik alan: {missing}")
+  neden: >-
+    Fiyatlar değişir; kodu değiştirmeden yalnızca yaml dosyasını güncellersin. Bu, veriyi mantıktan ayırma ilkesidir.
+- blok: giris
+  etiket: main()
+  konum:
+    fn: main
+  baslik: İşi doğru komuta yolla
+  ne: >-
+    report, show ve rate API'ye gitmez; main() bunları hemen ilgili fonksiyona yollar. Yalnızca run için önce
+    ANTHROPIC_API_KEY kontrol edilir, yoksa program API'ye hiç gitmeden anlaşılır bir mesajla durur; varsa
+    anthropic.Anthropic() istemcisi kurulur.
+  kod: |-
+    if args.command == "report":
+        return cmd_report(args, pricing)
+    if args.command == "show":
+        return cmd_show(args)
+    if args.command == "rate":
+        return cmd_rate(args)
+
+    if client is None:
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            print("Hata: ANTHROPIC_API_KEY ... tanımlı değil.")
+            return 2
+        client = anthropic.Anthropic()
+    return cmd_run(args, client, pricing)
+  neden: >-
+    "if client is None" kontrolü testler için var: testler kendi sahte istemcilerini main()'e verir ve kod gerçek
+    API'ye para harcamadan denenir. Ücretli komutun tek olması, yanlışlıkla çağrı yapma riskini de tek yere indirir.
+akislar:
+- ad: run
+  adimlar:
+  - blok: komut
+    etiket: cmd_run()
+    konum:
+      fn: cmd_run
+    baslik: Görevleri ve modelleri hazırla
+    ne: >-
+      cmd_run önce görev dosyasını yükler (load_tasks), --models seçeneğine göre model listesini süzer ve sonuç
+      dosyasının yolunu belirler. Ardından üç iç içe döngü başlar: her görev, her model, her tekrar.
+    kod: |-
+      tasks = load_tasks(args.tasks)
+      models = select_models(pricing, args.models)
+      out_path = Path(args.out) if args.out else default_results_path(args.tasks)
+
+      for task in tasks["gorevler"]:
+          messages = build_messages(task["prompt"])
+          for model in models:
+              for repeat in range(1, args.repeat + 1):
+                  ...
+    neden: >-
+      Görev dosyası daha yüklenirken doğrulanır: her görevde ad ve prompt var mı, kontrol türleri tanınıyor mu.
+      Hatalı bir dosyayla dört modele ücretli çağrı yapıldıktan sonra hata almak yerine, hiç çağrı yapılmadan
+      durulur.
+  - blok: api
+    etiket: stream_call()
+    konum: &id001
+      fn: stream_call
+    baslik: Streaming çağrı ve süre ölçümü
+    ne: >-
+      try_call, stream_call'u çağırır; o da client.messages.stream ile isteği gönderir. Saat istekten hemen önce
+      başlar. İlk metin parçası geldiğinde ilk token zamanı işaretlenir, akış bitince toplam süre alınır.
+      get_final_message() usage ve stop_reason alanlarını verir.
+    kod: |-
+      kwargs.update(extra or {})          # pricing.yaml > cagri_ayarlari
+      start = time.perf_counter()
+      with client.messages.stream(**kwargs) as stream:
+          for text in stream.text_stream:
+              if first is None:
+                  first = time.perf_counter()   # ilk token
+              chunks.append(text)
+          final = stream.get_final_message()
+      end = time.perf_counter()
+
+      ttft  = first - start
+      total = end - start
+    neden: >-
+      Streaming olmadan ilk token süresi ölçülemez; yanıt tek parça hâlinde en sonda gelir (Ders 1.4 §4.3).
+      perf_counter, sistem saati değil yüksek çözünürlüklü bir kronometredir; iki değeri birbirinden çıkarmak
+      için tasarlanmıştır. kwargs.update(extra) modelin pricing.yaml'daki cagri_ayarlari'nı isteğe ekler; bu
+      projede ayarlar düşünmeyi en aza indirir, çünkü düşünme token'ları akışta görünmez ama faturaya ve
+      max_tokens bütçesine girer. Hesabının bir modele erişimi yoksa try_call hatayı yakalar, satıra "erişilemedi" yazılır ve diğer modellerle
+      devam edilir.
+  - blok: hesap
+    etiket: check_output()
+    konum:
+      fn: check_output
+    baslik: Maliyeti hesapla, çıktıyı puanla
+    ne: >-
+      Yanıt gelince estimate_cost usage değerlerinden maliyeti hesaplar; check_output çıktıyı görevin kontrollerinden
+      geçirip 0–100 puan ve başarısız kontrollerin listesini döndürür. stop_reason "max_tokens" ise yanıt kesilmiş
+      sayılır.
+    kod: |-
+      cost = estimate_cost(model, result["input_tokens"], result["output_tokens"])
+      score, failed = check_output(result["text"], task.get("kontroller", {}))
+      cut = result["stop_reason"] == "max_tokens"
+
+      # check_output içinde, kontrol türüne göre:
+      if kind == "icermeli":
+          missing = [s for s in rule if s.lower() not in lowered]
+      elif kind == "max_kelime":
+          if len(text.split()) > rule: ...
+      elif kind == "json":
+          parsed = _parse_json(text)
+    neden: >-
+      Maliyet tahmin değil, faturadaki değerdir: token sayıları yanıtın usage alanından gelir (Ders 1.4 §6).
+      Otomatik kontroller kasıtlı olarak basittir; kaliteyi tam ölçmezler ama "yanıt kurallara uydu mu?" sorusunu
+      tutarlı ve ücretsiz biçimde cevaplarlar. Kalitenin insan tarafı show/rate akışındadır.
+  - blok: kayit
+    etiket: save_results()
+    konum: &id002
+      fn: save_results
+    baslik: Tabloyu bas, kayıtları yaz
+    ne: >-
+      Her görev için tablo basılır; tüm görevler bitince records listesi JSONL dosyasına yazılır. Son satırlar dosya
+      yolunu, kayıt sayısını, varsa başarısız çağrıları ve fiyat kaynağını gösterir. cmd_run 0 döndürür.
+    kod: |-
+      print_table(headers, rows, right_align=set(range(1, len(headers))))
+
+      save_results(out_path, records)
+      print(f"Kaydedildi: {out_path} ({len(records)} kayıt)")
+
+      # save_results içinde:
+      with open(path, "a" if append else "w", encoding="utf-8") as f:
+          for record in records:
+              f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    neden: >-
+      Ücretli veri bir kez toplanır ve dosyada kalır. Rapor, etiketsiz görünüm ve puanlama bu dosyadan çalışır; aynı
+      ölçümü istediğin kadar inceleyebilirsin. JSONL'de her satır bağımsız bir nesnedir, bu yüzden rate komutu
+      sonradan satır ekleyebilir.
+- ad: report
+  adimlar:
+  - blok: kayit
+    etiket: load_results()
+    konum:
+      fn: load_results
+    baslik: Kayıtları oku
+    ne: >-
+      cmd_report önce sonuç dosyasını satır satır okur. Çalıştırma kaydı yoksa anlamlı bir hatayla durur.
+      API'ye gidilmez; bu akışın tamamı ücretsizdir.
+    kod: |-
+      $ python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl --monthly-calls 100000
+
+      records = load_results(args.results)
+      # [{"tur": "calistirma", "gorev": "ozet", "model": "haiku-4-5", ...},
+      #  {"tur": "puan", "gorev": "ozet", "model": "opus-5-5", "puan": 4}, ...]
+    neden: >-
+      Ölçüm ile inceleme ayrılınca aynı veri üzerinde farklı sorular sorabilirsin: aylık maliyet ne olur, etiketsiz
+      puan eklenince sıralama değişir mi. Her soru için yeniden çağrı yapmak hem pahalı hem de gecikme ölçümlerini
+      değiştirirdi.
+  - blok: komut
+    etiket: summarize()
+    konum:
+      fn: summarize
+    baslik: Model başına özet
+    ne: >-
+      summarize kayıtları modele göre gruplar; her model için süre, hız, çıktı uzunluğu ve maliyet ortalamalarını,
+      toplam sürenin en küçük ve en büyük değerini, otomatik puan ortalamasını ve varsa etiketsiz puan ortalamasını
+      hesaplar.
+    kod: |-
+      for key in dict.fromkeys(r["model"] for r in runs):
+          mine = [r for r in runs if r["model"] == key]
+          summaries.append({
+              "ilk_token_sn": mean([r["ilk_token_sn"] for r in mine]),
+              "toplam_sn": mean(totals),
+              "maliyet": mean([r["maliyet"] for r in mine]),
+              "puan": mean(scored) if scored else None,
+              "etiketsiz_puan": mean(rated) if rated else None,
+          })
+    neden: >-
+      Ders 1.5 §8'in ilkesi: tek bir çıktıya bakarak karar verilmez. Beş görevin ortalaması tek görevden, üç tekrarın
+      ortalaması tek tekrardan daha güvenilirdir. Puanlanmamış görevler (puan None) ortalamaya girmez; sıfır gibi
+      sayılsalardı ortalamayı haksız yere düşürürlerdi.
+  - blok: komut
+    etiket: decision_lines()
+    konum:
+      fn: decision_lines
+    baslik: Tablo ve karar satırları
+    ne: >-
+      Sütunlar seçeneklere göre kurulur (aylık maliyet, etiketsiz puan), tablo basılır. Sonra decision_lines en hızlı,
+      en ucuz ve en yüksek puanlı modeli bulur; otomatik puanların yayılımını yazar. --model-card verildiyse karar
+      kaydı dosyaya yazılır.
+    kod: |-
+      fastest = min(summaries, key=lambda s: s["ilk_token_sn"])
+      cheapest = min(summaries, key=lambda s: s["maliyet"])
+      best = max(scored, key=lambda s: s["puan"])
+      spread = max(s["puan"] for s in scored) - min(s["puan"] for s in scored)
+
+      En hızlı ilk token: Claude Haiku 4.5 (…)
+      En ucuz: Claude Haiku 4.5 (…/görev)
+      En yüksek otomatik puan: …
+      Otomatik puan farkı (en yüksek − en düşük): … puan
+    neden: >-
+      Üç ölçüt birlikte okunmalıdır (Ders 1.7 §4): en ucuz model puanda geride kalıyorsa fark ne kadar? Yayılım
+      küçükse kararı kalite değil hız ve maliyet verdirir; büyükse ucuz model görev için yetersizdir. Araç kararı
+      vermez, kararın dayanacağı satırları hazırlar.
+- ad: rate
+  adimlar:
+  - blok: kayit
+    etiket: anonymize()
+    konum:
+      fn: anonymize
+    baslik: Aynı karışıklığı yeniden kur
+    ne: >-
+      cmd_rate, show komutunun yaptığı işi tekrar eder: görevin çıktılarını süzer (runs_for_task) ve aynı tohumla
+      karıştırır. Böylece show'da A olan yanıt rate'te de A'dır.
+    kod: |-
+      $ python cozum/modellab.py rate sonuclar/2_gorev_seti.jsonl ozet --scores A=4,B=3,C=5,D=3
+
+      runs = runs_for_task(records, args.task)
+      labeled = anonymize(runs, f"{args.results}:{args.task}")
+
+      # anonymize içinde:
+      random.Random(seed).shuffle(shuffled)
+      return list(zip(LABELS, shuffled))
+    neden: >-
+      random.shuffle her çağrıda farklı sıra verirdi; tohumlu üreteç aynı girdiye aynı sırayı verir. Tohum dosya adı
+      ve görev adından türetilir, bu yüzden iki komut birbirini bilmeden aynı eşlemeyi üretir. Etiketleme
+      tekrarlanabilir ama tahmin edilmesi zordur: sırayı ezberleyerek "kopya çekmek" pratikte mümkün değildir.
+  - blok: komut
+    etiket: parse_scores()
+    konum:
+      fn: parse_scores
+    baslik: Puanları doğrula
+    ne: >-
+      --scores metni ayrıştırılır; her harfin 1–5 arası bir puanı olmalıdır. Eksik, fazla ya da aralık dışı girdi
+      hata verir ve hiçbir şey kaydedilmez. --scores verilmediyse puanlar terminalden tek tek sorulur.
+    kod: |-
+      for part in scores_csv.split(","):
+          label, _, value = part.partition("=")
+          if label not in labels or not 1 <= int(value) <= 5:
+              raise ValueError(f"Geçersiz puan girdisi: '{part}'.")
+      missing = [label for label in labels if label not in scores]
+      if missing:
+          raise ValueError(f"Eksik puan: {', '.join(missing)}.")
+    neden: >-
+      Yarım puanlama rapordaki etiketsiz ortalamayı çarpıtırdı: üç modelin puanı var, birinin yok. Girdiyi baştan
+      reddetmek, sonradan bozuk veriyi temizlemekten kolaydır.
+  - blok: kayit
+    etiket: save_results()
+    konum: *id002
+    baslik: Etiketleri aç ve kaydet
+    ne: >-
+      Harf, model, senin puanın, otomatik puan ve maliyet bir tabloda yan yana basılır. Puan kayıtları
+      (tur: "puan") dosyanın sonuna eklenir; bir sonraki report bunları Etiketsiz sütununda gösterir.
+    kod: |-
+      rows.append([label, run["model_adi"], f"{scores[label]}/5", fmt_score(run["puan"]), fmt_usd(run["maliyet"])])
+      ratings.append({"tur": "puan", "gorev": args.task, "model": run["model"], "puan": scores[label]})
+
+      save_results(Path(args.results), ratings, append=True)
+    neden: >-
+      Etiket açıldığı anda iki şeyi birden görürsün: hangi modele kaç verdiğin ve o modelin kaça mal olduğu. Puanın
+      fiyat sırasını izlemiyorsa, bu görev için pahalı modelin ekstra bir şey katmadığı anlamına gelir (Ders 1.7 §3,
+      "benchmark sıralaması senin görevin için en iyi model değildir").
+ekstra: akis_ekstra.html
+dipnot: Hesap alanındaki fiyatlar pricing.yaml dosyasından alınmıştır. Fiyatlar değişebilir; güncel değerler için
+  Anthropic pricing sayfasını kontrol et.

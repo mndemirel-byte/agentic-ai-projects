@@ -1,0 +1,225 @@
+---
+title: "Model karşılaştırma lab'ı"
+slug: "model-karsilastirma-labi"
+course: "agentic-ai-dev"
+phase: "llm-okuryazarligi"
+type: "bireysel"
+difficulty: "orta"
+estimated_hours: 4
+description: "Aynı görev setini dört Claude modelinde çalıştırıp ilk token süresini, toplam gecikmeyi, maliyeti ve kaliteyi tek tabloda karşılaştıran bir CLI yaz; etiketsiz puanlamayla model kararını gerekçelendir."
+tags: ["model-secimi", "latency", "streaming", "maliyet-hesabi", "eval"]
+repo_url: "https://github.com/mndemirel-byte/agentic-ai-projects/tree/main/model-karsilastirma-labi"
+demo_kind: "terminal"
+prerequisites_lessons:
+  - "ilk-api-cagrisi"
+  - "model-parametreleri"
+  - "model-landscape"
+---
+
+## Ne yapacaksın?
+
+Aynı görev setini dört Claude modelinde çalıştıran ve her model için üç soruyu tek tabloda cevaplayan bir komut satırı aracı yazacaksın: ilk token ne kadar sürede geliyor ve cevap ne kadar sürede bitiyor, her görev kaça mal oluyor, çıktı görevin kurallarına ne ölçüde uyuyor? Sonra model adlarını görmeden çıktıları kendin puanlayacak ve ölçümlere dayanan bir model kararını gerekçesiyle kaydedeceksin.
+
+<ProjectDemo />
+
+## Bu proje neden var?
+
+Ders 1.7 model seçimini bir mimari karar olarak tanımladı ve beş eksenli bir çerçeve verdi: görev karmaşıklığı, latency, maliyet, veri gizliliği, context window. Dersin sonundaki sekiz adımlık eval-driven akış ise bu kararın nasıl verileceğini anlattı: görev örnekleri topla, başarı kriterini tanımla, adayları aynı setle çalıştır, kalite, latency ve maliyeti birlikte ölç, insan değerlendirmesi yap, kararı model kartına yaz. Bu proje o akışın kendisi; her adımı kendi yazdığın araçla yürüyeceksin.
+
+Token maliyet hesaplayıcı projesinde çağrı öncesi ölçüm yaptın: bu metin kaç token, kaça mal olur. Bu projede çağrının kendisini ölçüyorsun: yanıt ne kadar sürede geldi, gerçekte kaça mal oldu, işe yaradı mı. İki araç birlikte, programın geri kalanında her model kararının arkasına koyacağın sayıları üretir. Aşama 4'teki routing pattern'i ve Aşama 8'deki cost optimization dersi bu ölçüm refleksinin üzerine kurulacak.
+
+## İsterler
+
+Projenin sonunda `calisma/modellab.py` dosyan aşağıdaki işleri yapıyor olmalı. Bu liste aynı zamanda projeyi bitirip bitirmediğini kontrol edeceğin ölçüttür.
+
+### `run` komutu
+
+`run` komutu bir görev dosyası (YAML) alır ve her görevi seçili modellerde çalıştırır.
+
+- **Eşit koşul:** Parametreler sabittir ve her model, `pricing.yaml` içindeki `cagri_ayarlari` ile düşünmeyi (thinking) en aza indiren ayarıyla çağrılır; modeller arasında değişen tek şey modelin kendisidir. Bu ayarlar koda değil veri dosyasına yazılır.
+- **Streaming ve gecikme ölçümü:** Her çağrı streaming ile yapılır. İlk token süresi (isteğin gönderilmesinden ilk metin parçasına kadar) ve toplam süre ölçülür; üretim hızı (saniyede çıktı token'ı) hesaplanır. Üretim süresi 50 ms'nin altındaysa hız "-" olarak gösterilir, uydurulmaz.
+- **Maliyet:** Her çağrının maliyeti yanıtın `usage` alanındaki girdi ve çıktı token sayılarıyla, `pricing.yaml` fiyatlarıyla hesaplanır. Tahmin değil, faturadaki değerdir.
+- **Model seçimi:** `--models` verilmezse `pricing.yaml` içindeki dört modelin tamamı çalıştırılır. Bilinmeyen bir anahtar, geçerli anahtarları listeleyen bir hata mesajıyla sonuçlanır.
+- **Otomatik kalite puanı:** Görev dosyasındaki `kontroller` (`icermeli`, `icermeli_biri`, `icermemeli`, `max_kelime`, `json`) çıktıya uygulanır; puan, geçen kontrollerin oranıdır. Kontrolü olmayan görevde puan "-" olarak gösterilir. Bilinmeyen bir kontrol türü dosya yüklenirken hata verir.
+- **Kesilen yanıt:** `stop_reason` değeri `max_tokens` olan yanıtlar tabloda "(kesildi)" ile işaretlenir.
+- **Tekrar:** `--repeat N` verilirse her görev-model çifti N kez çalıştırılır.
+- **Kayıt:** Her çalıştırma (süreler, token'lar, maliyet, puan, başarısız kontroller, yanıt metni) JSONL dosyasına yazılır; varsayılan yol `sonuclar/<görev dosyası adı>.jsonl`, `--out` ile değiştirilebilir. Projede ücretli çağrı yapan tek komut budur.
+
+### `report` komutu
+
+`report` komutu sonuç dosyasını okur ve çağrı yapmadan model başına özet basar: ortalama ilk token süresi, toplam süre, üretim hızı, çıktı uzunluğu, görev başına maliyet, otomatik puan ve varsa etiketsiz puan. `--monthly-calls` verilirse aylık maliyet sütunu eklenir. Tekrarlı ölçümde toplam sürenin min–maks aralığı yazılır. Tablonun altında karar satırları yer alır: en hızlı ilk token, en ucuz model, en yüksek otomatik puan, otomatik puan farkı ve varsa en yüksek etiketsiz puan. `--model-card` verilirse özet ve karar satırları, doldurulacak karar alanlarıyla birlikte bir Markdown dosyasına yazılır.
+
+### `show` ve `rate` komutları
+
+`show` bir görevin tüm model çıktılarını, model adları gizlenmiş ve sırası karıştırılmış olarak A, B, C, D etiketleriyle gösterir. `rate` her etiket için 1–5 arası puan alır (`--scores A=4,B=3,...` ya da terminalden), etiketleri açar (harf, model, senin puanın, otomatik puan, maliyet) ve puanları sonuç dosyasının sonuna ekler. Aynı dosya ve görev için `show` ile `rate` aynı etiket eşlemesini kullanır. Eksik ya da aralık dışı puan hata verir; hiçbir kayıt yazılmaz.
+
+### Davranış kuralları
+
+- **Model verisi koddan ayrıdır.** Model adları, kimlikleri ve fiyatlar yalnızca `pricing.yaml` dosyasından okunur.
+- **Hatalar anlaşılırdır.** API anahtarı tanımlı değilse `run` komutu API'ye gitmeden durur ve ne yapılması gerektiğini söyler. Dosya bulunamazsa, görev dosyası bozuksa ya da model anahtarı yanlışsa tek satırlık bir hata mesajı basılır; Python hata dökümü (traceback) gösterilmez.
+- **Bir model çalışmazsa araç durmaz.** Hesabının bir modele erişimi yoksa o modelin satırına "erişilemedi" yazılır, çalıştırma sonunda uyarı verilir ve diğer modellerle devam edilir.
+- **Sayılar Türkçe yazılır.** Binlik ayırıcı nokta, ondalık ayırıcı virgüldür: `1.234` token, `$0,0035`, `%90`, `1,84 s`.
+- **Türkçe karakterler korunur.** Dosyalar UTF-8 olarak okunur ve yazılır.
+
+## Mimari
+
+Araç tek bir Python dosyasıdır ve yedi bölümden oluşur. Veri yükleme bölümü `pricing.yaml` ile görev dosyasını okur ve doğrular. API çağrıları bölümü streaming çağrıyı yapar ve süreleri ölçer; programın API ile konuşan tek yeri burasıdır. Hesaplamalar bölümü maliyeti, üretim hızını ve otomatik puanı üretir; API'ye hiç dokunmaz. Biçimlendirme bölümü sayıları ve süreleri Türkçe yazıma çevirir ve hizalı tabloyu basar. Kayıt bölümü sonuçları JSONL olarak yazar, geri okur, bir görevin çıktılarını süzer ve etiketsiz görünüm için karıştırır. Komutlar bölümü `run`, `report`, `show` ve `rate` akışlarını yönetir. Giriş noktası komut satırını okur ve işi doğru komuta yollar.
+
+Bir `run` çağrısında veri şu yolu izler: komut satırı ayrıştırılır, fiyat ve görev dosyaları yüklenir, API istemcisi kurulur, her görev için her modelde streaming çağrı yapılır ve süreler ölçülür, `usage` değerlerinden maliyet hesaplanır, çıktı kontrollerden geçirilir, satır tabloya ve kayıt listesine eklenir, liste JSONL dosyasına yazılır. `report`, `show` ve `rate` ise yalnızca bu dosyayı okur; API'ye gitmezler.
+
+Bu ayrımın iki pratik faydası var. Ücretli veri bir kez toplanır ve istediğin kadar incelenir. Hesaplama, kontrol ve biçimlendirme fonksiyonları API'ye bağlı olmadığı için gerçek bir çağrı yapmadan test edilebilir; örnek repodaki testler sahte bir streaming istemci ve sahte bir saatle tam olarak bunu yapıyor.
+
+## Ön koşullar
+
+**Tamamlanmış olması gereken dersler**
+
+- `ilk-api-cagrisi` (Ders 1.4): SDK kullanımı, streaming ve ilk token süresi, `usage`, `stop_reason` ve hata modeli
+- `model-parametreleri` (Ders 1.5): `max_tokens`, non-determinism'in kaynakları, tek örnekle karar vermeme
+- `model-landscape` (Ders 1.7): kapasite katmanları, beş eksenli karar çerçevesi, maliyet hesabı, eval-driven model seçimi
+
+Token maliyet hesaplayıcı projesini bitirmiş olman şart değil ama `pricing.yaml`, `argparse` iskeleti ve Türkçe sayı biçimlendirmesi oradan tanıdık gelecek.
+
+**Gerekli araçlar**
+
+- Python 3.10 veya üzeri
+- Git ve bir GitHub hesabı
+- Bir Anthropic API anahtarı
+- Bir terminal ve bir kod editörü
+
+<Callout type="tip">
+Bu projede `run` komutunun her çalıştırması gerçek çağrı yapar; ancak görevler kısa ve `max_tokens` varsayılanı 300 olduğu için rehberin tamamı, dört modelle birlikte, bir doların altında kalır. `report`, `show` ve `rate` çağrı yapmaz. Repodaki `sonuclar/2_gorev_seti.jsonl` gerçek bir ölçümle gelir; bu üç komutu anahtar tanımlamadan önce o dosyayla deneyebilirsin.
+</Callout>
+
+## Örnek repo nasıl kullanılır?
+
+Proje, `agentic-ai-projects` reposunun `model-karsilastirma-labi` klasöründe duruyor. Klasörde başlangıç dosyaları, adım adım ara sürümler, tam çözüm, iki kod rehberi ve gerçek bir ölçüm sonucu var. Hepsini aynı anda açman gerekmiyor; aşağıdaki tablo hangisine ne zaman başvuracağını gösteriyor.
+
+| Yol | Ne işe yarar | Ne zaman kullanılır |
+|-----|--------------|---------------------|
+| `calisma/` | Kendi `modellab.py` dosyanı yazacağın boş klasör | Projenin başından sonuna |
+| `pricing.yaml` | Dört modelin kimlik ve fiyat değerleri | 2. adımdan itibaren kodun okur |
+| `gorevler/` | Tek görevlik deneme dosyası ve beş görevlik set | 1. ve 3. adımdan itibaren |
+| `sonuclar/` | Çalıştırma sonuçlarının yazıldığı klasör; gerçek bir ölçüm örneğiyle gelir | 3. adımdan itibaren |
+| `cozum/adim_1.py` … `adim_7.py` | Her adımın sonunda dosyanın ulaşması gereken hâl | Bir adımı bitirdiğinde karşılaştırmak için |
+| `cozum/modellab.py` | Tam çözüm; 8. adımın sonu | Projeyi bitirdiğinde ya da tamamen takıldığında |
+| `kod-rehberi.html` | `run`, `report` ve `rate` akışlarını fonksiyon fonksiyon anlatan etkileşimli sayfa | Fonksiyonların hangi sırayla çağrıldığını görmek istediğinde |
+| `kod-rehberi-yan-yana.html` | Tam çözüm solda, her parçanın açıklaması sağda | Belirli bir satırın neden öyle yazıldığını merak ettiğinde |
+| `demo.html` | Bu sayfadaki demo kartının çevrimdışı açılabilen kopyası | Platform dışında demoyu izlemek istediğinde |
+| `tests/` | Gerçek API çağrısı yapmayan testler | Çözümün mantığını incelemek istediğinde |
+| `Step-by-Step-GUIDE.md` | Sekiz adımlık rehber: kod, komutlar, beklenen çıktılar | Projenin başından sonuna |
+
+### Adım adım rehber
+
+Projenin sekiz adımı, her adımın kodu, çalıştırma komutları, beklenen çıktıları ve yaygın hataları repodaki [Step-by-Step-GUIDE.md](https://github.com/mndemirel-byte/agentic-ai-projects/blob/main/model-karsilastirma-labi/Step-by-Step-GUIDE.md) dosyasında. Rehber, kodu sıfırdan `calisma/modellab.py` dosyasında adım adım büyütmen için yazıldı; projeye başladığında bu sayfadaki isterleri okuduktan sonra rehberi aç ve sırayla ilerle.
+
+### Önerilen çalışma biçimi
+
+1. **Başlamadan önce demoyu izle.** Bu sayfanın başındaki demo kartı, bitmiş aracın yedi sahnesini ve her komuttaki parametrelerin anlamını gösteriyor. Özellikle etiketsiz görünüm ile etiketlerin açıldığı sahneyi izle; projenin vardığı yer orası.
+2. **Her adımda önce oku, sonra yaz.** Rehberdeki her adımın "Ne yapacaksın" ve "Neden" kısımlarını okumadan koda geçme. Kodu kopyalamak yerine elle yazmayı dene; kopyalayacaksan bile her satırı okuyarak geç.
+3. **Kontrol noktasında dur.** Her adımın sonundaki komutu çalıştır ve çıktını beklenen çıktıyla karşılaştır. Süreler ve bazı puanlar senin çalıştırmanda farklı olacak; yapı ve sütunlar aynı olmalı.
+4. **Takıldığında ara sürümle karşılaştır.** Dosyanı ilgili ara sürümle satır satır karşılaştır. Farkı görmek, çözümü baştan okumaktan daha öğreticidir.
+5. **Satırın nedenini rehberde ara.** Bir satırı anlamadıysan `kod-rehberi-yan-yana.html` sayfasında o fonksiyonun karşısındaki açıklamayı oku.
+
+Ara sürümle karşılaştırmak için:
+
+```bash
+diff calisma/modellab.py cozum/adim_4.py
+```
+
+Ara sürüm dosyaları kendi başına da çalışır. Bir adımda dosyan bozulduysa ve ilerlemek istiyorsan, o adımın ara sürümünü çalışma klasörüne kopyalayıp oradan devam edebilirsin:
+
+```bash
+cp cozum/adim_4.py calisma/modellab.py
+```
+
+<Callout type="trap">
+Etiketsiz puanlama adımında `rate` komutunu çalıştırmadan önce `sonuclar/` dosyasındaki `model_adi` alanına bakıp hangi harfin hangi model olduğunu öğrenmek, bu projenin en değerli deneyini boşa çıkarır. Puanlamayı yalnızca `show` çıktısına bakarak yap; etiketleri araç açsın. Aynı şekilde tam çözümü baştan okuyup "anladım" demek de projenin amacını boşa çıkarır; çözümü yalnızca karşılaştırma için aç.
+</Callout>
+
+## Kurulum
+
+Önce repoyu GitHub'da kendi hesabına fork'la, sonra kendi kopyanı bilgisayarına indir. Aşağıdaki komutlarda `KULLANICI_ADIN` yerine kendi GitHub kullanıcı adını yaz. Token maliyet hesaplayıcı projesi için repoyu zaten indirdiysen yalnızca klasör değiştir.
+
+```bash
+git clone https://github.com/KULLANICI_ADIN/agentic-ai-projects.git
+cd agentic-ai-projects/model-karsilastirma-labi
+```
+
+Bir sanal ortam oluştur ve bağımlılıkları kur:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Windows'ta sanal ortamı etkinleştirmek için ikinci satır yerine `.venv\Scripts\activate` komutunu kullan.
+
+API anahtarını ortam değişkeni olarak tanımla:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+Windows PowerShell'de bunun karşılığı `$env:ANTHROPIC_API_KEY="sk-ant-..."` komutudur. Kurulumun tamamlandığını şu komutla doğrula:
+
+```bash
+python -c "import anthropic, yaml; print('Kurulum tamam')"
+```
+
+Ekranda `Kurulum tamam` yazısını görüyorsan hazırsın.
+
+<Callout type="warning">
+API anahtarını hiçbir zaman bir dosyaya yazıp repoya gönderme. Anahtar yalnızca ortam değişkeninde durmalı. Repodaki `.gitignore` dosyası `.env` dosyalarını zaten dışarıda bırakıyor, ama en güvenli yol anahtarı kodun hiçbir yerine yazmamaktır. `sonuclar/` klasörüne yazılan dosyalarda anahtar bulunmaz; yalnızca ölçümler ve yanıt metinleri vardır.
+</Callout>
+
+## Kontrol noktaları
+
+Projeyi teslim edilmiş saymadan önce aşağıdaki listeyi kendin için gözden geçir. Her madde, İsterler bölümündeki bir gereksinime karşılık gelir.
+
+- [ ] `run` komutu `--models` verilmeden dört modelin tamamını çalıştırıyor; bilinmeyen bir anahtar (`--models gpt-5`) geçerli anahtarları listeleyen tek satırlık bir hata veriyor.
+- [ ] Her satırda ilk token süresi toplam süreden küçük; birkaç token'lık yanıtlarda `token/sn` sütunu "-" gösteriyor.
+- [ ] Tablodaki bir maliyeti `sonuclar/` dosyasındaki `girdi_token` ve `cikti_token` değerleriyle elle doğruladın ve sonuç tuttu.
+- [ ] `--max-tokens 40` ile çalıştırınca uzun yanıtların satırında `(kesildi)` görünüyor.
+- [ ] Görev dosyasına bilinmeyen bir kontrol türü yazınca (`regex: ...`) program daha çağrı yapmadan tek satırlık hatayla duruyor.
+- [ ] `report` komutu çağrı yapmıyor: aynı dosyayla üç kez çalıştırınca sayılar değişmiyor; `--monthly-calls` aylık sütunu ekliyor.
+- [ ] `show` çıktısında hiçbir model adı geçmiyor; `rate` ile açılan etiketler `show` ile aynı sırada.
+- [ ] Eksik puan (`--scores A=4,B=3`) hata veriyor ve dosyaya hiçbir kayıt eklenmiyor.
+- [ ] `--repeat 3` ile raporda `görev başına 3 tekrar` ve min–maks aralığı görünüyor.
+- [ ] `--model-card` ile yazılan dosyada özet tablo, ölçümün söyledikleri ve doldurulacak karar alanları var; karar alanlarını kendi gerekçenle doldurdun.
+- [ ] API anahtarı tanımlı değilken (`unset ANTHROPIC_API_KEY`) `run` traceback yerine tek satırlık bir mesajla duruyor; `report` ise çalışıyor.
+- [ ] Her model `pricing.yaml` içindeki `cagri_ayarlari` ile çağrılıyor; `sonuclar/` dosyasında `siniflandirma` görevinin çıktı token sayısı tek kelimelik cevaba uygun (yüzlerce değil, birkaç token).
+- [ ] Kodda hiçbir fiyat ya da model kimliği yazılı değil; hepsi `pricing.yaml` dosyasından geliyor.
+
+## Bu projede pratik yaptığın kavramlar
+
+**Streaming ve ilk token süresi** (Ders 1.4 §4.1, §4.3). Yanıtı parça parça aldın ve ilk parçanın geliş anını ölçtün. İlk token süresinin toplam süreden neden ayrı bir metrik olduğunu, kullanıcıya dönük uygulamalarda neden belirleyici olduğunu kendi sayılarında gördün.
+
+**`usage`, `stop_reason` ve gerçek maliyet** (Ders 1.4 §1, §5.3, §6). Maliyeti tahminden değil, yanıtın `usage` alanından hesapladın. `max_tokens` sınırına takılan yanıtı "kısmi başarı" olarak işaretledin; bunu atlamanın yarım veriyle çalışmak olduğunu uyguladın.
+
+**Hata modeli ve dayanıklılık** (Ders 1.4 §5). Bir modele erişim olmadığında aracın çökmeden devam etmesini, kimlik doğrulama hatasının ise tüm çağrıyı durdurmasını sağladın.
+
+**Tek örnekle karar vermeme** (Ders 1.5 §8). Tek prompt'tan görev setine, tek ölçümden tekrarlı ölçüme geçtin. Gecikmenin bir özellik değil bir dağılım olduğunu min–maks aralığında gördün.
+
+**`max_tokens` ve maliyet** (Ders 1.5 §4.1). Çıktı sınırının hem maliyeti hem kaliteyi (kesilen yanıt) nasıl etkilediğini aynı tabloda izledin.
+
+**Kapasite katmanları** (Ders 1.7 §3). Görev setini üç katmana yaydın ve basit görevlerde ucuz modelin pahalı modelle aynı puanı alabildiğini, farkın hangi görevlerde açıldığını ölçtün.
+
+**Beş eksenli karar çerçevesi ve maliyet hesabı** (Ders 1.7 §4, §6). Latency, maliyet ve kaliteyi tek tabloda tarttın; görev başına maliyeti aylık hacme çevirdin.
+
+**Eval-driven model seçimi ve model kartı** (Ders 1.7 §7). Görev örnekleri, başarı kriteri, aynı setle çalıştırma, insan değerlendirmesi ve karar kaydı: dersin sekiz adımını kendi aracınla yürüdün.
+
+**Etiketsiz değerlendirme** (Ders 1.7 §3, "benchmark sıralaması senin görevin için en iyi model değildir"). Çıktıları model adını görmeden puanladın ve puanının fiyat sırasını izleyip izlemediğini gördün.
+
+## Genişletme fikirleri
+
+Projeyi bitirdiysen ve daha ileri gitmek istiyorsan, aşağıdaki özelliklerden birini ekleyebilirsin. Her biri sonraki aşamalardaki bir konuya köprü kurar.
+
+- **Düşünme ekseni.** `pricing.yaml` içindeki `cagri_ayarlari`'nı düşünmeyi açacak şekilde değiştirip (ör. `effort: high`) aynı görev setini yeniden çalıştır; ilk token süresinin, çıktı token sayısının ve maliyetin nasıl değiştiğini ölç. Yanıtın `usage.output_tokens_details.thinking_tokens` alanını kayda ekleyip düşünme token'larını ayrı bir sütunda göster. Düşünme token'larının faturaya etkisi Aşama 8'deki cost optimization dersinin konusudur.
+- **Parametre ekseni.** `run` komutuna `--temperature` seçeneği ekle ve aynı modeli iki değerle çalıştırıp otomatik puanların ve çıktı uzunluğunun nasıl değiştiğini ölç. Bu, Aşama 1'in üçüncü workshop'undaki non-determinism deneyinin araçlaşmış hâlidir.
+- **Model olarak hakem.** Otomatik kontrollerin yanına, çıktıyı ucuz bir modele 1–5 arası puanlatan bir `judge` kontrolü ekle ve hakemin puanını kendi etiketsiz puanınla karşılaştır. Hakemin insanla ne kadar uyuştuğu Aşama 2'deki eval mindset dersinin ve "LLM-as-judge" workshop'unun konusudur.
+- **Görev bazlı yönlendirme.** Raporu görev başına ayrı tablolara böl ve her görev için en iyi fiyat/puan oranına sahip modeli seç. Bu, Aşama 4'teki routing pattern'inin ilk tohumudur: her görevi aynı modele değil, ona yeten en ucuz modele yollamak.
+
+## Bitirdiğinde elinde ne olacak?
+
+Herhangi bir görev setini dört modelde çalıştıran, gecikme, maliyet ve kaliteyi tek tabloda gösteren, etiketsiz puanlama ve karar kaydı üreten, çalışan bir CLI aracı. Bu araç portfolyona ekleyebileceğin bir proje olmanın yanında, programın geri kalanında ve kendi işinde "bu görev için hangi model?" sorusunu rakamlarla cevaplamak için kullanacağın kişisel bir lab olacak.

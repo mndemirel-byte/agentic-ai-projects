@@ -1,0 +1,113 @@
+# Step-by-Step-GUIDE.md talimatlarının makine tarafından okunabilir karşılığı.
+# Simülasyon, adım 1 dosyasından başlayıp bu işlemleri sırayla uygular ve her adımın
+# sonunda dosyanın hedef ara sürümle aynı olduğunu doğrular. Rehberdeki bir talimat
+# değişirse burası da aynı şekilde güncellenmelidir.
+
+baslangic: cozum/adim_1.py
+
+adimlar:
+  - ad: Adım 2
+    hedef: cozum/adim_2.py
+    islemler:
+      - {islem: bas_degistir, icerik: {bas: cozum/adim_2.py}}
+      - {islem: fn_oncesi, fn: load_tasks, icerik: {fnler: [cozum/adim_2.py, [load_pricing, select_models]]}}
+      - {islem: fn_sonrasi, fn: stream_call, icerik: {fn: [cozum/adim_2.py, try_call]}}
+      - {islem: fn_sonrasi, fn: try_call, icerik: {fnler: [cozum/adim_2.py, [estimate_cost, tokens_per_second]]}}
+      - {islem: fn_sonrasi, fn: _tr_number, icerik: {fnler: [cozum/adim_2.py, [fmt_int, fmt_usd]]}}
+      - {islem: fn_sonrasi, fn: fmt_sec, icerik: {fnler: [cozum/adim_2.py, [fmt_speed, print_table]]}}
+      - {islem: fn_degistir, fn: cmd_run, icerik: {fn: [cozum/adim_2.py, cmd_run]}}
+      - {islem: fn_degistir, fn: build_parser, icerik: {fn: [cozum/adim_2.py, build_parser]}}
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_2.py, main]}}
+
+  - ad: Adım 3
+    hedef: cozum/adim_3.py
+    islemler:
+      - {islem: bas_degistir, icerik: {bas: cozum/adim_3.py}}
+      - {islem: fn_sonrasi, fn: print_table, icerik: {fnler: [cozum/adim_3.py, [default_results_path, save_results]]}}
+      - {islem: fn_degistir, fn: cmd_run, icerik: {fn: [cozum/adim_3.py, cmd_run]}}
+      - islem: satir_sonrasi
+        capa: 'p_run.add_argument("--max-tokens"'
+        icerik:
+          girinti: 4
+          metin: |
+            p_run.add_argument("--out", help="Sonuç dosyası (varsayılan: sonuclar/<görev dosyası adı>.jsonl)")
+
+  - ad: Adım 4
+    hedef: cozum/adim_4.py
+    islemler:
+      - {islem: bas_degistir, icerik: {bas: cozum/adim_4.py}}
+      - {islem: fn_degistir, fn: load_tasks, icerik: {fn: [cozum/adim_4.py, load_tasks]}}
+      - {islem: fn_sonrasi, fn: tokens_per_second, icerik: {fnler: [cozum/adim_4.py, [_parse_json, check_output]]}}
+      - {islem: fn_sonrasi, fn: fmt_sec, icerik: {fn: [cozum/adim_4.py, fmt_pct]}}
+      - {islem: fn_sonrasi, fn: fmt_speed, icerik: {fn: [cozum/adim_4.py, fmt_score]}}
+      - {islem: fn_degistir, fn: cmd_run, icerik: {fn: [cozum/adim_4.py, cmd_run]}}
+
+  - ad: Adım 5
+    hedef: cozum/adim_5.py
+    islemler:
+      - {islem: fn_sonrasi, fn: check_output, icerik: {fn: [cozum/adim_5.py, mean]}}
+      - {islem: fn_sonrasi, fn: save_results, icerik: {fn: [cozum/adim_5.py, load_results]}}
+      - {islem: fn_sonrasi, fn: cmd_run, icerik: {fnler: [cozum/adim_5.py, [summarize, decision_lines, cmd_report]]}}
+      - islem: fn_icinde_once
+        fn: build_parser
+        satir: "    return parser"
+        icerik:
+          girinti: 4
+          metin: |
+
+            p_report = sub.add_parser("report", help="Kaydedilmiş sonuçlardan karşılaştırma raporu üret (çağrı yapmaz)")
+            p_report.add_argument("results", help="run komutunun yazdığı JSONL dosyası")
+            p_report.add_argument("--monthly-calls", type=int, default=0, help="Aylık çağrı sayısı; verilirse aylık maliyet sütunu eklenir")
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_5.py, main]}}
+
+  - ad: Adım 6
+    hedef: cozum/adim_6.py
+    islemler:
+      - {islem: bas_degistir, icerik: {bas: cozum/adim_6.py}}
+      - {islem: fn_sonrasi, fn: load_results, icerik: {fnler: [cozum/adim_6.py, [runs_for_task, anonymize]]}}
+      - {islem: fn_sonrasi, fn: fmt_score, icerik: {fn: [cozum/adim_6.py, fmt_rating]}}
+      - {islem: fn_degistir, fn: summarize, icerik: {fn: [cozum/adim_6.py, summarize]}}
+      - {islem: fn_degistir, fn: decision_lines, icerik: {fn: [cozum/adim_6.py, decision_lines]}}
+      - {islem: fn_degistir, fn: cmd_report, icerik: {fn: [cozum/adim_6.py, cmd_report]}}
+      - {islem: fn_sonrasi, fn: cmd_report, icerik: {fnler: [cozum/adim_6.py, [cmd_show, parse_scores, cmd_rate]]}}
+      - islem: fn_icinde_once
+        fn: build_parser
+        satir: "    return parser"
+        icerik:
+          girinti: 4
+          metin: |
+
+            p_show = sub.add_parser("show", help="Bir görevin çıktılarını model adları gizli olarak göster")
+            p_show.add_argument("results", help="run komutunun yazdığı JSONL dosyası")
+            p_show.add_argument("task", help="Görev adı (görev dosyasındaki 'ad')")
+
+            p_rate = sub.add_parser("rate", help="Etiketsiz puanları kaydet ve etiketleri aç")
+            p_rate.add_argument("results", help="run komutunun yazdığı JSONL dosyası")
+            p_rate.add_argument("task", help="Görev adı (görev dosyasındaki 'ad')")
+            p_rate.add_argument("--scores", help="Puanlar, ör. A=4,B=3,C=5,D=3 (verilmezse terminalden sorulur)")
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_6.py, main]}}
+
+  - ad: Adım 7
+    hedef: cozum/adim_7.py
+    islemler:
+      - {islem: fn_degistir, fn: cmd_run, icerik: {fn: [cozum/adim_7.py, cmd_run]}}
+      - {islem: fn_degistir, fn: summarize, icerik: {fn: [cozum/adim_7.py, summarize]}}
+      - {islem: fn_degistir, fn: cmd_report, icerik: {fn: [cozum/adim_7.py, cmd_report]}}
+      - islem: satir_sonrasi
+        capa: 'p_run.add_argument("--max-tokens"'
+        icerik:
+          girinti: 4
+          metin: |
+            p_run.add_argument("--repeat", type=int, default=1, help="Her görev-model çiftini kaç kez çalıştırmalı (varsayılan: 1)")
+
+  - ad: Adım 8
+    hedef: cozum/modellab.py
+    islemler:
+      - {islem: fn_sonrasi, fn: cmd_report, icerik: {fn: [cozum/modellab.py, write_model_card]}}
+      - {islem: fn_degistir, fn: cmd_report, icerik: {fn: [cozum/modellab.py, cmd_report]}}
+      - islem: satir_sonrasi
+        capa: 'p_report.add_argument("--monthly-calls"'
+        icerik:
+          girinti: 4
+          metin: |
+            p_report.add_argument("--model-card", help="Karar kaydını bu Markdown dosyasına yaz")

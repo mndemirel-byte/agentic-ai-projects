@@ -1,0 +1,40 @@
+<!-- Akış rehberine eklenen projeye özgü bölüm. <script> içeriği sayfanın ana script'inden sonra çalışır; $ yardımcısı kullanılabilir. -->
+<section aria-labelledby="h-calc">
+  <h2 id="h-calc">Kendin dene: görev başına token'dan aylık faturaya</h2>
+  <p class="sub">estimate_cost fonksiyonunun hesabı, dört model için yan yana ve aylık çağrı sayısıyla çarpılmış. Çıktı token'ını artır: fatura hangi modelde daha hızlı büyüyor?</p>
+  <div class="calc">
+    <div class="row"><label for="c-in">Girdi token / görev</label><input type="range" id="c-in" min="50" max="20000" step="50" value="400"><output id="c-in-o" for="c-in"></output></div>
+    <div class="row"><label for="c-out">Çıktı token / görev</label><input type="range" id="c-out" min="10" max="4000" step="10" value="150"><output id="c-out-o" for="c-out"></output></div>
+    <div class="row"><label for="c-calls">Aylık çağrı</label><input type="range" id="c-calls" min="1000" max="2000000" step="1000" value="100000"><output id="c-calls-o" for="c-calls"></output></div>
+    <pre id="r-table" style="margin-bottom:0"></pre>
+  </div>
+</section>
+<script>
+// Model verisi pipeline tarafından pricing.yaml dosyasından enjekte edilir.
+const PRICING = {{VERI:pricing.yaml}};
+const MODELS = PRICING.models.map(m => ({n: m.name, i: m.input_per_mtok, o: m.output_per_mtok}));
+const nf = new Intl.NumberFormat("tr-TR");
+function usd(x) {
+  if (x === 0) return "$0";
+  const d = x >= 1 ? 2 : Math.min(8, -Math.floor(Math.log10(x)) + 1);
+  return "$" + new Intl.NumberFormat("tr-TR", {minimumFractionDigits: d, maximumFractionDigits: d}).format(x);
+}
+function pad(s, w, right) { s = String(s); return right ? s.padStart(w) : s.padEnd(w); }
+function calc() {
+  const inp = +$("c-in").value, out = +$("c-out").value, calls = +$("c-calls").value;
+  $("c-in-o").textContent = nf.format(inp);
+  $("c-out-o").textContent = nf.format(out);
+  $("c-calls-o").textContent = nf.format(calls);
+  const costs = MODELS.map(m => (inp * m.i + out * m.o) / 1e6);
+  const base = Math.min(...costs);
+  const rows = MODELS.map((m, k) => [m.n, usd(costs[k]), usd(costs[k] * calls),
+    new Intl.NumberFormat("tr-TR", {maximumFractionDigits: 1}).format(costs[k] / base) + "×"]);
+  const head = ["Model", "Maliyet/görev", "Aylık", "En ucuzun katı"];
+  const w = head.map((h, k) => Math.max(h.length, ...rows.map(r => r[k].length)));
+  const line = r => r.map((c, k) => pad(c, w[k], k > 0)).join("  ");
+  $("r-table").textContent = [line(head), w.map(x => "-".repeat(x)).join("  "), ...rows.map(line),
+    "", "cost = (" + nf.format(inp) + " × girdi_fiyatı + " + nf.format(out) + " × çıktı_fiyatı) / 1.000.000"].join("\n");
+}
+["c-in", "c-out", "c-calls"].forEach(id => $(id).addEventListener("input", calc));
+calc();
+</script>

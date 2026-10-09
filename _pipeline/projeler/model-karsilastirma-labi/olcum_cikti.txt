@@ -1,0 +1,470 @@
+# Ölçüm tarihi: 2026-10-09
+
+==================================================================
+## rehber-1
+$ python cozum/adim_1.py run gorevler/1_tek_prompt.yaml
+------------------------------------------------------------------
+Görev seti: Tek prompt (1 görev)  |  model: Claude Haiku 4.5  |  max_tokens=300
+
+[mikroservis]
+1. Dağıtık sistem karmaşıklığı, hata ayıklama ve izlemeyi önemli ölçüde zorlaştırır.
+
+2. Ağ gecikmesi ve bağlantı hatalarından kaynaklanan performans sorunları ortaya çıkabilir.
+
+3. Veri tutarlılığını sağlamak ve hizmetler arasında işlemleri yönetmek operasyonel olarak zordur.
+
+İlk token: 894 ms  |  Toplam: 2,06 s  |  Girdi: 69 token  |  Çıktı: 125 token  |  Durma nedeni: end_turn
+
+==================================================================
+## rehber-2a
+$ python cozum/adim_2.py run gorevler/1_tek_prompt.yaml --show-output
+------------------------------------------------------------------
+Görev seti: Tek prompt (1 görev)  |  4 model  |  max_tokens=300
+
+[mikroservis] (tier 2)
+  Claude Haiku 4.5:
+    1. Dağıtık sistem yönetimi ve hata ayıklama işlemleri monolitik mimarilere göre çok daha karmaşık ve zaman alıcıdır.
+
+    2. Servisler arasında veri tutarlılığını sağlamak ve network gecikmelerini yönetmek önemli teknik zorluklar yaratır.
+
+    3. İnfrastruktur maliyetleri, monitoring, logging ve deployment otomasyonu gereksinimleri nedeniyle ciddi oranda artış gösterir.
+  Claude Sonnet 5.5:
+    1. Servisler ağ üzerinden haberleştiği için gecikme, kısmi hatalar ve dağıtık sistemlerin getirdiği karmaşıklık (zincirleme arızalar, tutarsız veri vb.) tek parça bir uygulamaya kıyasla çok daha zor yönetilir.
+    2. Servisler arası veri tutarlılığını sağlamak, dağıtık işlemler ve eventual consistency gerektirdiğinden geliştirme ve hata ayıklama süreçlerini ciddi biçimde zorlaştırır.
+    3. Çok sayıda bağımsız servisin dağıtımı, izlenmesi, loglanması ve versiyonlanması için gereken operasyonel altyapı ve DevOps olgunluğu hem maliyeti hem de ekip yükünü önemli ölçüde artırır.
+  Claude Opus 5.5:
+    1. Servisler ağ üzerinden haberleştiği için gecikme, kısmi hatalar ve dağıtık sistemlere özgü karmaşıklık ciddi biçimde artar.
+    2. Her servisin kendi veritabanına sahip olması, servisler arası veri tutarlılığını ve dağıtık işlem yönetimini oldukça zorlaştırır.
+    3. Çok sayıda bağımsız servisin dağıtımı, izlenmesi ve hata ayıklaması, güçlü bir DevOps altyapısı ve yüksek operasyonel maliyet gerektirir.
+  Claude Fable 5.1:
+    1. Servisler arası ağ iletişimi gecikme, kısmi arıza ve veri tutarlılığı (dağıtık işlem) sorunlarını beraberinde getirerek sistemin güvenilirliğini zorlaştırır.
+    2. Onlarca bağımsız servisin dağıtımı, izlenmesi, loglanması ve hata ayıklanması operasyonel karmaşıklığı ve altyapı maliyetini ciddi ölçüde artırır.
+    3. Servis sınırlarının yanlış belirlenmesi, dağıtık bir monolite veya aşırı bağımlı servislere yol açarak hem bakımı hem de yeniden yapılandırmayı monolitten daha zor hâle getirir.
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet
+-----------------  ---------  ------  --------  -----------  --------
+Claude Haiku 4.5      717 ms  2,22 s        96          144  $0,00079
+Claude Sonnet 5.5     842 ms  3,46 s       113          297   $0,0031
+Claude Opus 5.5       1,05 s  3,02 s       106          210   $0,0045
+Claude Fable 5.1      586 ms  4,38 s        67          256    $0,014
+
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-2b
+$ python cozum/adim_2.py run gorevler/1_tek_prompt.yaml --models haiku-4-5,fable-5-1 --max-tokens 40 --show-output
+------------------------------------------------------------------
+Görev seti: Tek prompt (1 görev)  |  2 model  |  max_tokens=40
+
+[mikroservis] (tier 2)
+  Claude Haiku 4.5:
+    1. Dağıtılmış sistem kompleksitesi nedeniyle hata ayıklama, izleme ve sorun giderme önemli öl
+  Claude Fable 5.1:
+    1. Servisler arası ağ iletişimi, gecikme, hata toleransı ve dağıtık işlem (dist
+Model             İlk token  Toplam  token/sn  Çıktı token   Maliyet
+----------------  ---------  ------  --------  -----------  --------
+Claude Haiku 4.5     740 ms  1,11 s       108           40  $0,00027
+Claude Fable 5.1     1,11 s  2,05 s        42           40   $0,0029
+
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-3
+$ python cozum/adim_3.py run gorevler/2_gorev_seti.yaml --out sonuclar/adim_3.jsonl
+------------------------------------------------------------------
+Görev seti: Görev seti (5 görev)  |  4 model  |  max_tokens=300
+
+[siniflandirma] (tier 1)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet
+-----------------  ---------  ------  --------  -----------  --------
+Claude Haiku 4.5      634 ms  647 ms         -            5  $0,00019
+Claude Sonnet 5.5     762 ms  782 ms         -            5  $0,00045
+Claude Opus 5.5       2,46 s  2,46 s         -          101   $0,0028
+Claude Fable 5.1      1,92 s  2,89 s         5            5   $0,0023
+
+[veri_cikarma] (tier 1)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet
+-----------------  ---------  ------  --------  -----------  --------
+Claude Haiku 4.5      450 ms  835 ms       143           55  $0,00051
+Claude Sonnet 5.5     716 ms  942 ms       208           47   $0,0011
+Claude Opus 5.5       2,02 s  2,28 s       183           47   $0,0021
+Claude Fable 5.1      669 ms  1,44 s        61           47   $0,0053
+
+[ozet] (tier 2)
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet
+-----------------  ---------  ------  --------  -----------  -------
+Claude Haiku 4.5      504 ms  2,35 s       101          186  $0,0013
+Claude Sonnet 5.5     1,37 s  2,44 s       181          193  $0,0027
+Claude Opus 5.5       857 ms  2,25 s       152          212  $0,0058
+Claude Fable 5.1      582 ms  2,35 s       102          181   $0,013
+
+[kod] (tier 2)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet
+-----------------  ---------  ------  --------  -----------  --------
+Claude Haiku 4.5      472 ms  1,38 s       139          126  $0,00071
+Claude Sonnet 5.5     889 ms  1,51 s       199          123   $0,0014
+Claude Opus 5.5       1,26 s  2,29 s       119          122   $0,0029
+Claude Fable 5.1      1,89 s  3,85 s        62          122   $0,0072
+
+[muhakeme] (tier 3)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet
+-----------------  ---------  ------  --------  -----------  --------
+Claude Haiku 4.5      506 ms  525 ms         -            7  $0,00013
+Claude Sonnet 5.5     563 ms  1,06 s        10            5  $0,00028
+Claude Opus 5.5       1,36 s  1,37 s         -           29   $0,0010
+Claude Fable 5.1      573 ms  1,21 s         8            5   $0,0014
+
+Kaydedildi: sonuclar/adim_3.jsonl (20 kayıt)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-4
+$ python cozum/adim_4.py run gorevler/2_gorev_seti.yaml --out sonuclar/adim_4.jsonl
+------------------------------------------------------------------
+Görev seti: Görev seti (5 görev)  |  4 model  |  max_tokens=300
+
+[siniflandirma] (tier 1)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      591 ms  613 ms         -            5  $0,00019  %100
+Claude Sonnet 5.5     721 ms  731 ms         -            5  $0,00045  %100
+Claude Opus 5.5       2,26 s  2,27 s         -            5  $0,00090  %100
+Claude Fable 5.1      1,79 s  2,72 s         5            5   $0,0023  %100
+
+[veri_cikarma] (tier 1)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      448 ms  828 ms       145           55  $0,00051   %67
+Claude Sonnet 5.5     714 ms  881 ms       283           47   $0,0011  %100
+Claude Opus 5.5       2,37 s  2,40 s         -          103   $0,0032  %100
+Claude Fable 5.1      549 ms  1,36 s        58           47   $0,0053  %100
+
+[ozet] (tier 2)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      552 ms  1,71 s       111          128  $0,00097  %100
+Claude Sonnet 5.5     1,34 s  2,77 s       124          176   $0,0026  %100
+Claude Opus 5.5       1,00 s  2,36 s       146          199   $0,0056  %100
+Claude Fable 5.1      553 ms  2,24 s       107          180    $0,013  %100
+
+[kod] (tier 2)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      459 ms  1,36 s       140          126  $0,00071   %50
+Claude Sonnet 5.5     741 ms  1,37 s       197          123   $0,0014  %100
+Claude Opus 5.5       1,03 s  1,84 s       150          122   $0,0029  %100
+Claude Fable 5.1      1,83 s  3,83 s        61          122   $0,0072  %100
+
+[muhakeme] (tier 3)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      518 ms  539 ms         -            7  $0,00013   %50
+Claude Sonnet 5.5     751 ms  1,22 s        11            5  $0,00028  %100
+Claude Opus 5.5       1,52 s  1,52 s         -           36   $0,0012  %100
+Claude Fable 5.1      567 ms  1,19 s         8            5   $0,0014  %100
+
+Kaydedildi: sonuclar/adim_4.jsonl (20 kayıt)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-5
+$ python cozum/adim_5.py report sonuclar/adim_4.jsonl --monthly-calls 100000
+------------------------------------------------------------------
+Sonuç dosyası: sonuclar/adim_4.jsonl  |  5 görev, 4 model
+
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet/görev  Aylık (100.000 çağrı)  Oto puan
+-----------------  ---------  ------  --------  -----------  -------------  ---------------------  --------
+Claude Haiku 4.5      514 ms  1,01 s       132           64       $0,00050                 $50,28       %73
+Claude Sonnet 5.5     854 ms  1,39 s       153           71        $0,0012                $115,52      %100
+Claude Opus 5.5       1,64 s  2,08 s       148           93        $0,0028                $275,28      %100
+Claude Fable 5.1      1,06 s  2,27 s        48           72        $0,0058                $582,20      %100
+
+En hızlı ilk token: Claude Haiku 4.5 (514 ms)
+En ucuz: Claude Haiku 4.5 ($0,00050/görev)
+En yüksek otomatik puan: Claude Sonnet 5.5 (%100)
+Otomatik puan farkı (en yüksek − en düşük): 27 puan (fark küçükse kararı kalite değil, hız ve maliyet verdirir)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-6a
+$ python cozum/adim_6.py show sonuclar/adim_4.jsonl ozet
+------------------------------------------------------------------
+Görev: ozet  |  4 çıktı, model adları gizli. Puanlamak için: rate sonuclar/adim_4.jsonl ozet --scores A=4,B=3,...
+
+--- A ---
+9 Ekim 2026'da ödeme servisinin banka entegrasyonunda kullanılan TLS sertifikasının süresi dolduğu için bağlantılar el sıkışma aşamasında reddedildi ve 65 dakika boyunca yaklaşık 1.900 ödeme denemesi etkilendi. Sertifika yenilenerek sorun giderildi; tekrarını önlemek için süre dolmadan 30 gün önce uyarı veren bir izleme kuralı eklendi.
+
+--- B ---
+# Olay Raporu Özeti
+
+**Kök Neden:** Ödeme servisinin banka entegrasyonunda kullanılan TLS sertifikasının süresi dolması nedeniyle bağlantı el sıkışması aşamasında başarısız olmuştur.
+
+**Alınan Önlem:** Sertifika süresinin dolmadan 30 gün öncesinden uyaran bir izleme kuralı sisteme eklenmiştir.
+
+--- C ---
+9 Ekim 2026'da ödeme servisinin banka entegrasyonunda kullandığı TLS sertifikasının süresi dolduğu için bağlantılar el sıkışma aşamasında reddedildi. Bu nedenle 65 dakika boyunca isteklerin %38'i zaman aşımına uğradı ve yaklaşık 1.900 ödeme denemesi etkilendi. Sertifika yenilenerek sorun giderildi ve önlem olarak süre dolmadan 30 gün önce uyaran bir izleme kuralı eklendi.
+
+--- D ---
+9 Ekim 2026'da ödeme servisi isteklerinin %38'i, banka entegrasyonunda kullanılan TLS sertifikasının süresinin dolması nedeniyle 65 dakika boyunca başarısız oldu ve yaklaşık 1.900 ödeme denemesi etkilendi. Sertifika yenilenerek sorun giderildi ve tekrarını önlemek için sertifika süresinin dolmasından 30 gün önce uyaran bir izleme kuralı eklendi.
+
+==================================================================
+## rehber-6b
+$ python cozum/adim_6.py rate sonuclar/adim_4.jsonl ozet --scores A=4,B=3,C=5,D=3
+------------------------------------------------------------------
+Görev: ozet  |  etiketler açılıyor
+
+Etiket  Model              Etiketsiz puan  Oto puan   Maliyet
+------  -----------------  --------------  --------  --------
+A       Claude Sonnet 5.5             4/5      %100   $0,0026
+B       Claude Haiku 4.5              3/5      %100  $0,00097
+C       Claude Opus 5.5               5/5      %100   $0,0056
+D       Claude Fable 5.1              3/5      %100    $0,013
+
+Kaydedildi: sonuclar/adim_4.jsonl (+4 puan kaydı). Rapora yansıtmak için: report sonuclar/adim_4.jsonl
+
+==================================================================
+## rehber-6c
+$ python cozum/adim_6.py report sonuclar/adim_4.jsonl
+------------------------------------------------------------------
+Sonuç dosyası: sonuclar/adim_4.jsonl  |  5 görev, 4 model
+
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet/görev  Oto puan  Etiketsiz
+-----------------  ---------  ------  --------  -----------  -------------  --------  ---------
+Claude Haiku 4.5      514 ms  1,01 s       132           64       $0,00050       %73      3,0/5
+Claude Sonnet 5.5     854 ms  1,39 s       153           71        $0,0012      %100      4,0/5
+Claude Opus 5.5       1,64 s  2,08 s       148           93        $0,0028      %100      5,0/5
+Claude Fable 5.1      1,06 s  2,27 s        48           72        $0,0058      %100      3,0/5
+
+En hızlı ilk token: Claude Haiku 4.5 (514 ms)
+En ucuz: Claude Haiku 4.5 ($0,00050/görev)
+En yüksek otomatik puan: Claude Sonnet 5.5 (%100)
+Otomatik puan farkı (en yüksek − en düşük): 27 puan (fark küçükse kararı kalite değil, hız ve maliyet verdirir)
+En yüksek etiketsiz puan: Claude Opus 5.5 (5,0/5)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-7a
+$ python cozum/adim_7.py run gorevler/1_tek_prompt.yaml --repeat 3 --out sonuclar/tekrar.jsonl
+------------------------------------------------------------------
+Görev seti: Tek prompt (1 görev)  |  4 model  |  max_tokens=300  |  tekrar=3
+
+[mikroservis] (tier 2)
+Model                 İlk token  Toplam  token/sn    Çıktı token   Maliyet  Puan
+--------------------  ---------  ------  --------  -------------  --------  ----
+Claude Haiku 4.5 #1      713 ms  2,09 s       102            141  $0,00077  %100
+Claude Haiku 4.5 #2      606 ms  2,09 s       105            156  $0,00085  %100
+Claude Haiku 4.5 #3      612 ms  2,50 s        95            180  $0,00097  %100
+Claude Sonnet 5.5 #1     659 ms  3,47 s       107  300 (kesildi)   $0,0032  %100
+Claude Sonnet 5.5 #2     616 ms  2,72 s       109            230   $0,0025  %100
+Claude Sonnet 5.5 #3     638 ms  3,03 s       125  300 (kesildi)   $0,0032  %100
+Claude Opus 5.5 #1       1,18 s  4,13 s        95            281   $0,0060  %100
+Claude Opus 5.5 #2       1,07 s  3,93 s        90            258   $0,0055  %100
+Claude Opus 5.5 #3       1,09 s  3,52 s       103            251   $0,0054  %100
+Claude Fable 5.1 #1      560 ms  4,37 s        69            265    $0,014  %100
+Claude Fable 5.1 #2      567 ms  3,68 s        78            244    $0,013  %100
+Claude Fable 5.1 #3      571 ms  3,48 s        77            225    $0,012  %100
+
+Kaydedildi: sonuclar/tekrar.jsonl (12 kayıt)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-7b
+$ python cozum/adim_7.py report sonuclar/tekrar.jsonl
+------------------------------------------------------------------
+Sonuç dosyası: sonuclar/tekrar.jsonl  |  1 görev, 4 model, görev başına 3 tekrar
+
+Model              İlk token  Toplam  token/sn      Çıktı token  Maliyet/görev  Oto puan
+-----------------  ---------  ------  --------  ---------------  -------------  --------
+Claude Haiku 4.5      644 ms  2,23 s       101              159       $0,00086      %100
+Claude Sonnet 5.5     638 ms  3,07 s       114  277 (2 kesildi)        $0,0029      %100
+Claude Opus 5.5       1,11 s  3,86 s        96              263        $0,0056      %100
+Claude Fable 5.1      566 ms  3,84 s        75              245         $0,013      %100
+
+Toplam süre aralığı (min–maks): Claude Haiku 4.5 2,09 s–2,50 s  |  Claude Sonnet 5.5 2,72 s–3,47 s  |  Claude Opus 5.5 3,52 s–4,13 s  |  Claude Fable 5.1 3,48 s–4,38 s
+
+En hızlı ilk token: Claude Fable 5.1 (566 ms)
+En ucuz: Claude Haiku 4.5 ($0,00086/görev)
+En yüksek otomatik puan: Claude Haiku 4.5 (%100)
+Otomatik puan farkı (en yüksek − en düşük): 0 puan (fark küçükse kararı kalite değil, hız ve maliyet verdirir)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## rehber-8
+$ python cozum/modellab.py report sonuclar/adim_4.jsonl --model-card sonuclar/model-karti.md
+------------------------------------------------------------------
+Sonuç dosyası: sonuclar/adim_4.jsonl  |  5 görev, 4 model
+
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet/görev  Oto puan  Etiketsiz
+-----------------  ---------  ------  --------  -----------  -------------  --------  ---------
+Claude Haiku 4.5      514 ms  1,01 s       132           64       $0,00050       %73      3,0/5
+Claude Sonnet 5.5     854 ms  1,39 s       153           71        $0,0012      %100      4,0/5
+Claude Opus 5.5       1,64 s  2,08 s       148           93        $0,0028      %100      5,0/5
+Claude Fable 5.1      1,06 s  2,27 s        48           72        $0,0058      %100      3,0/5
+
+En hızlı ilk token: Claude Haiku 4.5 (514 ms)
+En ucuz: Claude Haiku 4.5 ($0,00050/görev)
+En yüksek otomatik puan: Claude Sonnet 5.5 (%100)
+Otomatik puan farkı (en yüksek − en düşük): 27 puan (fark küçükse kararı kalite değil, hız ve maliyet verdirir)
+En yüksek etiketsiz puan: Claude Opus 5.5 (5,0/5)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+Model kartı yazıldı: sonuclar/model-karti.md
+
+==================================================================
+## demo-tek-model
+$ python cozum/modellab.py run gorevler/1_tek_prompt.yaml --models haiku-4-5 --show-output
+------------------------------------------------------------------
+Görev seti: Tek prompt (1 görev)  |  1 model  |  max_tokens=300  |  tekrar=1
+
+[mikroservis] (tier 2)
+  Claude Haiku 4.5:
+    1. Dağıtık sistem karmaşıklığı nedeniyle hata ayıklama, izleme ve sistem yönetimi önemli ölçüde zorlaşır.
+
+    2. Servisler arasındaki ağ iletişimi gecikmelere ve bağlantı hatalarına neden olarak sistem performansını olumsuz etkiler.
+
+    3. Veri tutarlılığını sağlamak ve dağıtık işlemleri koordine etmek teknik açıdan çok karmaşık ve maliyetli hale gelir.
+Model             İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5     741 ms  2,15 s       107          150  $0,00082  %100
+
+Kaydedildi: sonuclar/1_tek_prompt.jsonl (1 kayıt)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-dort-model
+$ python cozum/modellab.py run gorevler/1_tek_prompt.yaml
+------------------------------------------------------------------
+Görev seti: Tek prompt (1 görev)  |  4 model  |  max_tokens=300  |  tekrar=1
+
+[mikroservis] (tier 2)
+Model              İlk token  Toplam  token/sn    Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -------------  --------  ----
+Claude Haiku 4.5      581 ms  2,40 s        89            162  $0,00088  %100
+Claude Sonnet 5.5     644 ms  3,64 s       100  300 (kesildi)   $0,0032  %100
+Claude Opus 5.5       1,05 s  3,96 s        93            270   $0,0057  %100
+Claude Fable 5.1      796 ms  3,84 s        78            238    $0,013  %100
+
+Kaydedildi: sonuclar/1_tek_prompt.jsonl (4 kayıt)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-gorev-seti
+$ python cozum/modellab.py run gorevler/2_gorev_seti.yaml
+------------------------------------------------------------------
+Görev seti: Görev seti (5 görev)  |  4 model  |  max_tokens=300  |  tekrar=1
+
+[siniflandirma] (tier 1)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      610 ms  626 ms         -            5  $0,00019  %100
+Claude Sonnet 5.5     673 ms  685 ms         -            5  $0,00045  %100
+Claude Opus 5.5       1,52 s  1,52 s         -            5  $0,00090  %100
+Claude Fable 5.1      1,16 s  1,17 s         -            5   $0,0023  %100
+
+[veri_cikarma] (tier 1)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      455 ms  863 ms       135           55  $0,00051   %67
+Claude Sonnet 5.5     606 ms  767 ms       293           47   $0,0011  %100
+Claude Opus 5.5       1,80 s  2,08 s       169           47   $0,0021  %100
+Claude Fable 5.1      549 ms  1,36 s        58           47   $0,0053  %100
+
+[ozet] (tier 2)
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  -------  ----
+Claude Haiku 4.5      490 ms  1,93 s       104          150  $0,0011  %100
+Claude Sonnet 5.5     645 ms  2,17 s       126          193  $0,0027  %100
+Claude Opus 5.5       960 ms  2,53 s       128          202  $0,0056  %100
+Claude Fable 5.1      875 ms  3,05 s        97          211   $0,015  %100
+
+[kod] (tier 2)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      440 ms  1,58 s       136          155  $0,00086   %50
+Claude Sonnet 5.5     761 ms  1,26 s       248          123   $0,0014  %100
+Claude Opus 5.5       826 ms  1,61 s       156          122   $0,0029  %100
+Claude Fable 5.1      659 ms  2,18 s        80          122   $0,0072  %100
+
+[muhakeme] (tier 3)
+Model              İlk token  Toplam  token/sn  Çıktı token   Maliyet  Puan
+-----------------  ---------  ------  --------  -----------  --------  ----
+Claude Haiku 4.5      542 ms  569 ms         -            7  $0,00013   %50
+Claude Sonnet 5.5     627 ms  1,15 s        10            5  $0,00028  %100
+Claude Opus 5.5       1,41 s  1,41 s         -           33   $0,0011  %100
+Claude Fable 5.1      515 ms  1,27 s         7            5   $0,0014  %100
+
+Kaydedildi: sonuclar/2_gorev_seti.jsonl (20 kayıt)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-rapor
+$ python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl --monthly-calls 100000
+------------------------------------------------------------------
+Sonuç dosyası: sonuclar/2_gorev_seti.jsonl  |  5 görev, 4 model
+
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet/görev  Aylık (100.000 çağrı)  Oto puan
+-----------------  ---------  ------  --------  -----------  -------------  ---------------------  --------
+Claude Haiku 4.5      507 ms  1,11 s       125           74       $0,00055                 $55,38       %73
+Claude Sonnet 5.5     662 ms  1,21 s       169           75        $0,0012                $118,92      %100
+Claude Opus 5.5       1,30 s  1,83 s       151           82        $0,0025                $252,88      %100
+Claude Fable 5.1      752 ms  1,81 s        60           78        $0,0061                $613,20      %100
+
+En hızlı ilk token: Claude Haiku 4.5 (507 ms)
+En ucuz: Claude Haiku 4.5 ($0,00055/görev)
+En yüksek otomatik puan: Claude Sonnet 5.5 (%100)
+Otomatik puan farkı (en yüksek − en düşük): 27 puan (fark küçükse kararı kalite değil, hız ve maliyet verdirir)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+
+==================================================================
+## demo-show
+$ python cozum/modellab.py show sonuclar/2_gorev_seti.jsonl ozet
+------------------------------------------------------------------
+Görev: ozet  |  4 çıktı, model adları gizli. Puanlamak için: rate sonuclar/2_gorev_seti.jsonl ozet --scores A=4,B=3,...
+
+--- A ---
+9 Ekim 2026'da ödeme servisinin banka entegrasyonunda kullandığı TLS sertifikasının süresi dolduğu için bağlantılar el sıkışma aşamasında reddedildi. Bu nedenle istekler 65 dakika boyunca zaman aşımına uğradı ve yaklaşık 1.900 ödeme denemesi etkilendi. Sertifika yenilenerek sorun giderildi ve tekrarını önlemek için sertifika süresi dolmadan 30 gün önce uyaran bir izleme kuralı eklendi.
+
+--- B ---
+9 Ekim 2026'da ödeme servisindeki isteklerin %38'i 65 dakika boyunca zaman aşımına uğradı ve yaklaşık 1.900 ödeme denemesi etkilendi; kök neden, banka entegrasyonunda kullanılan TLS sertifikasının o sabah süresinin dolması ve bağlantıların el sıkışma aşamasında reddedilmesiydi. Sertifika yenilenerek sorun giderildi ve önlem olarak sertifika süresi dolmadan 30 gün önce uyaran bir izleme kuralı eklendi.
+
+--- C ---
+# Olay Raporu Özeti
+
+9 Ekim 2026'da ödeme servisinde %38 istek başarısızlığı yaşanmış olup, **kök nedeni banka entegrasyonunda kullanılan TLS sertifikasının süresinin dolması** ve bağlantı el sıkışmasının reddedilmesi olarak tespit edilmiştir. **Alınan önlem olarak, sertifika süresinin dolmadan 30 gün önce uyaran bir izleme kuralı eklenmiştir.**
+
+--- D ---
+9 Ekim 2026'da ödeme servisinin istekleri, banka entegrasyonunda kullanılan TLS sertifikasının süresinin dolması nedeniyle el sıkışma aşamasında reddedilip zaman aşımına uğradı; sertifika yenilenince sorun 65 dakikada (yaklaşık 1.900 ödeme denemesini etkileyerek) çözüldü. Tekrarını önlemek için sertifika süresi dolmadan 30 gün önce uyarı veren bir izleme kuralı eklendi.
+
+==================================================================
+## demo-rate
+$ python cozum/modellab.py rate sonuclar/2_gorev_seti.jsonl ozet --scores A=4,B=3,C=5,D=3
+------------------------------------------------------------------
+Görev: ozet  |  etiketler açılıyor
+
+Etiket  Model              Etiketsiz puan  Oto puan  Maliyet
+------  -----------------  --------------  --------  -------
+A       Claude Opus 5.5               4/5      %100  $0,0056
+B       Claude Fable 5.1              3/5      %100   $0,015
+C       Claude Haiku 4.5              5/5      %100  $0,0011
+D       Claude Sonnet 5.5             3/5      %100  $0,0027
+
+Kaydedildi: sonuclar/2_gorev_seti.jsonl (+4 puan kaydı). Rapora yansıtmak için: report sonuclar/2_gorev_seti.jsonl
+
+==================================================================
+## demo-model-karti
+$ python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl --model-card sonuclar/model-karti.md
+------------------------------------------------------------------
+Sonuç dosyası: sonuclar/2_gorev_seti.jsonl  |  5 görev, 4 model
+
+Model              İlk token  Toplam  token/sn  Çıktı token  Maliyet/görev  Oto puan  Etiketsiz
+-----------------  ---------  ------  --------  -----------  -------------  --------  ---------
+Claude Haiku 4.5      507 ms  1,11 s       125           74       $0,00055       %73      5,0/5
+Claude Sonnet 5.5     662 ms  1,21 s       169           75        $0,0012      %100      3,0/5
+Claude Opus 5.5       1,30 s  1,83 s       151           82        $0,0025      %100      4,0/5
+Claude Fable 5.1      752 ms  1,81 s        60           78        $0,0061      %100      3,0/5
+
+En hızlı ilk token: Claude Haiku 4.5 (507 ms)
+En ucuz: Claude Haiku 4.5 ($0,00055/görev)
+En yüksek otomatik puan: Claude Sonnet 5.5 (%100)
+Otomatik puan farkı (en yüksek − en düşük): 27 puan (fark küçükse kararı kalite değil, hız ve maliyet verdirir)
+En yüksek etiketsiz puan: Claude Haiku 4.5 (5,0/5)
+Fiyat kaynağı: pricing.yaml (güncelleme: 2026-10-05)
+Model kartı yazıldı: sonuclar/model-karti.md

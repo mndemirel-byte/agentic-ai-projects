@@ -11,10 +11,28 @@ import re
 import shlex
 import subprocess
 from datetime import date
+from pathlib import Path
 
 from ortak import PipelineHatasi, Proje, modul_yukle
 
 AYIRICI = "=" * 66
+
+
+def _env_yukle() -> None:
+    """Depo kökündeki .env dosyasını okur; terminalde zaten tanımlı değişkenlerin üzerine yazmaz."""
+    dosya = Path(__file__).resolve().parents[2] / ".env"
+    if not dosya.exists():
+        return
+    for satir in dosya.read_text(encoding="utf-8-sig").splitlines():
+        satir = satir.strip()
+        if not satir or satir.startswith("#") or "=" not in satir:
+            continue
+        ad, _, deger = satir.partition("=")
+        ad = ad.removeprefix("export ").strip()
+        os.environ.setdefault(ad, deger.strip().strip("\"'"))
+
+
+_env_yukle()
 
 # Windows'ta alt süreç çıktısı sistemin kodlamasıyla (cp1254/cp1252) okunursa Türkçe karakterler bozulur.
 # Alt süreçler UTF-8 modunda çalıştırılır, çıktı açıkça UTF-8 olarak okunur, satır sonları LF'e sabitlenir.

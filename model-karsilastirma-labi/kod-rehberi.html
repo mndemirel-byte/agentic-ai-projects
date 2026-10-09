@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>modellab.py kod rehberi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F7;--paper:#FFFFFF;--ink:#18202C;--ink-2:#4A5568;--ink-3:#748094;
+  --line:#D9DEE6;--accent:#2648B8;--accent-bg:#E7EDFC;--why:#0E6E60;--why-bg:#E3F3F0;
+  --code-bg:#F7F8FA;--ok:#1F7A3A;--warn:#9A5B05;--bad:#B4361A;
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#11151C;--paper:#181D26;--ink:#E7EBF1;--ink-2:#AEB8C6;--ink-3:#808B9B;
+  --line:#2B3340;--accent:#93AEFF;--accent-bg:#1E2A4A;--why:#6FD3BF;--why-bg:#14302B;
+  --code-bg:#12161D;--ok:#6FD38D;--warn:#F0B95A;--bad:#FF8D6B;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
+header{max-width:720px;margin-bottom:32px}
+h1{font-size:32px;line-height:1.2;font-weight:600;letter-spacing:-0.01em;margin:0 0 12px}
+h1 code{font-family:var(--mono);font-weight:500;font-size:0.92em;color:var(--accent)}
+.lede{color:var(--ink-2);margin:0;font-size:17px}
+h2{font-size:20px;font-weight:600;margin:0 0 6px}
+.sub{color:var(--ink-2);margin:0 0 16px;font-size:15px}
+section{margin-top:48px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:3px;margin-bottom:20px}
+.seg button{border:0;background:transparent;padding:7px 16px;border-radius:6px;font-family:var(--mono);font-size:14px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--accent-bg);color:var(--accent);font-weight:500}
+.tour{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+.rail{position:sticky;top:20px;margin:0;padding:0;list-style:none;border-left:2px solid var(--line)}
+.rail li{margin:0}
+.rail button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 12px 9px 18px;margin-left:-2px;border-left:2px solid transparent;color:var(--ink-3);font-size:14px;line-height:1.4}
+.rail button .n{font-family:var(--mono);font-size:12px;margin-right:8px}
+.rail button .fn{display:block;font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:2px}
+.rail button.done{color:var(--ink-2)}
+.rail button[aria-current="step"]{border-left-color:var(--accent);color:var(--ink);font-weight:500;background:var(--paper)}
+.rail button[aria-current="step"] .fn{color:var(--accent)}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px 28px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
+.block-tag{color:var(--accent);background:var(--accent-bg);padding:3px 10px;border-radius:5px;font-weight:500}
+.panel h3{font-size:22px;font-weight:600;margin:14px 0 8px;line-height:1.3}
+.what{margin:0;max-width:68ch}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.65;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:18px 0;overflow-x:auto;white-space:pre}
+.why{margin:0;padding:12px 16px;background:var(--why-bg);border-left:3px solid var(--why);color:var(--ink);font-size:15px;max-width:68ch}
+.why strong{color:var(--why);font-weight:600}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+.btn{border:1px solid var(--line);background:var(--paper);padding:8px 16px;border-radius:8px;font-size:14px}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.hint{font-size:13px;color:var(--ink-3)}
+.blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.blocks button{text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.blocks button:hover{border-color:var(--ink-3)}
+.blocks button.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.blocks .bn{font-weight:600;display:block}
+.blocks .bl{font-family:var(--mono);font-size:12px;color:var(--ink-3);display:block;margin:2px 0 6px}
+.blocks .bd{font-size:14px;color:var(--ink-2);display:block;line-height:1.5}
+.calc{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px 26px}
+.row{display:grid;grid-template-columns:130px minmax(0,1fr) 110px;align-items:center;gap:14px;margin:10px 0;font-size:15px}
+.row label{color:var(--ink-2)}
+.row output{font-family:var(--mono);text-align:right}
+select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.res{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.res span{display:block;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.res b{display:block;font-size:24px;font-weight:600;margin-top:2px}
+footer{margin-top:48px;color:var(--ink-3);font-size:13px}
+@media (max-width:760px){
+  .tour{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;display:flex;overflow-x:auto;border-left:0;border-bottom:2px solid var(--line)}
+  .rail button{border-left:0;border-bottom:2px solid transparent;margin:0 0 -2px;padding:8px 12px;white-space:nowrap}
+  .rail button .fn{display:none}
+  .rail button[aria-current="step"]{border-bottom-color:var(--accent)}
+  .panel,.calc{padding:18px}
+  .row{grid-template-columns:1fr;gap:4px}
+  .row output{text-align:left}
+  .results{grid-template-columns:1fr}
+  h1{font-size:26px}
+}
+@media (prefers-reduced-motion:no-preference){.panel.swap{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><code>modellab.py</code> kod rehberi</h1>
+  <p class="lede">Bir komutu terminale yazdığın andan tablonun ekrana basılmasına kadar kodun hangi fonksiyonlardan, hangi sırayla geçtiğini adım adım izle. Üç akış var; run ücretli çağrıları yapar, report ve rate kaydedilmiş sonuçlarla çalışır. Her adımda kodun ne yaptığını, ilgili kod parçasını ve neden öyle yazıldığını bulacaksın.</p>
+</header>
+
+<section style="margin-top:0" aria-labelledby="h-tour">
+  <h2 id="h-tour">Kod akışı</h2>
+  <p class="sub">Akışı seç, sonra adımları sırayla takip et. Klavyede sol ve sağ ok tuşlarıyla da ilerleyebilirsin.</p>
+  <div class="seg" role="group" aria-label="Akış seçimi" id="flows"></div>
+  <div class="tour">
+    <ol class="rail" id="rail" aria-label="Akış adımları"></ol>
+    <article class="panel" id="panel" aria-live="polite">
+      <div class="meta"><span class="block-tag" id="p-block"></span><span id="p-where"></span></div>
+      <h3 id="p-title"></h3>
+      <p class="what" id="p-what"></p>
+      <pre id="p-code"></pre>
+      <p class="why" id="p-why"></p>
+      <div class="nav">
+        <button type="button" class="btn" id="prev">Önceki adım</button>
+        <span class="hint" id="p-count"></span>
+        <button type="button" class="btn primary" id="next">Sonraki adım</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="h-blocks">
+  <h2 id="h-blocks">Dosyanın blokları</h2>
+  <p class="sub">modellab.py yorum satırlarıyla bölümlere ayrılmıştır. Bir bloğa tıkla, seçili akışta o bloğun ilk kullanıldığı adıma git.</p>
+  <div class="blocks" id="blocks"></div>
+</section>
+
+<section aria-labelledby="h-calc">
+  <h2 id="h-calc">Kendin dene: görev başına token'dan aylık faturaya</h2>
+  <p class="sub">estimate_cost fonksiyonunun hesabı, dört model için yan yana ve aylık çağrı sayısıyla çarpılmış. Çıktı token'ını artır: fatura hangi modelde daha hızlı büyüyor?</p>
+  <div class="calc">
+    <div class="row"><label for="c-in">Girdi token / görev</label><input type="range" id="c-in" min="50" max="20000" step="50" value="400"><output id="c-in-o" for="c-in"></output></div>
+    <div class="row"><label for="c-out">Çıktı token / görev</label><input type="range" id="c-out" min="10" max="4000" step="10" value="150"><output id="c-out-o" for="c-out"></output></div>
+    <div class="row"><label for="c-calls">Aylık çağrı</label><input type="range" id="c-calls" min="1000" max="2000000" step="1000" value="100000"><output id="c-calls-o" for="c-calls"></output></div>
+    <pre id="r-table" style="margin-bottom:0"></pre>
+  </div>
+</section>
+
+<footer>Hesap alanındaki fiyatlar pricing.yaml dosyasından alınmıştır. Fiyatlar değişebilir; güncel değerler için Anthropic pricing sayfasını kontrol et.</footer>
+</div>
+<script>
+const AKIS = {"bloklar": [{"id": "giris", "name": "Giriş noktası", "lines": "satır 557–618", "desc": "Komut satırını okur, işi doğru komuta yollar."}, {"id": "veri", "name": "Veri yükleme", "lines": "satır 47–89", "desc": "pricing.yaml ve görev dosyasını okur."}, {"id": "api", "name": "API çağrıları", "lines": "satır 92–141", "desc": "Streaming çağrı yapar ve süreleri ölçer."}, {"id": "hesap", "name": "Hesaplamalar", "lines": "satır 144–213", "desc": "Maliyet, üretim hızı, otomatik puan ve ortalama."}, {"id": "bicim", "name": "Biçimlendirme", "lines": "satır 216–276", "desc": "Türkçe sayı yazımı, süre biçimi ve hizalı tablo."}, {"id": "kayit", "name": "Kayıt", "lines": "satır 279–319", "desc": "JSONL yazma, okuma, süzme ve etiketsiz karıştırma."}, {"id": "komut", "name": "Komutlar", "lines": "satır 322–554", "desc": "run, report, show ve rate iş akışları."}], "ortak_adimlar": [{"b": "giris", "fn": "__main__", "where": "satır 617–618", "title": "Komutu yazarsın", "what": "Terminale komutu yazdığında Python dosyayı yukarıdan aşağıya okur. Bu sırada fonksiyonları yalnızca tanımlar, hiçbirini çalıştırmaz. Dosyanın en altındaki iki satıra gelince asıl iş başlar: main() fonksiyonu çağrılır.", "code": "$ python cozum/modellab.py run gorevler/2_gorev_seti.yaml\n\nif __name__ == \"__main__\":\n    sys.exit(main())", "why": "if __name__ == \"__main__\" kalıbı, dosya doğrudan çalıştırıldığında main()'i başlatır; testler dosyayı import ettiğinde ise hiçbir şey kendiliğinden çalışmaz. sys.exit, main()'in döndürdüğü sayıyı (0 = başarılı, 2 = hata) terminale çıkış kodu olarak iletir."}, {"b": "giris", "fn": "build_parser()", "where": "satır 561–587", "title": "Komut satırını parçala", "what": "build_parser(), argparse ile programın dört alt komutunu ve seçeneklerini tarif eder. parse_args() terminaldeki yazıyı bu tarife göre parçalayıp tek bir args nesnesine koyar. Artık her seçeneğe nokta ile erişilir.", "code": "args = build_parser().parse_args(argv)\n\nargs.command     # \"run\"\nargs.tasks       # \"gorevler/2_gorev_seti.yaml\"\nargs.models      # None  (verilmedi: hepsi)\nargs.max_tokens  # 300   (varsayılan)\nargs.repeat      # 1     (varsayılan)", "why": "args bir sipariş fişi gibidir: kullanıcı ne istediyse fişe yazılır, kodun geri kalanı yalnızca fişe bakar. --max-tokens gibi tireli seçenekler Python'da alt çizgiye dönüşür: args.max_tokens."}, {"b": "veri", "fn": "load_pricing()", "where": "satır 51–59", "title": "Fiyat dosyasını yükle", "what": "load_pricing(), pricing.yaml dosyasını açıp Python sözlüğüne çevirir ve her modelde zorunlu alanların eksiksiz olup olmadığına bakar. Dört komut da bu dosyayı okur; report ve rate bile maliyet sütunlarını buradan değil, kaydedilmiş maliyetlerden gösterir ama fiyat kaynağı satırı için tarihi buradan alır.", "code": "with open(path, encoding=\"utf-8\") as f:\n    data = yaml.safe_load(f)\nfor model in data[\"models\"]:\n    missing = [field for field in REQUIRED_MODEL_FIELDS\n               if field not in model]\n    if missing:\n        raise ValueError(f\"... eksik alan: {missing}\")", "why": "Fiyatlar değişir; kodu değiştirmeden yalnızca yaml dosyasını güncellersin. Bu, veriyi mantıktan ayırma ilkesidir."}, {"b": "giris", "fn": "main()", "where": "satır 590–614", "title": "İşi doğru komuta yolla", "what": "report, show ve rate API'ye gitmez; main() bunları hemen ilgili fonksiyona yollar. Yalnızca run için önce ANTHROPIC_API_KEY kontrol edilir, yoksa program API'ye hiç gitmeden anlaşılır bir mesajla durur; varsa anthropic.Anthropic() istemcisi kurulur.", "code": "if args.command == \"report\":\n    return cmd_report(args, pricing)\nif args.command == \"show\":\n    return cmd_show(args)\nif args.command == \"rate\":\n    return cmd_rate(args)\n\nif client is None:\n    if not os.environ.get(\"ANTHROPIC_API_KEY\"):\n        print(\"Hata: ANTHROPIC_API_KEY ... tanımlı değil.\")\n        return 2\n    client = anthropic.Anthropic()\nreturn cmd_run(args, client, pricing)", "why": "\"if client is None\" kontrolü testler için var: testler kendi sahte istemcilerini main()'e verir ve kod gerçek API'ye para harcamadan denenir. Ücretli komutun tek olması, yanlışlıkla çağrı yapma riskini de tek yere indirir."}], "akislar": [{"ad": "run", "adimlar": [{"b": "komut", "fn": "cmd_run()", "where": "satır 326–375", "title": "Görevleri ve modelleri hazırla", "what": "cmd_run önce görev dosyasını yükler (load_tasks), --models seçeneğine göre model listesini süzer ve sonuç dosyasının yolunu belirler. Ardından üç iç içe döngü başlar: her görev, her model, her tekrar.", "code": "tasks = load_tasks(args.tasks)\nmodels = select_models(pricing, args.models)\nout_path = Path(args.out) if args.out else default_results_path(args.tasks)\n\nfor task in tasks[\"gorevler\"]:\n    messages = build_messages(task[\"prompt\"])\n    for model in models:\n        for repeat in range(1, args.repeat + 1):\n            ...", "why": "Görev dosyası daha yüklenirken doğrulanır: her görevde ad ve prompt var mı, kontrol türleri tanınıyor mu. Hatalı bir dosyayla dört modele ücretli çağrı yapıldıktan sonra hata almak yerine, hiç çağrı yapılmadan durulur."}, {"b": "api", "fn": "stream_call()", "where": "satır 100–129", "title": "Streaming çağrı ve süre ölçümü", "what": "try_call, stream_call'u çağırır; o da client.messages.stream ile isteği gönderir. Saat istekten hemen önce başlar. İlk metin parçası geldiğinde ilk token zamanı işaretlenir, akış bitince toplam süre alınır. get_final_message() usage ve stop_reason alanlarını verir.", "code": "kwargs.update(extra or {})          # pricing.yaml > cagri_ayarlari\nstart = time.perf_counter()\nwith client.messages.stream(**kwargs) as stream:\n    for text in stream.text_stream:\n        if first is None:\n            first = time.perf_counter()   # ilk token\n        chunks.append(text)\n    final = stream.get_final_message()\nend = time.perf_counter()\n\nttft  = first - start\ntotal = end - start", "why": "Streaming olmadan ilk token süresi ölçülemez; yanıt tek parça hâlinde en sonda gelir (Ders 1.4 §4.3). perf_counter, sistem saati değil yüksek çözünürlüklü bir kronometredir; iki değeri birbirinden çıkarmak için tasarlanmıştır. kwargs.update(extra) modelin pricing.yaml'daki cagri_ayarlari'nı isteğe ekler; bu projede ayarlar düşünmeyi en aza indirir, çünkü düşünme token'ları akışta görünmez ama faturaya ve max_tokens bütçesine girer. Hesabının bir modele erişimi yoksa try_call hatayı yakalar, satıra \"erişilemedi\" yazılır ve diğer modellerle devam edilir."}, {"b": "hesap", "fn": "check_output()", "where": "satır 175–209", "title": "Maliyeti hesapla, çıktıyı puanla", "what": "Yanıt gelince estimate_cost usage değerlerinden maliyeti hesaplar; check_output çıktıyı görevin kontrollerinden geçirip 0–100 puan ve başarısız kontrollerin listesini döndürür. stop_reason \"max_tokens\" ise yanıt kesilmiş sayılır.", "code": "cost = estimate_cost(model, result[\"input_tokens\"], result[\"output_tokens\"])\nscore, failed = check_output(result[\"text\"], task.get(\"kontroller\", {}))\ncut = result[\"stop_reason\"] == \"max_tokens\"\n\n# check_output içinde, kontrol türüne göre:\nif kind == \"icermeli\":\n    missing = [s for s in rule if s.lower() not in lowered]\nelif kind == \"max_kelime\":\n    if len(text.split()) > rule: ...\nelif kind == \"json\":\n    parsed = _parse_json(text)", "why": "Maliyet tahmin değil, faturadaki değerdir: token sayıları yanıtın usage alanından gelir (Ders 1.4 §6). Otomatik kontroller kasıtlı olarak basittir; kaliteyi tam ölçmezler ama \"yanıt kurallara uydu mu?\" sorusunu tutarlı ve ücretsiz biçimde cevaplarlar. Kalitenin insan tarafı show/rate akışındadır."}, {"b": "kayit", "fn": "save_results()", "where": "satır 287–291", "title": "Tabloyu bas, kayıtları yaz", "what": "Her görev için tablo basılır; tüm görevler bitince records listesi JSONL dosyasına yazılır. Son satırlar dosya yolunu, kayıt sayısını, varsa başarısız çağrıları ve fiyat kaynağını gösterir. cmd_run 0 döndürür.", "code": "print_table(headers, rows, right_align=set(range(1, len(headers))))\n\nsave_results(out_path, records)\nprint(f\"Kaydedildi: {out_path} ({len(records)} kayıt)\")\n\n# save_results içinde:\nwith open(path, \"a\" if append else \"w\", encoding=\"utf-8\") as f:\n    for record in records:\n        f.write(json.dumps(record, ensure_ascii=False) + \"\\n\")", "why": "Ücretli veri bir kez toplanır ve dosyada kalır. Rapor, etiketsiz görünüm ve puanlama bu dosyadan çalışır; aynı ölçümü istediğin kadar inceleyebilirsin. JSONL'de her satır bağımsız bir nesnedir, bu yüzden rate komutu sonradan satır ekleyebilir."}]}, {"ad": "report", "adimlar": [{"b": "kayit", "fn": "load_results()", "where": "satır 294–303", "title": "Kayıtları oku", "what": "cmd_report önce sonuç dosyasını satır satır okur. Çalıştırma kaydı yoksa anlamlı bir hatayla durur. API'ye gidilmez; bu akışın tamamı ücretsizdir.", "code": "$ python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl --monthly-calls 100000\n\nrecords = load_results(args.results)\n# [{\"tur\": \"calistirma\", \"gorev\": \"ozet\", \"model\": \"haiku-4-5\", ...},\n#  {\"tur\": \"puan\", \"gorev\": \"ozet\", \"model\": \"opus-5-5\", \"puan\": 4}, ...]", "why": "Ölçüm ile inceleme ayrılınca aynı veri üzerinde farklı sorular sorabilirsin: aylık maliyet ne olur, etiketsiz puan eklenince sıralama değişir mi. Her soru için yeniden çağrı yapmak hem pahalı hem de gecikme ölçümlerini değiştirirdi."}, {"b": "komut", "fn": "summarize()", "where": "satır 378–401", "title": "Model başına özet", "what": "summarize kayıtları modele göre gruplar; her model için süre, hız, çıktı uzunluğu ve maliyet ortalamalarını, toplam sürenin en küçük ve en büyük değerini, otomatik puan ortalamasını ve varsa etiketsiz puan ortalamasını hesaplar.", "code": "for key in dict.fromkeys(r[\"model\"] for r in runs):\n    mine = [r for r in runs if r[\"model\"] == key]\n    summaries.append({\n        \"ilk_token_sn\": mean([r[\"ilk_token_sn\"] for r in mine]),\n        \"toplam_sn\": mean(totals),\n        \"maliyet\": mean([r[\"maliyet\"] for r in mine]),\n        \"puan\": mean(scored) if scored else None,\n        \"etiketsiz_puan\": mean(rated) if rated else None,\n    })", "why": "Ders 1.5 §8'in ilkesi: tek bir çıktıya bakarak karar verilmez. Beş görevin ortalaması tek görevden, üç tekrarın ortalaması tek tekrardan daha güvenilirdir. Puanlanmamış görevler (puan None) ortalamaya girmez; sıfır gibi sayılsalardı ortalamayı haksız yere düşürürlerdi."}, {"b": "komut", "fn": "decision_lines()", "where": "satır 404–423", "title": "Tablo ve karar satırları", "what": "Sütunlar seçeneklere göre kurulur (aylık maliyet, etiketsiz puan), tablo basılır. Sonra decision_lines en hızlı, en ucuz ve en yüksek puanlı modeli bulur; otomatik puanların yayılımını yazar. --model-card verildiyse karar kaydı dosyaya yazılır.", "code": "fastest = min(summaries, key=lambda s: s[\"ilk_token_sn\"])\ncheapest = min(summaries, key=lambda s: s[\"maliyet\"])\nbest = max(scored, key=lambda s: s[\"puan\"])\nspread = max(s[\"puan\"] for s in scored) - min(s[\"puan\"] for s in scored)\n\nEn hızlı ilk token: Claude Haiku 4.5 (…)\nEn ucuz: Claude Haiku 4.5 (…/görev)\nEn yüksek otomatik puan: …\nOtomatik puan farkı (en yüksek − en düşük): … puan", "why": "Üç ölçüt birlikte okunmalıdır (Ders 1.7 §4): en ucuz model puanda geride kalıyorsa fark ne kadar? Yayılım küçükse kararı kalite değil hız ve maliyet verdirir; büyükse ucuz model görev için yetersizdir. Araç kararı vermez, kararın dayanacağı satırları hazırlar."}]}, {"ad": "rate", "adimlar": [{"b": "kayit", "fn": "anonymize()", "where": "satır 315–319", "title": "Aynı karışıklığı yeniden kur", "what": "cmd_rate, show komutunun yaptığı işi tekrar eder: görevin çıktılarını süzer (runs_for_task) ve aynı tohumla karıştırır. Böylece show'da A olan yanıt rate'te de A'dır.", "code": "$ python cozum/modellab.py rate sonuclar/2_gorev_seti.jsonl ozet --scores A=4,B=3,C=5,D=3\n\nruns = runs_for_task(records, args.task)\nlabeled = anonymize(runs, f\"{args.results}:{args.task}\")\n\n# anonymize içinde:\nrandom.Random(seed).shuffle(shuffled)\nreturn list(zip(LABELS, shuffled))", "why": "random.shuffle her çağrıda farklı sıra verirdi; tohumlu üreteç aynı girdiye aynı sırayı verir. Tohum dosya adı ve görev adından türetilir, bu yüzden iki komut birbirini bilmeden aynı eşlemeyi üretir. Etiketleme tekrarlanabilir ama tahmin edilmesi zordur: sırayı ezberleyerek \"kopya çekmek\" pratikte mümkün değildir."}, {"b": "komut", "fn": "parse_scores()", "where": "satır 513–525", "title": "Puanları doğrula", "what": "--scores metni ayrıştırılır; her harfin 1–5 arası bir puanı olmalıdır. Eksik, fazla ya da aralık dışı girdi hata verir ve hiçbir şey kaydedilmez. --scores verilmediyse puanlar terminalden tek tek sorulur.", "code": "for part in scores_csv.split(\",\"):\n    label, _, value = part.partition(\"=\")\n    if label not in labels or not 1 <= int(value) <= 5:\n        raise ValueError(f\"Geçersiz puan girdisi: '{part}'.\")\nmissing = [label for label in labels if label not in scores]\nif missing:\n    raise ValueError(f\"Eksik puan: {', '.join(missing)}.\")", "why": "Yarım puanlama rapordaki etiketsiz ortalamayı çarpıtırdı: üç modelin puanı var, birinin yok. Girdiyi baştan reddetmek, sonradan bozuk veriyi temizlemekten kolaydır."}, {"b": "kayit", "fn": "save_results()", "where": "satır 287–291", "title": "Etiketleri aç ve kaydet", "what": "Harf, model, senin puanın, otomatik puan ve maliyet bir tabloda yan yana basılır. Puan kayıtları (tur: \"puan\") dosyanın sonuna eklenir; bir sonraki report bunları Etiketsiz sütununda gösterir.", "code": "rows.append([label, run[\"model_adi\"], f\"{scores[label]}/5\", fmt_score(run[\"puan\"]), fmt_usd(run[\"maliyet\"])])\nratings.append({\"tur\": \"puan\", \"gorev\": args.task, \"model\": run[\"model\"], \"puan\": scores[label]})\n\nsave_results(Path(args.results), ratings, append=True)", "why": "Etiket açıldığı anda iki şeyi birden görürsün: hangi modele kaç verdiğin ve o modelin kaça mal olduğu. Puanın fiyat sırasını izlemiyorsa, bu görev için pahalı modelin ekstra bir şey katmadığı anlamına gelir (Ders 1.7 §3, \"benchmark sıralaması senin görevin için en iyi model değildir\")."}]}]};
+let flow = AKIS.akislar[0].ad, idx = 0;
+const $ = id => document.getElementById(id);
+const steps = () => AKIS.ortak_adimlar.concat(AKIS.akislar.find(a => a.ad === flow).adimlar);
+const BLOCKS = AKIS.bloklar;
+const blockName = id => BLOCKS.find(b => b.id === id).name;
+
+function render(animate) {
+  const s = steps(), st = s[idx];
+  $("p-block").textContent = blockName(st.b);
+  $("p-where").textContent = st.where;
+  $("p-title").textContent = st.title;
+  $("p-what").textContent = st.what;
+  $("p-code").textContent = st.code;
+  $("p-why").innerHTML = "";
+  const strong = document.createElement("strong");
+  strong.textContent = "Neden böyle? ";
+  $("p-why").append(strong, document.createTextNode(st.why));
+  $("p-count").textContent = (idx + 1) + " / " + s.length;
+  $("next").textContent = idx === s.length - 1 ? "Başa dön" : "Sonraki adım";
+
+  const rail = $("rail");
+  rail.innerHTML = "";
+  s.forEach((x, i) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    if (i < idx) b.className = "done";
+    if (i === idx) b.setAttribute("aria-current", "step");
+    const n = document.createElement("span"); n.className = "n"; n.textContent = String(i + 1).padStart(2, "0");
+    const fn = document.createElement("span"); fn.className = "fn"; fn.textContent = x.fn;
+    b.append(n, document.createTextNode(x.title), fn);
+    b.addEventListener("click", () => { idx = i; render(true); });
+    li.append(b); rail.append(li);
+    if (i === idx && animate && window.matchMedia("(max-width:760px)").matches) {
+      b.scrollIntoView({block: "nearest", inline: "center"});
+    }
+  });
+
+  document.querySelectorAll("#blocks button").forEach(c => c.classList.toggle("on", c.dataset.id === st.b));
+
+  if (animate) {
+    const p = $("panel");
+    p.classList.remove("swap"); void p.offsetWidth; p.classList.add("swap");
+  }
+}
+
+function move(n) { const L = steps().length; idx = (idx + n + L) % L; render(true); }
+
+function setFlow(f) {
+  flow = f; idx = 0;
+  document.querySelectorAll("#flows button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.flow === f)));
+  render(true);
+}
+
+$("prev").addEventListener("click", () => move(-1));
+$("next").addEventListener("click", () => move(1));
+AKIS.akislar.forEach((a, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.dataset.flow = a.ad; b.textContent = a.ad;
+  b.setAttribute("aria-pressed", String(i === 0));
+  b.addEventListener("click", () => setFlow(a.ad));
+  $("flows").append(b);
+});
+if (AKIS.akislar.length < 2) $("flows").hidden = true;
+document.addEventListener("keydown", e => {
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "select") return;
+  if (e.key === "ArrowRight") move(1);
+  if (e.key === "ArrowLeft") move(-1);
+});
+
+BLOCKS.forEach(b => {
+  const c = document.createElement("button");
+  c.type = "button"; c.dataset.id = b.id;
+  c.innerHTML = '<span class="bn"></span><span class="bl"></span><span class="bd"></span>';
+  c.querySelector(".bn").textContent = b.name;
+  c.querySelector(".bl").textContent = b.lines;
+  c.querySelector(".bd").textContent = b.desc;
+  c.addEventListener("click", () => {
+    const i = steps().findIndex(s => s.b === b.id);
+    if (i >= 0) { idx = i; render(true); $("panel").scrollIntoView({block: "nearest"}); }
+  });
+  $("blocks").append(c);
+});
+// Model verisi pipeline tarafından pricing.yaml dosyasından enjekte edilir.
+const PRICING = {"updated": "2026-10-05", "currency": "USD", "models": [{"key": "haiku-4-5", "name": "Claude Haiku 4.5", "id": "claude-haiku-4-5-20251001", "input_per_mtok": 1.0, "output_per_mtok": 5.0, "context_window": 200000, "max_output": 64000, "cagri_ayarlari": {"thinking": {"type": "disabled"}}}, {"key": "sonnet-5-5", "name": "Claude Sonnet 5.5", "id": "claude-sonnet-5-5", "input_per_mtok": 2.0, "output_per_mtok": 10.0, "context_window": 1000000, "max_output": 128000, "cagri_ayarlari": {"thinking": {"type": "between_tools"}}}, {"key": "opus-5-5", "name": "Claude Opus 5.5", "id": "claude-opus-5-5", "input_per_mtok": 4.0, "output_per_mtok": 20.0, "context_window": 1000000, "max_output": 128000, "cagri_ayarlari": {"thinking": {"type": "adaptive"}, "output_config": {"effort": "low"}}}, {"key": "fable-5-1", "name": "Claude Fable 5.1", "id": "claude-fable-5-1", "input_per_mtok": 10.0, "output_per_mtok": 50.0, "context_window": 1000000, "max_output": 128000, "cagri_ayarlari": {"thinking": {"type": "adaptive"}, "output_config": {"effort": "low"}}}]};
+const MODELS = PRICING.models.map(m => ({n: m.name, i: m.input_per_mtok, o: m.output_per_mtok}));
+const nf = new Intl.NumberFormat("tr-TR");
+function usd(x) {
+  if (x === 0) return "$0";
+  const d = x >= 1 ? 2 : Math.min(8, -Math.floor(Math.log10(x)) + 1);
+  return "$" + new Intl.NumberFormat("tr-TR", {minimumFractionDigits: d, maximumFractionDigits: d}).format(x);
+}
+function pad(s, w, right) { s = String(s); return right ? s.padStart(w) : s.padEnd(w); }
+function calc() {
+  const inp = +$("c-in").value, out = +$("c-out").value, calls = +$("c-calls").value;
+  $("c-in-o").textContent = nf.format(inp);
+  $("c-out-o").textContent = nf.format(out);
+  $("c-calls-o").textContent = nf.format(calls);
+  const costs = MODELS.map(m => (inp * m.i + out * m.o) / 1e6);
+  const base = Math.min(...costs);
+  const rows = MODELS.map((m, k) => [m.n, usd(costs[k]), usd(costs[k] * calls),
+    new Intl.NumberFormat("tr-TR", {maximumFractionDigits: 1}).format(costs[k] / base) + "×"]);
+  const head = ["Model", "Maliyet/görev", "Aylık", "En ucuzun katı"];
+  const w = head.map((h, k) => Math.max(h.length, ...rows.map(r => r[k].length)));
+  const line = r => r.map((c, k) => pad(c, w[k], k > 0)).join("  ");
+  $("r-table").textContent = [line(head), w.map(x => "-".repeat(x)).join("  "), ...rows.map(line),
+    "", "cost = (" + nf.format(inp) + " × girdi_fiyatı + " + nf.format(out) + " × çıktı_fiyatı) / 1.000.000"].join("\n");
+}
+["c-in", "c-out", "c-calls"].forEach(id => $(id).addEventListener("input", calc));
+calc();
+
+render(false);
+</script>
+</body>
+</html>

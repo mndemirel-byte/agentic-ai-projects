@@ -1,0 +1,14 @@
+# Tek görevlik set. Rehberin ilk adımlarında aracın çekirdeğini denemek için kullanılır.
+# Yapı: her görevde bir ad, modele gönderilecek prompt, isteğe bağlı system talimatı ve
+# çıktının otomatik olarak kontrol edileceği kurallar (kontroller) bulunur.
+
+ad: Tek prompt
+gorevler:
+  - ad: mikroservis
+    tier: 2
+    prompt: >-
+      Mikroservis mimarisinin en kritik üç dezavantajını, her biri tek cümle olacak şekilde
+      numaralı bir liste hâlinde yaz. Giriş ya da kapanış cümlesi ekleme.
+    kontroller:
+      icermeli: ["1.", "2.", "3."]
+      max_kelime: 90

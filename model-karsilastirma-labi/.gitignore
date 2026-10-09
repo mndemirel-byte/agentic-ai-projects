@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+sonuclar/*
+!sonuclar/.gitkeep
+!sonuclar/2_gorev_seti.jsonl

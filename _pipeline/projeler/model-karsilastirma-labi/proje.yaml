@@ -1,0 +1,185 @@
+# Proje hazırlama pipeline'ı: model-karsilastirma-labi
+# Bu dosya pipeline'ın projeye özgü tek ayar dosyasıdır. Ayrıntı: _pipeline/README.md
+
+slug: model-karsilastirma-labi
+baslik: Model karşılaştırma lab'ı
+yazim_modu: manuel          # manuel: öğrenci kodu kendisi yazar
+demo_kind: terminal
+
+# Tam çözüm ve ara sürümler (proje klasörüne göre)
+cozum: cozum/modellab.py
+ara_surumler:
+  - cozum/adim_1.py
+  - cozum/adim_2.py
+  - cozum/adim_3.py
+  - cozum/adim_4.py
+  - cozum/adim_5.py
+  - cozum/adim_6.py
+  - cozum/adim_7.py
+
+# Ölçüm: gerçek API ile çalıştırılan komutlar. Rehberdeki beklenen çıktılar ve demo bu
+# çıktılardan üretilir. Rehber ölçümleri ara sürümleri, demo ölçümleri tam çözümü çalıştırır.
+# Sıra önemlidir: report/show/rate komutları, kendilerinden önce çalışan run komutunun
+# yazdığı sonuç dosyasını okur. Demo ölçümleri en sona konmuştur; böylece repoda kalan
+# sonuclar/2_gorev_seti.jsonl dosyası tam çözümün gerçek çıktısıdır.
+olcum:
+  hazirlik: []
+  calistirmalar:
+    - {ad: rehber-1,  komut: "python cozum/adim_1.py run gorevler/1_tek_prompt.yaml"}
+    - {ad: rehber-2a, komut: "python cozum/adim_2.py run gorevler/1_tek_prompt.yaml --show-output"}
+    - {ad: rehber-2b, komut: "python cozum/adim_2.py run gorevler/1_tek_prompt.yaml --models haiku-4-5,fable-5-1 --max-tokens 40 --show-output"}
+    - {ad: rehber-3,  komut: "python cozum/adim_3.py run gorevler/2_gorev_seti.yaml --out sonuclar/adim_3.jsonl"}
+    - {ad: rehber-4,  komut: "python cozum/adim_4.py run gorevler/2_gorev_seti.yaml --out sonuclar/adim_4.jsonl"}
+    - {ad: rehber-5,  komut: "python cozum/adim_5.py report sonuclar/adim_4.jsonl --monthly-calls 100000"}
+    - {ad: rehber-6a, komut: "python cozum/adim_6.py show sonuclar/adim_4.jsonl ozet"}
+    - {ad: rehber-6b, komut: "python cozum/adim_6.py rate sonuclar/adim_4.jsonl ozet --scores A=4,B=3,C=5,D=3"}
+    - {ad: rehber-6c, komut: "python cozum/adim_6.py report sonuclar/adim_4.jsonl"}
+    - {ad: rehber-7a, komut: "python cozum/adim_7.py run gorevler/1_tek_prompt.yaml --repeat 3 --out sonuclar/tekrar.jsonl"}
+    - {ad: rehber-7b, komut: "python cozum/adim_7.py report sonuclar/tekrar.jsonl"}
+    - {ad: rehber-8,  komut: "python cozum/modellab.py report sonuclar/adim_4.jsonl --model-card sonuclar/model-karti.md"}
+    - {ad: demo-tek-model,   komut: "python cozum/modellab.py run gorevler/1_tek_prompt.yaml --models haiku-4-5 --show-output"}
+    - {ad: demo-dort-model,  komut: "python cozum/modellab.py run gorevler/1_tek_prompt.yaml"}
+    - {ad: demo-gorev-seti,  komut: "python cozum/modellab.py run gorevler/2_gorev_seti.yaml"}
+    - {ad: demo-rapor,       komut: "python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl --monthly-calls 100000"}
+    - {ad: demo-show,        komut: "python cozum/modellab.py show sonuclar/2_gorev_seti.jsonl ozet"}
+    - {ad: demo-rate,        komut: "python cozum/modellab.py rate sonuclar/2_gorev_seti.jsonl ozet --scores A=4,B=3,C=5,D=3"}
+    - {ad: demo-model-karti, komut: "python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl --model-card sonuclar/model-karti.md"}
+  # Rehberde komutlar öğrencinin dosyasıyla gösterilir
+  gosterim:
+    cozum/adim_1.py: calisma/modellab.py
+    cozum/adim_2.py: calisma/modellab.py
+    cozum/adim_3.py: calisma/modellab.py
+    cozum/adim_4.py: calisma/modellab.py
+    cozum/adim_5.py: calisma/modellab.py
+    cozum/adim_6.py: calisma/modellab.py
+    cozum/adim_7.py: calisma/modellab.py
+    cozum/modellab.py: calisma/modellab.py
+    sonuclar/adim_3.jsonl: sonuclar/2_gorev_seti.jsonl
+    sonuclar/adim_4.jsonl: sonuclar/2_gorev_seti.jsonl
+  # Önizleme ölçümü (API anahtarı olmadan): bu dosyadaki SahteIstemci kullanılır
+  sahte_istemci: sahte_istemci.py
+
+# Üretilecek içerik: platform → _pipeline/cikti/{slug}/, repo → proje klasörü
+icerik:
+  - {sablon: project.template.mdx, hedef: project.mdx, yer: platform}
+  - {sablon: guide.template.md, hedef: Step-by-Step-GUIDE.md, yer: repo}
+
+demo:
+  baslik: "Model karşılaştırma lab'ı"
+  parser_fonksiyonu: build_parser
+  dosya_alanlari: [tasks, results, out, model_card, pricing]
+  varsayilan_etiketleri:
+    pricing: pricing.yaml
+    out: "sonuclar/<görev dosyası adı>.jsonl"
+    monthly_calls: "yok, sütun gösterilmez"
+  sahneler:
+    - olcum: demo-tek-model
+      baslik: Tek prompt, tek model
+      aciklama: "Bir görevi Haiku 4.5'te çalıştır: yanıt, ilk token süresi, toplam süre, üretim hızı ve maliyet tek satırda."
+    - olcum: demo-dort-model
+      baslik: Aynı prompt, dört model
+      aciklama: "Aynı görev dört modelde: maliyet 15 kat değişirken ilk token süresi fiyat sırasını izlemiyor; bir model 300 token sınırında kesildi."
+    - olcum: demo-gorev-seti
+      baslik: Görev seti (5 görev × 4 model)
+      aciklama: Beş görevlik set bir kez çalıştırılır ve sonuçlar JSONL dosyasına kaydedilir. Sonraki sahneler çağrı yapmaz; bu dosyadan okur.
+    - olcum: demo-rapor
+      baslik: Rapor ve karar satırları
+      aciklama: "Model başına özet: gecikme, hız, maliyet, 100.000 çağrıda aylık tutar ve otomatik puan. En ucuz model iki görevde puan kaybetti; üç model aynı puanda, maliyetleri 2–5 kat farklı."
+    - olcum: demo-show
+      baslik: Etiketsiz görünüm
+      aciklama: "Özet görevinin dört çıktısı, model adları gizli ve karıştırılmış: hangisi Haiku, hangisi Fable?"
+    - olcum: demo-rate
+      baslik: Puanla ve etiketleri aç
+      aciklama: Puanlar girilir, etiketler açılır. Senin puanın fiyat sırasını izliyor mu?
+    - olcum: demo-model-karti
+      baslik: Model kartı
+      aciklama: Rapor etiketsiz puan sütunuyla yenilenir ve karar kaydı Markdown dosyasına yazılır; gerekçeyi sen doldurursun.
+  parametreler:
+    genel --pricing:
+      aciklama: >-
+        Fiyat ve model bilgilerinin okunacağı YAML dosyası. Verilmezse proje klasöründeki pricing.yaml kullanılır.
+        Alt komuttan önce yazılır. Farklı bir fiyat senaryosunu denemek için kullanışlıdır.
+      ornek: python cozum/modellab.py --pricing fiyatlar_2027.yaml report sonuclar/2_gorev_seti.jsonl
+    run run:
+      aciklama: >-
+        Görev dosyasındaki her görevi seçili modellerde streaming ile çalıştırır; ilk token süresini, toplam süreyi,
+        üretim hızını, maliyeti ve otomatik puanı tabloya basar, tüm kayıtları JSONL dosyasına yazar. Projede ücretli
+        çağrı yapan tek komuttur.
+      ornek: python cozum/modellab.py run gorevler/2_gorev_seti.yaml
+    run tasks:
+      aciklama: >-
+        Görev dosyası (YAML). Her görevde ad, prompt, isteğe bağlı system talimatı ve otomatik puanlama kuralları
+        (kontroller) bulunur. gorevler/ klasöründeki iki dosya örnektir; kendi görev setini aynı yapıda yazabilirsin.
+      ornek: gorevler/2_gorev_seti.yaml
+    run --models:
+      aciklama: >-
+        Çalıştırılacak modeller, pricing.yaml içindeki anahtarlarla ve virgülle ayrılarak yazılır: haiku-4-5, sonnet-5-5,
+        opus-5-5, fable-5-1. Verilmezse dört modelin tamamı çalıştırılır. Yanlış bir anahtar yazarsan geçerli anahtarların
+        listesi gösterilir.
+      ornek: --models haiku-4-5,sonnet-5-5
+    run --max-tokens:
+      aciklama: >-
+        Her çağrıda modelin üretebileceği en fazla çıktı token'ı. Yanıt bu sınıra takılırsa tabloda "kesildi" yazar ve
+        kesik yanıt otomatik kontrollerde puan kaybedebilir. Maliyet ve toplam süre doğrudan bu değere bağlıdır.
+      ornek: --max-tokens 150
+    run --repeat:
+      aciklama: >-
+        Her görev-model çiftinin kaç kez çalıştırılacağı. 1'den büyükse rapor, toplam sürenin en küçük ve en büyük
+        değerini de gösterir; böylece tek ölçümün ne kadar güvenilir olduğunu görürsün. Çağrı sayısını ve maliyeti
+        aynı oranda artırır.
+      ornek: --repeat 3
+    run --out:
+      aciklama: >-
+        Sonuçların yazılacağı JSONL dosyası. Verilmezse sonuclar/ klasöründe görev dosyasıyla aynı adlı bir dosya
+        oluşturulur ve varsa üzerine yazılır. Aynı seti farklı ayarlarla çalıştırıp sonuçları ayrı tutmak için kullan.
+      ornek: --out sonuclar/tekrar.jsonl
+    run --show-output:
+      aciklama: >-
+        Değer almayan bir açma-kapama seçeneğidir. Verilirse her modelin yanıt metni de tablonun üstüne yazılır.
+        Yanıtlar her durumda JSONL dosyasına kaydedilir; bu seçenek yalnızca ekrandaki görünümü etkiler.
+      ornek: --show-output
+    report report:
+      aciklama: >-
+        Kaydedilmiş sonuç dosyasını okuyup model başına özet tablo ve karar satırları basar. API'ye gitmez, ücret
+        yazmaz; aynı ölçümü istediğin kadar inceleyebilirsin. Etiketsiz puan varsa ayrı sütunda gösterir.
+      ornek: python cozum/modellab.py report sonuclar/2_gorev_seti.jsonl
+    report results:
+      aciklama: run komutunun yazdığı JSONL dosyası. Her satır bir çalıştırma ya da bir etiketsiz puan kaydıdır.
+      ornek: sonuclar/2_gorev_seti.jsonl
+    report --monthly-calls:
+      aciklama: >-
+        Her görevin ayda kaç kez çalıştırılacağı. Verilirse tabloya aylık toplam maliyet sütunu eklenir. Görev başına
+        kuruşun altındaki farkların ölçeklendiğinde nereye vardığını görmek için kullanılır.
+      ornek: --monthly-calls 100000
+    report --model-card:
+      aciklama: >-
+        Karar kaydının yazılacağı Markdown dosyası. Özet tablo ve ölçümün söyledikleri dosyaya yazılır; seçilen model,
+        gerekçe ve yedek model satırlarını sen doldurursun (Ders 1.7 §7, adım 7).
+      ornek: --model-card sonuclar/model-karti.md
+    show show:
+      aciklama: >-
+        Bir görevin tüm model çıktılarını, model adları gizlenmiş ve sırası karıştırılmış olarak A, B, C, D etiketleriyle
+        gösterir. Çıktıları hangi modelin yazdığını bilmeden okuyup puanlaman için hazırlanmıştır.
+      ornek: python cozum/modellab.py show sonuclar/2_gorev_seti.jsonl ozet
+    show results:
+      aciklama: run komutunun yazdığı JSONL dosyası.
+      ornek: sonuclar/2_gorev_seti.jsonl
+    show task:
+      aciklama: Çıktıları gösterilecek görevin adı; görev dosyasındaki "ad" alanıyla aynı yazılır.
+      ornek: ozet
+    rate rate:
+      aciklama: >-
+        Etiketsiz görünümdeki çıktılara verdiğin puanları kaydeder, ardından etiketleri açar: hangi harfin hangi model
+        olduğunu, otomatik puanını ve maliyetini yan yana gösterir. Puanlar sonuç dosyasına eklenir ve rapora yansır.
+      ornek: python cozum/modellab.py rate sonuclar/2_gorev_seti.jsonl ozet --scores A=4,B=3,C=5,D=3
+    rate results:
+      aciklama: run komutunun yazdığı JSONL dosyası. Puan kayıtları bu dosyanın sonuna eklenir.
+      ornek: sonuclar/2_gorev_seti.jsonl
+    rate task:
+      aciklama: Puanlanacak görevin adı; show komutunda kullandığın adla aynı olmalıdır ki etiketler aynı sırada açılsın.
+      ornek: ozet
+    rate --scores:
+      aciklama: >-
+        Her etiket için 1–5 arası puan, virgülle ayrılmış biçimde. Verilmezse puanlar terminalden tek tek sorulur.
+        Eksik ya da aralık dışı bir puan hata verir; hiçbir kayıt yazılmaz.
+      ornek: --scores A=4,B=3,C=5,D=3
