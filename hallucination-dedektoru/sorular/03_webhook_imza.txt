@@ -1,0 +1,1 @@
+Webhook isteklerinin imzasını nasıl doğrularım? İmza kaç saniye geçerli ve zaman damgası imza hesabına dahil mi?

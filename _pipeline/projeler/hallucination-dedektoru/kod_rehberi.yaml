@@ -1,0 +1,321 @@
+# Yan yana kod rehberi girdisi. Açıklamalar HTML içerebilir (<code>, <b>).
+# Çapa: parçanın başladığı satırın baştaki boşluklar atılmış hâliyle başladığı metin.
+
+dipnot: Kodu ilk kez okuyorsan en alttaki "Programın başladığı yer" bölümünden başlayıp yukarı doğru, çağrılan fonksiyonları
+  takip ederek ilerlemeyi de deneyebilirsin. Model, fiyat ve rol değerleri pricing.yaml dosyasından okunur.
+bolumler:
+- anahtar: hazirlik
+  ad: Hazırlık ve prompt'lar
+  aciklama: Dosyanın tanıtımı, kullanılacak kütüphaneler, sabit değerler ve modele gönderilen üç talimat metni.
+- anahtar: veri
+  ad: Veri ve kayıt
+  aciklama: Fiyat, kaynak, soru, iddia ve tuzak dosyalarını okuyan; yanıt, iddia ve zincir kayıtlarını yazan fonksiyonlar.
+- anahtar: api
+  ad: API çağrıları
+  aciklama: Anthropic API ile konuşan tek yer. Tek çağrı fonksiyonu ve zincirin üç aşamasının sarmalayıcıları.
+- anahtar: hesap
+  ad: Hesaplamalar
+  aciklama: API'ye dokunmayan fonksiyonlar; JSON çözme, kanıt denetimi, risk skoru, yönlendirme ve tuzak eşleştirmesi.
+- anahtar: bicim
+  ad: Biçimlendirme
+  aciklama: Türkçe sayı yazımı, metin kısaltma, hizalı tablo ve özet satırları.
+- anahtar: komut
+  ad: Komutlar
+  aciklama: 'answer, extract, verify, chain ve score komutlarının iş akışı: diğer bloklardaki fonksiyonları sırayla çağırır.'
+- anahtar: giris
+  ad: Giriş noktası
+  aciklama: 'Program buradan başlar: komut satırını okur ve işi doğru komuta yollar.'
+parcalar:
+- capa: '"""Hallucination dedektörü.'
+  bolum: hazirlik
+  baslik: 'Docstring: dosyanın kullanım kılavuzu'
+  aciklama: >-
+    Üç tırnak (<code>"""</code>) arasındaki metin bir <b>docstring</b>'dir. Python bunu çalıştırmaz; dosyanın ne işe
+    yaradığını ve nasıl kullanılacağını anlatır. Zincirin iki aşaması burada özetleniyor; beş komutun örneklerini
+    buradan kopyalayıp terminalde deneyebilirsin.
+- capa: import argparse
+  bolum: hazirlik
+  baslik: 'import: kullanılacak araçları çağır'
+  aciklama: >-
+    İlk grup Python ile gelen standart kütüphanedir: komut satırı (<code>argparse</code>), JSON yazıp okuma
+    (<code>json</code>), matematik (<code>math</code>), ortam değişkenleri (<code>os</code>), düzenli ifadeler
+    (<code>re</code>), sistem (<code>sys</code>), tarih ve dosya yolları. İkinci grup <code>pip install</code> ile
+    kurduğun dış paketlerdir: <code>anthropic</code> API için, <code>yaml</code> fiyat ve tuzak dosyaları için.
+- capa: PROJECT_DIR =
+  bolum: hazirlik
+  baslik: 'Sabitler: yollar, sınırlar, etiketler'
+  aciklama: >-
+    Büyük harfle yazılan isimler <b>sabit</b>tir. Proje klasörü dosyanın konumundan hesaplanır; böylece araç hangi
+    klasörden çalıştırılırsa çalıştırılsın <code>pricing.yaml</code> ve <code>sonuclar/</code> doğru yerde bulunur.
+    <code>MAX_TOKENS</code> üç çağrının çıktı sınırını, <code>VERDICT_LABELS</code> İngilizce karar anahtarlarının
+    Türkçe ekran etiketlerini tutar: model <code>supported</code> der, ekranda <code>DESTEKLİ</code> görünür.
+- capa: '# Risk skoru:'
+  bolum: hazirlik
+  baslik: 'Risk ağırlıkları, yönlendirme etiketleri ve eşik'
+  aciklama: >-
+    <code>RISK_WEIGHTS</code> her kararın skora katkısıdır: kaynak dışı iddia tam puan, şüpheli iddia yarım puan,
+    desteklenen iddia sıfır. Üç yönlendirme etiketi tek satırda, virgülle ayrılmış <b>çoklu atama</b> ile tanımlanır.
+    <code>DEFAULT_THRESHOLD</code> komut satırından <code>--threshold</code> ile değiştirilebilen varsayılan eşiktir.
+    <code>TRAP_EXPECTATIONS</code> tuzak dosyasında kabul edilen iki beklenti değeridir.
+- capa: '# Prompt''lar'
+  fark: -1
+  bolum: hazirlik
+  baslik: 'GENERATE_SYSTEM: üreticinin davranış çerçevesi'
+  aciklama: >-
+    Üretici modele <code>system</code> alanında giden talimat (Ders 1.4 §1). Kısa ve paragraf hâlinde yanıt
+    istenir; böylece iddia çıkarma tek paragrafla uğraşır. Dikkat: "dokümanda olmayanı uydurma" talimatı kasıtlı olarak
+    yok; modelin boşluğu nasıl doldurduğunu görmek projenin bir parçası (genişletme fikirlerinde bu talimatı ekleyip
+    ölçmek var).
+- capa: EXTRACT_PROMPT =
+  bolum: hazirlik
+  baslik: 'EXTRACT_PROMPT: zincirin 1. aşamasının talimatı'
+  aciklama: >-
+    Yanıtı atomik iddialara ayırma kuralları ve beklenen JSON şablonu. Yanıt <code>&lt;yanit&gt;</code> etiketleri
+    arasına konur ve prompt yanıtın ne olduğunu (bir asistanın dokümana dayalı cevabı) açıkça söyler; aksi hâlde
+    doğrulayıcı model, "dokümanda belirtilmiyor" gibi cümleler içeren bir yanıtı iddia listesi yerine yorumlamaya
+    kalkabilir. "Yorumlama, değerlendirme, düzeltme" kuralı da aynı nedenle var. <code>{answer}</code> yer tutucusu
+    <code>str.replace</code> ile doldurulur; f-string kullanılmaz çünkü metin JSON örneği için küme parantezi içerir.
+- capa: VERIFY_PROMPT =
+  bolum: hazirlik
+  baslik: 'VERIFY_PROMPT: zincirin 2. aşamasının talimatı'
+  aciklama: >-
+    İki kritik cümle: "Kendi bilgini kullanma" doğrulayıcının parametrik bilgisini devre dışı bırakmaya çalışır (Ders
+    1.6 §4.1); "KAYNAKTAN BİREBİR kopyalanmış" kanıt talebi ise bir sonraki adımı hazırlar: alıntı birebirse
+    <code>evidence_found</code> onu makineyle arayabilir. Satır sonlarındaki ters bölü (<code>\</code>) Python'da uzun
+    bir metni birden fazla satıra bölmenin yoludur; metne satır sonu eklemez.
+- capa: '# Veri yükleme'
+  fark: -1
+  bolum: veri
+  baslik: 'load_pricing: fiyat dosyasını oku ve kontrol et'
+  aciklama: >-
+    <code>with open(...)</code> dosyayı açar ve blok bitince otomatik kapatır. <code>yaml.safe_load</code> YAML metnini
+    bir Python sözlüğüne (<code>dict</code>) çevirir. Her modelde zorunlu alanlar ve <code>roller</code> altında iki rol
+    kontrol edilir; eksik varsa <code>raise ValueError</code> ile program anlaşılır bir mesajla durur. Fiyatların ve
+    rol atamalarının kodda değil dosyada durması, model değiştiğinde kodu değiştirmeden güncelleyebilmeni sağlar.
+- capa: def select_model
+  bolum: veri
+  baslik: 'select_model: hangi model hangi rolde?'
+  aciklama: >-
+    <code>key or pricing["roller"][role]</code> kalıbı: komut satırında <code>--generator</code> ya da
+    <code>--verifier</code> verildiyse o anahtar, verilmediyse dosyadaki rol ataması kullanılır. Bilinmeyen bir
+    anahtar geçerli anahtarları listeleyen bir hata verir; yazım hatası yapan kullanıcı ne yazması gerektiğini
+    hemen görür.
+- capa: def read_text
+  bolum: veri
+  baslik: 'read_text ve read_question: kaynak ve soru'
+  aciklama: >-
+    <code>read_text</code> bir dosyayı UTF-8 olarak okur ve boş dosyayı reddeder; boş kaynakla çağrı yapmak para
+    harcayıp anlamsız sonuç almaktır. <code>read_question</code> ise esnektir: argüman var olan bir dosyaysa soruyu
+    dosyadan okur, değilse metnin kendisini soru sayar. Böylece hem <code>sorular/01_iptal.txt</code> hem de tırnak
+    içinde yazılmış bir cümle çalışır.
+- capa: def load_claims
+  bolum: veri
+  baslik: 'load_claims: iddia dosyasını oku'
+  aciklama: >-
+    <code>extract</code> komutunun yazdığı JSON okunur ve <code>claims</code> listesinin boş olmayan metinlerden
+    oluştuğu doğrulanır. <code>isinstance(data, dict)</code> kontrolü, dosya bir liste ya da düz metinse hata
+    vermeden önce çökmeyi önler.
+- capa: def load_traps
+  bolum: veri
+  baslik: 'load_traps: tuzak setini oku ve doğrula'
+  aciklama: >-
+    Tuzak dosyası YAML'dır. Her tuzakta dört alanın bulunduğu ve <code>beklenen</code> değerinin
+    <code>TRAP_EXPECTATIONS</code> içinde olduğu kontrol edilir. Yazım hatalı bir beklenti (geçerli değer
+    <code>yakalanmali</code> iken <code>yakalanmalı</code> yazmak gibi) sessizce yok sayılmak yerine daha dosya
+    yüklenirken yakalanır.
+- capa: '# API çağrıları'
+  fark: -1
+  bolum: api
+  baslik: 'call_model: API ile konuşan tek fonksiyon'
+  aciklama: >-
+    <code>kwargs</code> sözlüğü isteğin parametrelerini toplar; <code>system</code> yalnızca varsa eklenir;
+    <code>kwargs.update(model.get("cagri_ayarlari") or {})</code> modele özgü ek ayarları (pricing.yaml) isteğe katar.
+    Kod ayarların içeriğini bilmez; bir model yeni bir parametre isterse yalnızca YAML değişir.
+    <code>client.messages.create(**kwargs)</code> sözlüğü adlı parametreler olarak açar ve yanıtı bütün olarak alır;
+    yanıt bütün işleneceği için streaming gerekmez (Ders 1.4 §4.4). <code>content</code> bir blok dizisidir; yalnızca
+    <code>text</code> tipindeki bloklar birleştirilir.
+- capa: def generate_answer
+  bolum: api
+  baslik: 'generate_answer: kaynağa dayalı yanıt'
+  aciklama: >-
+    Doküman ve soru tek bir kullanıcı mesajında birleştirilir; davranış çerçevesi <code>GENERATE_SYSTEM</code> ile
+    ayrı gider. Bu, Ders 1.6 §5.2'deki "retrieve" adımının en basit hâlidir: ilgili context'i bulmak yerine
+    dokümanın tamamı verilir. Aşama 3'te bunun yerini RAG alır.
+- capa: def extract_claims
+  bolum: api
+  baslik: 'extract_claims: 1. aşama'
+  aciklama: >-
+    Prompt doldurulur, çağrı yapılır, dönen metin <code>_parse_json</code> ile çözülür. Üç durumda
+    <code>ValueError</code> fırlatılır: JSON çözülemedi, <code>claims</code> listesi yok ya da boş, listede metin
+    olmayan öğe var. Hata mesajı modelin yanıtının ilk 120 karakterini taşır ki ne döndüğünü görebilesin. Fonksiyon
+    iki değer döndürür: iddia listesi ve maliyet hesabı için ham çağrı sonucu.
+- capa: def verify_claims
+  bolum: api
+  baslik: 'verify_claims: 2. aşamanın LLM yarısı'
+  aciklama: >-
+    İddialar numaralanıp tek çağrıda gönderilir (iddia başına çağrıdan N kat ucuz). Dönen <code>results</code>
+    listesinin uzunluğu iddia sayısına eşit değilse, ya da bir karar üç geçerli değerden biri değilse program durur:
+    doğrulayıcı da bir LLM'dir ve çıktısı da doğrulanır. <code>zip(claims, rows)</code> iddialarla sonuçları sırayla
+    eşler; her satır Türkçe anahtarlı bir sözlüğe (<code>iddia</code>, <code>karar</code>, <code>kanit</code>,
+    <code>not</code>) çevrilir.
+- capa: '# Hesaplamalar'
+  fark: -1
+  bolum: hesap
+  baslik: 'estimate_cost: tek çağrının maliyeti'
+  aciklama: >-
+    Girdi ve çıktı token'ları kendi fiyatlarıyla çarpılıp toplanır, sonra 1.000.000'a bölünür; fiyatlar milyon token
+    başına verilir (Ders 1.4 §6.2). Token sayıları yanıtın <code>usage</code> alanından gelen kesin değerlerdir.
+- capa: def _parse_json
+  bolum: hesap
+  baslik: '_parse_json: model çıktısındaki JSON''u çöz'
+  aciklama: >-
+    Modeller JSON'u ara sıra <code>```json ... ```</code> kod bloğuna sarar. Düzenli ifade (<code>re.sub</code>) baştaki
+    ve sondaki çitleri temizler, <code>json.loads</code> metni Python nesnesine çevirir. Çözülemezse
+    <code>None</code> döner; karar çağıran fonksiyonundur. Baştaki alt çizgi, fonksiyonun dosya içi bir yardımcı
+    olduğunu söyleyen bir Python geleneğidir.
+- capa: def tr_lower
+  bolum: hesap
+  baslik: 'tr_lower ve normalize_text: karşılaştırma için sadeleştir'
+  aciklama: >-
+    Python'un <code>lower()</code> fonksiyonu Türkçe'yi bilmez: <code>"İ".lower()</code> noktalı i vermez,
+    <code>"I".lower()</code> ise <code>i</code> verir, oysa Türkçe'de <code>ı</code> olmalı. <code>tr_lower</code> bu
+    iki harfi önce elle çevirir. <code>normalize_text</code> ardından harf ve rakam dışındaki her şeyi siler; boşluk,
+    noktalama ve ters tırnak farkları eşleşmeyi bozmaz. Düzenli ifadedeki <code>[^0-9a-zçğıöşü]+</code> "bunların
+    dışındaki bir ya da daha fazla karakter" demektir.
+- capa: def evidence_found
+  bolum: hesap
+  baslik: 'evidence_found ve apply_evidence_check: 2. aşamanın deterministik yarısı'
+  aciklama: >-
+    Kanıt alıntısı ve kaynak aynı biçimde sadeleştirilir, sonra alıntının kaynağın içinde geçip geçmediğine bakılır
+    (<code>in</code> işleci alt dize arar). Boş alıntı bulunmamış sayılır. <code>apply_evidence_check</code> her satıra
+    <code>kanit_bulundu</code> alanını ekler ve kanıtı bulunmayan <code>supported</code> kararı <code>suspect</code>
+    yapar. Ders 1.6 §3.4: kaynak gösterir gibi görünmek ile kaynağa dayanmak aynı şey değildir; bu kontrol modelin
+    dışında, metnin kendisine bakar.
+- capa: def risk_score
+  bolum: hesap
+  baslik: 'risk_score ve route: skor ve yönlendirme'
+  aciklama: >-
+    Skor, kararların ağırlıklarının ortalamasıdır: 0 ise tüm iddialar kaynaklı, 1 ise hiçbiri. <code>route</code>
+    kuralları sırayla uygular: önce çelişki (eşikten bağımsız <code>RET</code>), sonra sıfır skor
+    (<code>KABUL</code>), sonra eşik karşılaştırması. Sıra önemlidir; çelişki kontrolü sona konsaydı düşük skorlu
+    ama çelişen bir yanıt <code>İNCELE</code> ile geçebilirdi (Ders 1.6 §5.2 adım 5–6).
+- capa: def match_claims
+  bolum: hesap
+  baslik: 'match_claims ve judge_trap: tuzak eşleştirme ve değerlendirme'
+  aciklama: >-
+    Tuzak dosyasındaki her <code>anahtar</code> parçası iddiada geçmeli; <code>|</code> ile alternatif yazılabilir.
+    <code>all(any(...))</code> kalıbı tam olarak bunu söyler: her parça için alternatiflerden en az biri bulunsun.
+    <code>judge_trap</code> eşleşen iddia yoksa "iddia çıkarılmadı" der (çıkarıcının hatası, dedektörün değil);
+    eşleşenlerden biri bile <code>supported</code> değilse tuzak işaretlenmiş sayılır. Beklenti
+    <code>yakalanmali</code> ise bu "yakalandı", <code>gecmeli</code> (kontrol cümlesi) ise "yanlış alarm" demektir.
+- capa: '# Biçimlendirme'
+  fark: -1
+  bolum: bicim
+  baslik: 'Türkçe sayı yazımı: _tr_number, fmt_int, fmt_usd, fmt_score'
+  aciklama: >-
+    Python sayıları İngilizce yazar: binlik ayırıcı virgül, ondalık nokta. <code>_tr_number</code> ikisini yer
+    değiştirir; aradaki <code>§</code> geçici bir işarettir. <code>fmt_usd</code> bir doların altındaki tutarlarda
+    ilk anlamlı basamaktan sonra bir basamak daha gösterir: <code>$0,0021</code>, <code>$0,000067</code>;
+    <code>math.log10</code> ilk anlamlı basamağın yerini bulur. <code>fmt_score</code> risk skorunu iki ondalıkla yazar.
+- capa: def fmt_usage
+  bolum: bicim
+  baslik: 'fmt_usage: çağrının özet satırı'
+  aciklama: >-
+    Model adı, girdi ve çıktı token sayıları, maliyet ve gerekirse kesilme uyarısı tek satırda. Uyarı
+    <code>stop_reason == "max_tokens"</code> ise eklenir (Ders 1.4 §5.3): kesik bir yanıtı iddialara ayırmak yarım
+    veriyle çalışmaktır.
+- capa: def shorten
+  bolum: bicim
+  baslik: 'shorten ve print_table: hizalı tablo'
+  aciklama: >-
+    <code>shorten</code> uzun iddiaları tabloya sığdırmak için keser ve sonuna üç nokta koyar; kesilen metin
+    kayıtta tam hâliyle durur. <code>print_table</code> her sütunun genişliğini en uzun hücreye göre hesaplar
+    (<code>zip(headers, *rows)</code> sütunları gezer), sayısal sütunları sağa yaslar.
+- capa: def print_verdicts
+  bolum: bicim
+  baslik: 'print_verdicts ve print_summary: karar tablosu ve özet'
+  aciklama: >-
+    Her iddia bir satır: numara, kısaltılmış iddia, Türkçe karar etiketi, kanıt durumu ve not. Kanıt sütunu üç
+    değer alır: <code>kaynakta</code>, <code>kaynakta YOK</code> (alıntı verildi ama bulunamadı) ya da
+    <code>yok</code> (alıntı verilmedi). <code>print_summary</code> karar dağılımını sayar, skoru, eşiği ve
+    yönlendirmeyi basar.
+- capa: '# Kayıt'
+  fark: -1
+  bolum: veri
+  baslik: 'Dosya yolları ve yazma: answer_path, claims_path, write_text, save_record'
+  aciklama: >-
+    Varsayılan yollar soru ya da yanıt dosyasının adından türetilir: <code>sorular/01_iptal.txt</code> →
+    <code>sonuclar/01_iptal.md</code> → <code>sonuclar/01_iptal.iddialar.json</code>. <code>write_text</code>
+    klasörü gerekirse oluşturur. <code>save_record</code> zincir kaydını JSONL dosyasının sonuna ekler
+    (<code>"a"</code> = append): her satır bağımsız bir JSON nesnesidir, dosya büyüse de eski satırlar okunabilir
+    kalır. <code>ensure_ascii=False</code> Türkçe karakterleri kaçış dizilerine çevirmeden yazar.
+- capa: def load_records
+  bolum: veri
+  baslik: 'load_records ve shown: kayıt okuma ve yol gösterimi'
+  aciklama: >-
+    <code>load_records</code> JSONL dosyasını satır satır okur; boş dosya anlamlı bir hatayla reddedilir.
+    <code>shown</code> bir yolu proje klasörüne göre ve ileri bölü ile yazar; Windows'ta ters bölü görünmesin diye
+    <code>as_posix()</code> kullanılır.
+- capa: '# Komutlar'
+  fark: -1
+  bolum: komut
+  baslik: 'cmd_answer: yanıt üret'
+  aciklama: >-
+    Üretici seçilir, kaynak ve soru okunur, yanıt alınır ve dosyaya yazılır. Ekranda soru, yanıt, çağrı özeti ve
+    dosya yolu görünür. Fonksiyon <code>0</code> döndürür; <code>main</code> bu değeri programın çıkış kodu yapar.
+- capa: def cmd_extract
+  bolum: komut
+  baslik: 'cmd_extract: 1. aşamayı tek başına çalıştır'
+  aciklama: >-
+    Doğrulayıcı seçilir, yanıt dosyası okunur, iddialar çıkarılır ve <code>{"claims": [...]}</code> biçiminde dosyaya
+    yazılır. <code>indent=2</code> JSON'u insan okuyabilsin diye girintiler. Ayrı bir komut olması, iddia listesini
+    doğrulamadan önce elle inceleyip düzenleyebilmen içindir.
+- capa: def cmd_verify
+  bolum: komut
+  baslik: 'cmd_verify: 2. aşamayı tek başına çalıştır'
+  aciklama: >-
+    Sıra önemlidir: önce <code>verify_claims</code> (LLM kararı), sonra <code>apply_evidence_check</code>
+    (deterministik denetim), sonra skor ve yönlendirme, en son tablo ve özet. Denetim tabloya kadar yapılmazsa
+    <code>print_verdicts</code> <code>kanit_bulundu</code> alanını bulamaz.
+- capa: def cmd_chain
+  bolum: komut
+  baslik: 'cmd_chain: üç adım uç uca'
+  aciklama: >-
+    <code>--answer</code> verildiyse yanıt dosyadan okunur ve üretim atlanır; verilmediyse üretici çağrılır ve yanıt
+    dosyaya yazılır. Her çağrıdan sonra <code>calls</code> ve <code>cost</code> güncellenir; iki değişkeni tek satırda
+    artıran <code>calls, cost = calls + 1, cost + ...</code> kalıbı çoklu atamadır. Sonda tüm kararlar, skor, eşik,
+    yönlendirme, çağrı sayısı ve maliyet tek bir sözlük olarak kaydedilir; <code>uretici</code> alanı yanıt dosyadan
+    geldiyse <code>None</code> olur.
+- capa: def cmd_score
+  bolum: komut
+  baslik: 'cmd_score: dedektör karnesi'
+  aciklama: >-
+    Tuzak seti ve zincir kayıtları okunur; tuzak setindeki yanıt dosyasıyla çalıştırılmış <b>son</b> kayıt seçilir
+    (liste dilimi <code>[-1]</code> son öğedir). Her tuzak için eşleşen iddialar bulunur, sonuç adlandırılır ve
+    tabloya yazılır. Altta yerleştirilen tuzaklar için yakalama oranı, kontrol cümleleri için yanlış alarm sayısı
+    ayrı ayrı sayılır; ikisini birlikte okumadan dedektör hakkında karar verilmez.
+- capa: '# Giriş noktası'
+  fark: -1
+  bolum: giris
+  baslik: 'build_parser: komut satırının tarifi'
+  aciklama: >-
+    <code>argparse</code> programın genel seçeneklerini (<code>--pricing</code>, <code>--generator</code>,
+    <code>--verifier</code>) ve beş alt komutunu tarif eder. <code>add_subparsers</code> alt komutları oluşturur;
+    her birinin kendi konumsal argümanları ve seçenekleri vardır. <code>help</code> metinleri
+    <code>python cozum/dedektor.py chain --help</code> çıktısında ve demo kartının Parametreler sekmesinde görünür.
+- capa: def main
+  bolum: giris
+  baslik: 'main: işi doğru komuta yolla, hataları tek satıra indir'
+  aciklama: >-
+    <code>score</code> API'ye gitmez; anahtar kontrolünden önce yönlendirilir. Diğer dört komut için önce
+    <code>ANTHROPIC_API_KEY</code> kontrol edilir, yoksa program API'ye hiç gitmeden durur; varsa istemci kurulur.
+    <code>client=None</code> parametresi testler içindir: testler sahte istemciyi buradan verir. <code>try / except</code>
+    blokları beklenen hataları (dosya yok, bozuk JSON, geçersiz anahtar, HTTP hatası, bağlantı yok) tek satırlık
+    mesaja çevirir ve <code>2</code> döndürür; Python hata dökümü kullanıcıya gösterilmez.
+- capa: if __name__
+  bolum: giris
+  baslik: 'Programın başladığı yer'
+  aciklama: >-
+    Dosya doğrudan çalıştırıldığında <code>main()</code> çağrılır ve döndürdüğü sayı <code>sys.exit</code> ile
+    terminale çıkış kodu olarak iletilir (0 = başarılı, 2 = hata). Testler dosyayı import ettiğinde bu blok
+    çalışmaz.

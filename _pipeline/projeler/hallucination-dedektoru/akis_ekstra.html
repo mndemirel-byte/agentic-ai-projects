@@ -1,0 +1,49 @@
+<!-- Akış rehberine eklenen projeye özgü bölüm. <script> içeriği sayfanın ana script'inden sonra çalışır; $ yardımcısı kullanılabilir. -->
+<section aria-labelledby="h-calc">
+  <h2 id="h-calc">Kendin dene: kararlardan risk skoruna ve yönlendirmeye</h2>
+  <p class="sub">risk_score ve route fonksiyonlarının hesabı. Karar sayılarını ve eşiği değiştir: hangi noktada İNCELE RET'e dönüyor? Tek bir ÇELİŞİYOR ne yapıyor?</p>
+  <div class="calc">
+    <div class="row"><label for="c-sup">DESTEKLİ</label><input type="range" id="c-sup" min="0" max="10" step="1" value="4"><output id="c-sup-o" for="c-sup"></output></div>
+    <div class="row"><label for="c-sus">ŞÜPHELİ</label><input type="range" id="c-sus" min="0" max="10" step="1" value="1"><output id="c-sus-o" for="c-sus"></output></div>
+    <div class="row"><label for="c-uns">DESTEKSİZ</label><input type="range" id="c-uns" min="0" max="10" step="1" value="2"><output id="c-uns-o" for="c-uns"></output></div>
+    <div class="row"><label for="c-con">ÇELİŞİYOR</label><input type="range" id="c-con" min="0" max="10" step="1" value="0"><output id="c-con-o" for="c-con"></output></div>
+    <div class="row"><label for="c-thr">Eşik (--threshold)</label><input type="range" id="c-thr" min="0" max="1" step="0.05" value="0.25"><output id="c-thr-o" for="c-thr"></output></div>
+    <pre id="r-table" style="margin-bottom:0"></pre>
+  </div>
+</section>
+<script>
+// Ağırlıklar ve kurallar dedektor.py içindeki RISK_WEIGHTS ve route() ile aynıdır.
+const WEIGHTS = {sup: 0, sus: 0.5, uns: 1, con: 1};
+const LABELS = {sup: "DESTEKLİ", sus: "ŞÜPHELİ", uns: "DESTEKSİZ", con: "ÇELİŞİYOR"};
+const nf = new Intl.NumberFormat("tr-TR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+function calc() {
+  const counts = {};
+  let total = 0, weighted = 0;
+  for (const k of Object.keys(WEIGHTS)) {
+    counts[k] = +$("c-" + k).value;
+    $("c-" + k + "-o").textContent = counts[k];
+    total += counts[k];
+    weighted += counts[k] * WEIGHTS[k];
+  }
+  const thr = +$("c-thr").value;
+  $("c-thr-o").textContent = nf.format(thr);
+  const lines = [];
+  if (total === 0) {
+    lines.push("İddia yok: zincir en az bir iddia bekler (extract boş liste döndürürse program durur).");
+  } else {
+    const score = weighted / total;
+    let route, why;
+    if (counts.con > 0) { route = "RET"; why = "ÇELİŞİYOR kararı eşikten bağımsız RET verir"; }
+    else if (score === 0) { route = "KABUL"; why = "skor 0: tüm iddialar kaynaklı"; }
+    else if (score <= thr) { route = "İNCELE"; why = "skor eşiğin altında ya da eşit"; }
+    else { route = "RET"; why = "skor eşiğin üstünde"; }
+    const parts = Object.keys(WEIGHTS).filter(k => counts[k]).map(k => counts[k] + " × " + WEIGHTS[k].toString().replace(".", ","));
+    lines.push(total + " iddia: " + Object.keys(WEIGHTS).filter(k => counts[k]).map(k => counts[k] + " " + LABELS[k].toLocaleLowerCase("tr-TR")).join(", "));
+    lines.push("skor = (" + parts.join(" + ") + ") / " + total + " = " + nf.format(score));
+    lines.push("Risk skoru: " + nf.format(score) + " (eşik " + nf.format(thr) + ")  →  " + route + "   (" + why + ")");
+  }
+  $("r-table").textContent = lines.join("\n");
+}
+["c-sup", "c-sus", "c-uns", "c-con", "c-thr"].forEach(id => $(id).addEventListener("input", calc));
+calc();
+</script>

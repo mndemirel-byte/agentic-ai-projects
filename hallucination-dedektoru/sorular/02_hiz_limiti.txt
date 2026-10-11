@@ -1,0 +1,1 @@
+Standart planda dakikada kaç istek yapabilirim, limiti aşınca ne olur ve toplu gönderi oluşturma uç noktası bu limiti nasıl etkiler?

@@ -1,0 +1,37 @@
+# Partner B'nin tuzak seti (örnek). Rehberin 7. adımında kendi setini bu yapıda yazarsın.
+#
+# Yapı:
+#   yanit     — tuzakların yerleştirildiği yanıt dosyası (answer çıktısının düzenlenmiş kopyası)
+#   kaynak    — yanıtın dayandığı kaynak doküman
+#   tuzaklar  — her tuzakta:
+#     id        kısa etiket
+#     tur       fabrication | confabulation | conflation | kontrol  (Ders 1.6 §3)
+#     anahtar   tuzağı taşıyan iddiayı bulmak için iddia metninde aranacak parçalar;
+#               listedeki her parça geçmeli, "|" ile alternatif yazılabilir
+#     beklenen  yakalanmali (yerleştirilen hata) | gecmeli (kontrol cümlesi: kaynaktaki doğru bilginin
+#               farklı ifadesi; dedektörün yanlış alarm verip vermediğini ölçer)
+#     cumle     yanıta eklenen ya da yanıtta zaten bulunan cümle (bilgi amaçlı)
+
+yanit: tuzaklar/01_iptal_tuzakli.md
+kaynak: kaynaklar/02_gonderi_uc_noktalari.md
+tuzaklar:
+  - id: T1
+    tur: fabrication
+    anahtar: ["toplu-iptal|toplu iptal"]
+    beklenen: yakalanmali
+    cumle: "Birden fazla gönderiyi tek seferde iptal etmek için `POST /v3/gonderiler/toplu-iptal` uç noktasını kullanabilirsin."
+  - id: T2
+    tur: confabulation
+    anahtar: ["2 saat|iki saat"]
+    beklenen: yakalanmali
+    cumle: "İptal isteği, gönderi oluşturulduktan sonraki 2 saat içinde yapılmalıdır."
+  - id: T3
+    tur: conflation
+    anahtar: ["iade"]
+    beklenen: yakalanmali
+    cumle: "İptal edilen gönderinin `durum` alanı `iade` değerini alır."
+  - id: K1
+    tur: kontrol
+    anahtar: ["409"]
+    beklenen: gecmeli
+    cumle: "Toplanmış bir gönderi için iptal çağrısı 409 koduyla reddedilir."

@@ -1,0 +1,51 @@
+# Claude API model fiyatları ve çağrı ayarları
+# Kaynak: https://platform.claude.com/docs/en/about-claude/pricing
+#         https://platform.claude.com/docs/en/about-claude/models/overview
+#         https://platform.claude.com/docs/en/build-with-claude/thinking
+# Fiyatlar 1 milyon token (MTok) başına, USD, standart API (batch ve cache hariç).
+# API fiyatları değişebilir: üretimde kullanmadan önce kaynak sayfayı kontrol et
+# ve "updated" alanını güncelle.
+#
+# Bu projede iki rol var: "uretici" soruyu cevaplar, "dogrulayici" iddiaları çıkarır ve
+# kaynağa karşı doğrular. Hangi modelin hangi rolde olduğu "roller" alanında yazar;
+# komut satırından --generator ve --verifier ile değiştirilebilir.
+#
+# cagri_ayarlari: modele özgü ek istek parametreleri; araç bunları olduğu gibi isteğe ekler.
+# Düşünme (thinking) her modelde en düşük ayara çekilmiştir: düşünme token'ları metinde
+# görünmez ama çıktı olarak faturalanır. Modeller aynı parametreyi kabul etmez
+# (Ekim 2026: Sonnet 5.5 "between_tools", Haiku 5.5 "disabled"); API değişirse yalnızca
+# bu alan güncellenir, kod değişmez. 5.x modelleri varsayılan dışı temperature/top_p kabul
+# etmez; bu yüzden projede sampling parametresi yoktur.
+#
+# Haiku 5.5 fiyatı kademelidir: 100K token'ın üstündeki prompt'larda girdi 0,50 ve çıktı
+# 2,50 USD/MTok'tur. Bu projede kaynak dokümanlar birkaç bin token olduğu için alt kademe
+# yazılmıştır.
+
+updated: "2026-10-11"
+currency: "USD"
+
+roller:
+  uretici: "sonnet-5-5"
+  dogrulayici: "haiku-5-5"
+
+models:
+  - key: "sonnet-5-5"
+    name: "Claude Sonnet 5.5"
+    id: "claude-sonnet-5-5"
+    input_per_mtok: 2.00
+    output_per_mtok: 10.00
+    context_window: 1000000
+    max_output: 128000
+    cagri_ayarlari:
+      thinking: {type: between_tools}
+
+  - key: "haiku-5-5"
+    name: "Claude Haiku 5.5"
+    id: "claude-haiku-5-5"
+    input_per_mtok: 0.10
+    output_per_mtok: 0.50
+    context_window: 1000000
+    max_output: 128000
+    cagri_ayarlari:
+      thinking: {type: disabled}
+      output_config: {effort: medium}

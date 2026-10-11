@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dedektor.py satır satır</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F5F7;--ink:#17202B;--ink-2:#465263;--ink-3:#6E7A8A;--line:rgba(23,32,43,.10);
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --k:#7A2A9E;--s:#9A4A0A;--c:#5B6878;--m:#0A6A87;--nf:#1D47C9;--nb:#0D6E64;
+  --r0-a:#EEF1F5;--r0-b:#E0E5EC;--r0-x:#5D6B80;
+  --r1-a:#E6F4F0;--r1-b:#D2EBE3;--r1-x:#13806C;
+  --r2-a:#E9EEFB;--r2-b:#D7E1F8;--r2-x:#2E55C9;
+  --r3-a:#FCF3E3;--r3-b:#F3E2C2;--r3-x:#A86A0C;
+  --r4-a:#F2EDFB;--r4-b:#E3D9F5;--r4-x:#6D45B8;
+  --r5-a:#EBF5E5;--r5-b:#D8EBCD;--r5-x:#3E7F23;
+  --r6-a:#FCECEF;--r6-b:#F3D9E0;--r6-x:#B23A5A;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0F1318;--ink:#E6EAF0;--ink-2:#B1BBC8;--ink-3:#8692A2;--line:rgba(255,255,255,.08);
+  --k:#D7A8F2;--s:#F0B98A;--c:#97A4B5;--m:#86D5EC;--nf:#A3BCFF;--nb:#79D9C9;
+  --r0-a:#191E26;--r0-b:#252C37;--r0-x:#9AA8BC;
+  --r1-a:#10251F;--r1-b:#1A3A32;--r1-x:#5FD0B8;
+  --r2-a:#131C31;--r2-b:#1F2D4F;--r2-x:#8FAEFF;
+  --r3-a:#261E10;--r3-b:#3A2E18;--r3-x:#F0B95A;
+  --r4-a:#1D182E;--r4-b:#2E2547;--r4-x:#B9A0F2;
+  --r5-a:#15230F;--r5-b:#22381A;--r5-x:#8FD46E;
+  --r6-a:#28131A;--r6-b:#3E1F29;--r6-x:#F28CA6;
+}}
+.t-0{--a:var(--r0-a);--b:var(--r0-b);--x:var(--r0-x)}
+.t-1{--a:var(--r1-a);--b:var(--r1-b);--x:var(--r1-x)}
+.t-2{--a:var(--r2-a);--b:var(--r2-b);--x:var(--r2-x)}
+.t-3{--a:var(--r3-a);--b:var(--r3-b);--x:var(--r3-x)}
+.t-4{--a:var(--r4-a);--b:var(--r4-b);--x:var(--r4-x)}
+.t-5{--a:var(--r5-a);--b:var(--r5-b);--x:var(--r5-x)}
+.t-6{--a:var(--r6-a);--b:var(--r6-b);--x:var(--r6-x)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:52px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1320px;margin:0 auto;padding:40px 24px 64px}
+header{max-width:760px;margin-bottom:28px}
+h1{font-size:32px;line-height:1.2;font-weight:600;margin:0 0 12px;letter-spacing:-.01em}
+h1 code{font-family:var(--mono);font-weight:500;font-size:.92em}
+.lede{margin:0;color:var(--ink-2);font-size:17px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
+.chip{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);background:var(--a);border:1px solid var(--line);padding:6px 12px;border-radius:999px;font-size:14px}
+.chip::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--x)}
+.chip:hover{border-color:var(--x)}
+.chip:focus-visible{outline:2px solid var(--x);outline-offset:2px}
+.cols{display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);font-size:13px;color:var(--ink-3);padding:0 0 8px;position:sticky;top:0;background:var(--bg);z-index:2}
+.cols div{padding:10px 18px 4px}
+.sheet{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sec-head{background:var(--b);border-top:3px solid var(--x);padding:18px 22px 14px}
+.sec-head h2{margin:0;font-size:19px;font-weight:600;color:var(--x)}
+.sec-head p{margin:2px 0 0;color:var(--ink-2);font-size:15px;max-width:80ch}
+.seg{display:grid;grid-template-columns:minmax(0,58fr) minmax(0,42fr);border-top:1px solid var(--line)}
+.seg.a{background:var(--a)}
+.seg.b{background:var(--b)}
+.code{min-width:0;overflow-x:auto;border-right:1px solid var(--line)}
+pre{margin:0;padding:14px 18px 14px 0;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--ink)}
+code{font-family:var(--mono)}
+.ln{display:inline-block;width:3.6em;padding-right:1.2em;text-align:right;color:var(--ink-3);opacity:.7;user-select:none}
+.note{padding:14px 22px 16px;border-left:4px solid var(--x)}
+.rng{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.note h3{margin:2px 0 6px;font-size:16px;font-weight:600;line-height:1.35}
+.note p{margin:0;color:var(--ink);font-size:15px;line-height:1.65;max-width:62ch}
+.note code{font-size:.88em;background:rgba(127,127,127,.14);padding:1px 5px;border-radius:4px}
+.note b{font-weight:600}
+.k{color:var(--k)}.s{color:var(--s)}.sd{color:var(--c);font-style:italic}.c{color:var(--c);font-style:italic}.m{color:var(--m)}.nf{color:var(--nf);font-weight:500}.nb{color:var(--nb)}
+footer{margin-top:28px;color:var(--ink-3);font-size:13px;max-width:80ch}
+@media (max-width:860px){
+  .cols{display:none}
+  .seg{grid-template-columns:minmax(0,1fr)}
+  .code{border-right:0}
+  .note{border-left:0;border-top:3px solid var(--x)}
+  h1{font-size:26px}
+  .wrap{padding:28px 14px 48px}
+}
+@media print{.cols{position:static}.legend{display:none}.seg{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><code>dedektor.py</code> satır satır</h1>
+  <p class="lede">Solda referans çözümün tamamı, sağda her kod parçasının karşısında ne yaptığı ve neden öyle yazıldığı var. Aynı renk aynı bloğa aittir; blok içindeki komşu parçalar iki tonla ayrılır. Dosya 635 satırdan oluşur ve yukarıdan aşağıya okunabilir.</p>
+  <nav class="legend" aria-label="Kod blokları"><a class="chip t-0" href="#b-hazirlik">Hazırlık ve prompt&#x27;lar</a><a class="chip t-1" href="#b-veri">Veri ve kayıt</a><a class="chip t-2" href="#b-api">API çağrıları</a><a class="chip t-3" href="#b-hesap">Hesaplamalar</a><a class="chip t-4" href="#b-bicim">Biçimlendirme</a><a class="chip t-5" href="#b-komut">Komutlar</a><a class="chip t-6" href="#b-giris">Giriş noktası</a></nav>
+</header>
+<div class="cols" aria-hidden="true"><div>Kod</div><div>Açıklama</div></div>
+<main class="sheet">
+<div class="sec-head t-0" id="b-hazirlik"><h2>Hazırlık ve prompt&#x27;lar</h2><p>Dosyanın tanıtımı, kullanılacak kütüphaneler, sabit değerler ve modele gönderilen üç talimat metni.</p></div>
+<div class="seg t-0 a"><div class="code"><pre><code><span class="ln">1</span><span class="sd">"""Hallucination dedektörü.</span>
+<span class="ln">2</span>
+<span class="ln">3</span><span class="sd">Kaynak dokümana dayalı bir LLM yanıtını iki aşamalı bir zincirden geçirir:</span>
+<span class="ln">4</span><span class="sd">  1. İddia çıkarma  — yanıt, tek tek doğrulanabilir atomik iddialara ayrılır.</span>
+<span class="ln">5</span><span class="sd">  2. İddia doğrulama — her iddia kaynağa karşı kontrol edilir (DESTEKLİ / DESTEKSİZ / ÇELİŞİYOR),</span>
+<span class="ln">6</span><span class="sd">     ardından modelin gösterdiği kanıt alıntısının kaynakta gerçekten geçip geçmediğine bakılır.</span>
+<span class="ln">7</span><span class="sd">Sonuç bir risk skoruna çevrilir ve yanıt KABUL / İNCELE / RET olarak yönlendirilir.</span>
+<span class="ln">8</span>
+<span class="ln">9</span><span class="sd">Kullanım:</span>
+<span class="ln">10</span><span class="sd">    python cozum/dedektor.py answer kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt</span>
+<span class="ln">11</span><span class="sd">    python cozum/dedektor.py extract sonuclar/01_iptal.md</span>
+<span class="ln">12</span><span class="sd">    python cozum/dedektor.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json</span>
+<span class="ln">13</span><span class="sd">    python cozum/dedektor.py chain kaynaklar/03_webhook_ve_hatalar.md sorular/03_webhook_imza.txt</span>
+<span class="ln">14</span><span class="sd">    python cozum/dedektor.py chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt --answer tuzaklar/01_iptal_tuzakli.md</span>
+<span class="ln">15</span><span class="sd">    python cozum/dedektor.py score sonuclar/zincir.jsonl tuzaklar/01_iptal_tuzaklar.yaml</span>
+<span class="ln">16</span><span class="sd">"""</span></code></pre></div><div class="note"><div class="rng">satır 1–16</div><h3>Docstring: dosyanın kullanım kılavuzu</h3><p>Üç tırnak (<code>"""</code>) arasındaki metin bir <b>docstring</b>'dir. Python bunu çalıştırmaz; dosyanın ne işe yaradığını ve nasıl kullanılacağını anlatır. Zincirin iki aşaması burada özetleniyor; beş komutun örneklerini buradan kopyalayıp terminalde deneyebilirsin.</p></div></div>
+<div class="seg t-0 b"><div class="code"><pre><code><span class="ln">18</span><span class="k">import</span> argparse
+<span class="ln">19</span><span class="k">import</span> json
+<span class="ln">20</span><span class="k">import</span> math
+<span class="ln">21</span><span class="k">import</span> os
+<span class="ln">22</span><span class="k">import</span> re
+<span class="ln">23</span><span class="k">import</span> sys
+<span class="ln">24</span><span class="k">import</span> textwrap
+<span class="ln">25</span><span class="k">from</span> datetime <span class="k">import</span> datetime
+<span class="ln">26</span><span class="k">from</span> pathlib <span class="k">import</span> Path
+<span class="ln">27</span>
+<span class="ln">28</span><span class="k">import</span> anthropic
+<span class="ln">29</span><span class="k">import</span> yaml</code></pre></div><div class="note"><div class="rng">satır 18–29</div><h3>import: kullanılacak araçları çağır</h3><p>İlk grup Python ile gelen standart kütüphanedir: komut satırı (<code>argparse</code>), JSON yazıp okuma (<code>json</code>), matematik (<code>math</code>), ortam değişkenleri (<code>os</code>), düzenli ifadeler (<code>re</code>), sistem (<code>sys</code>), tarih ve dosya yolları. İkinci grup <code>pip install</code> ile kurduğun dış paketlerdir: <code>anthropic</code> API için, <code>yaml</code> fiyat ve tuzak dosyaları için.</p></div></div>
+<div class="seg t-0 a"><div class="code"><pre><code><span class="ln">31</span>PROJECT_DIR = Path(__file__).resolve().parent.parent
+<span class="ln">32</span>DEFAULT_PRICING_PATH = PROJECT_DIR / <span class="s">"</span><span class="s">pricing.yaml</span><span class="s">"</span>
+<span class="ln">33</span>DEFAULT_RESULTS_DIR = PROJECT_DIR / <span class="s">"</span><span class="s">sonuclar</span><span class="s">"</span>
+<span class="ln">34</span>DEFAULT_CHAIN_PATH = DEFAULT_RESULTS_DIR / <span class="s">"</span><span class="s">zincir.jsonl</span><span class="s">"</span>
+<span class="ln">35</span>
+<span class="ln">36</span>REQUIRED_MODEL_FIELDS = (<span class="s">"</span><span class="s">key</span><span class="s">"</span>, <span class="s">"</span><span class="s">name</span><span class="s">"</span>, <span class="s">"</span><span class="s">id</span><span class="s">"</span>, <span class="s">"</span><span class="s">input_per_mtok</span><span class="s">"</span>, <span class="s">"</span><span class="s">output_per_mtok</span><span class="s">"</span>)
+<span class="ln">37</span>
+<span class="ln">38</span><span class="c"># Her çağrı için çıktı sınırı. Yanıt kısa tutulur; iddia listesi ve doğrulama JSON'u daha uzun olabilir.</span>
+<span class="ln">39</span>MAX_TOKENS = {<span class="s">"</span><span class="s">answer</span><span class="s">"</span>: <span class="m">600</span>, <span class="s">"</span><span class="s">extract</span><span class="s">"</span>: <span class="m">800</span>, <span class="s">"</span><span class="s">verify</span><span class="s">"</span>: <span class="m">1500</span>}
+<span class="ln">40</span>
+<span class="ln">41</span><span class="c"># Doğrulayıcının döndürdüğü karar anahtarları ve ekrandaki Türkçe etiketleri.</span>
+<span class="ln">42</span>VERDICT_LABELS = {<span class="s">"</span><span class="s">supported</span><span class="s">"</span>: <span class="s">"</span><span class="s">DESTEKLİ</span><span class="s">"</span>, <span class="s">"</span><span class="s">unsupported</span><span class="s">"</span>: <span class="s">"</span><span class="s">DESTEKSİZ</span><span class="s">"</span>, <span class="s">"</span><span class="s">contradicted</span><span class="s">"</span>: <span class="s">"</span><span class="s">ÇELİŞİYOR</span><span class="s">"</span>, <span class="s">"</span><span class="s">suspect</span><span class="s">"</span>: <span class="s">"</span><span class="s">ŞÜPHELİ</span><span class="s">"</span>}</code></pre></div><div class="note"><div class="rng">satır 31–42</div><h3>Sabitler: yollar, sınırlar, etiketler</h3><p>Büyük harfle yazılan isimler <b>sabit</b>tir. Proje klasörü dosyanın konumundan hesaplanır; böylece araç hangi klasörden çalıştırılırsa çalıştırılsın <code>pricing.yaml</code> ve <code>sonuclar/</code> doğru yerde bulunur. <code>MAX_TOKENS</code> üç çağrının çıktı sınırını, <code>VERDICT_LABELS</code> İngilizce karar anahtarlarının Türkçe ekran etiketlerini tutar: model <code>supported</code> der, ekranda <code>DESTEKLİ</code> görünür.</p></div></div>
+<div class="seg t-0 b"><div class="code"><pre><code><span class="ln">44</span><span class="c"># Risk skoru: her kararın ağırlığı (0 = sorun yok, 1 = kaynak dışı iddia).</span>
+<span class="ln">45</span>RISK_WEIGHTS = {<span class="s">"</span><span class="s">supported</span><span class="s">"</span>: <span class="m">0.0</span>, <span class="s">"</span><span class="s">suspect</span><span class="s">"</span>: <span class="m">0.5</span>, <span class="s">"</span><span class="s">unsupported</span><span class="s">"</span>: <span class="m">1.0</span>, <span class="s">"</span><span class="s">contradicted</span><span class="s">"</span>: <span class="m">1.0</span>}
+<span class="ln">46</span>
+<span class="ln">47</span><span class="c"># Yönlendirme etiketleri ve İNCELE için varsayılan skor eşiği.</span>
+<span class="ln">48</span>ROUTE_ACCEPT, ROUTE_REVIEW, ROUTE_REJECT = <span class="s">"</span><span class="s">KABUL</span><span class="s">"</span>, <span class="s">"</span><span class="s">İNCELE</span><span class="s">"</span>, <span class="s">"</span><span class="s">RET</span><span class="s">"</span>
+<span class="ln">49</span>DEFAULT_THRESHOLD = <span class="m">0.25</span>
+<span class="ln">50</span>
+<span class="ln">51</span><span class="c"># Tuzak setinde geçerli beklenti değerleri.</span>
+<span class="ln">52</span>TRAP_EXPECTATIONS = (<span class="s">"</span><span class="s">yakalanmali</span><span class="s">"</span>, <span class="s">"</span><span class="s">gecmeli</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 44–52</div><h3>Risk ağırlıkları, yönlendirme etiketleri ve eşik</h3><p><code>RISK_WEIGHTS</code> her kararın skora katkısıdır: kaynak dışı iddia tam puan, şüpheli iddia yarım puan, desteklenen iddia sıfır. Üç yönlendirme etiketi tek satırda, virgülle ayrılmış <b>çoklu atama</b> ile tanımlanır. <code>DEFAULT_THRESHOLD</code> komut satırından <code>--threshold</code> ile değiştirilebilen varsayılan eşiktir. <code>TRAP_EXPECTATIONS</code> tuzak dosyasında kabul edilen iki beklenti değeridir.</p></div></div>
+<div class="seg t-0 a"><div class="code"><pre><code><span class="ln">55</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">56</span><span class="c"># Prompt'lar</span>
+<span class="ln">57</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">58</span>
+<span class="ln">59</span>GENERATE_SYSTEM = (
+<span class="ln">60</span>    <span class="s">"</span><span class="s">Sen bir teknik destek asistanısın. Kullanıcının sorusunu, sana verilen dokümana dayanarak Türkçe </span><span class="s">"</span>
+<span class="ln">61</span>    <span class="s">"</span><span class="s">cevapla. Cevabın kısa ve net olsun; en fazla bir paragraf yaz, liste kullanma.</span><span class="s">"</span>
+<span class="ln">62</span>)</code></pre></div><div class="note"><div class="rng">satır 55–62</div><h3>GENERATE_SYSTEM: üreticinin davranış çerçevesi</h3><p>Üretici modele <code>system</code> alanında giden talimat (Ders 1.4 §1). Kısa ve paragraf hâlinde yanıt istenir; böylece iddia çıkarma tek paragrafla uğraşır. Dikkat: "dokümanda olmayanı uydurma" talimatı kasıtlı olarak yok; modelin boşluğu nasıl doldurduğunu görmek projenin bir parçası (genişletme fikirlerinde bu talimatı ekleyip ölçmek var).</p></div></div>
+<div class="seg t-0 b"><div class="code"><pre><code><span class="ln">64</span>EXTRACT_PROMPT = <span class="s">"""</span><span class="s">&lt;yanit&gt; etiketleri arasındaki metin, bir teknik destek asistanının bir dokümana dayanarak </span><span class="s">\</span>
+<span class="ln">65</span><span class="s">verdiği yanıttır. Bu yanıtı doğrulanabilir atomik iddialara ayır.</span>
+<span class="ln">66</span>
+<span class="ln">67</span><span class="s">Kurallar:</span>
+<span class="ln">68</span><span class="s">- Her iddia tek bir olgu içersin ve tek başına anlaşılsın (zamir yerine adı yaz).</span>
+<span class="ln">69</span><span class="s">- Yanıttaki her olgusal ifadeyi bir iddia yap; görüş, öneri ve nezaket cümlelerini atla.</span>
+<span class="ln">70</span><span class="s">- Yanıt </span><span class="s">"</span><span class="s">dokümanda belirtilmiyor</span><span class="s">"</span><span class="s"> gibi bir boşluğu kabul eden cümleler içerebilir; bunları da iddia olarak yaz </span><span class="s">\</span>
+<span class="ln">71</span><span class="s">(ör. </span><span class="s">"</span><span class="s">Doküman imzanın geçerlilik süresini belirtmez.</span><span class="s">"</span><span class="s">).</span>
+<span class="ln">72</span><span class="s">- Yanıtın içeriğini yorumlama, değerlendirme ya da düzeltme; görevin yalnızca onu iddialara bölmek.</span>
+<span class="ln">73</span><span class="s">- En fazla 10 iddia çıkar; iddiaları yanıttaki sırayla yaz.</span>
+<span class="ln">74</span><span class="s">- Yalnızca şu biçimde JSON döndür, başka hiçbir şey yazma:</span>
+<span class="ln">75</span><span class="s">{</span><span class="s">"</span><span class="s">claims</span><span class="s">"</span><span class="s">: [</span><span class="s">"</span><span class="s">iddia 1</span><span class="s">"</span><span class="s">, </span><span class="s">"</span><span class="s">iddia 2</span><span class="s">"</span><span class="s">]}</span>
+<span class="ln">76</span>
+<span class="ln">77</span><span class="s">&lt;yanit&gt;</span>
+<span class="ln">78</span><span class="s">{answer}</span>
+<span class="ln">79</span><span class="s">&lt;/yanit&gt;</span><span class="s">"""</span></code></pre></div><div class="note"><div class="rng">satır 64–79</div><h3>EXTRACT_PROMPT: zincirin 1. aşamasının talimatı</h3><p>Yanıtı atomik iddialara ayırma kuralları ve beklenen JSON şablonu. Yanıt <code>&lt;yanit&gt;</code> etiketleri arasına konur ve prompt yanıtın ne olduğunu (bir asistanın dokümana dayalı cevabı) açıkça söyler; aksi hâlde doğrulayıcı model, "dokümanda belirtilmiyor" gibi cümleler içeren bir yanıtı iddia listesi yerine yorumlamaya kalkabilir. "Yorumlama, değerlendirme, düzeltme" kuralı da aynı nedenle var. <code>{answer}</code> yer tutucusu <code>str.replace</code> ile doldurulur; f-string kullanılmaz çünkü metin JSON örneği için küme parantezi içerir.</p></div></div>
+<div class="seg t-0 a"><div class="code"><pre><code><span class="ln">81</span>VERIFY_PROMPT = <span class="s">"""</span><span class="s">Aşağıdaki iddiaların her birini yalnızca KAYNAK dokümana göre değerlendir. Kendi bilgini kullanma; </span><span class="s">\</span>
+<span class="ln">82</span><span class="s">kaynakta olmayan bir bilgi doğru görünse bile </span><span class="s">"</span><span class="s">unsupported</span><span class="s">"</span><span class="s"> say.</span>
+<span class="ln">83</span>
+<span class="ln">84</span><span class="s">Her iddia için:</span>
+<span class="ln">85</span><span class="s">- verdict: </span><span class="s">"</span><span class="s">supported</span><span class="s">"</span><span class="s"> (kaynak açıkça söylüyor ya da kaynaktaki bir ifadenin doğrudan sonucu), </span><span class="s">"</span><span class="s">contradicted</span><span class="s">"</span><span class="s"> </span><span class="s">\</span>
+<span class="ln">86</span><span class="s">(kaynak aksini söylüyor) ya da </span><span class="s">"</span><span class="s">unsupported</span><span class="s">"</span><span class="s"> (kaynakta bu konuda bilgi yok ya da yetersiz).</span>
+<span class="ln">87</span><span class="s">- evidence: kararı dayandırdığın cümle ya da cümle parçası, KAYNAKTAN BİREBİR kopyalanmış olarak. </span><span class="s">\</span>
+<span class="ln">88</span><span class="s">"</span><span class="s">unsupported</span><span class="s">"</span><span class="s"> için boş bırak.</span>
+<span class="ln">89</span><span class="s">- note: tek cümlelik gerekçe.</span>
+<span class="ln">90</span>
+<span class="ln">91</span><span class="s">Yalnızca şu biçimde JSON döndür, başka hiçbir şey yazma:</span>
+<span class="ln">92</span><span class="s">{</span><span class="s">"</span><span class="s">results</span><span class="s">"</span><span class="s">: [</span><span class="s">{</span><span class="s">"</span><span class="s">id</span><span class="s">"</span><span class="s">: 1, </span><span class="s">"</span><span class="s">verdict</span><span class="s">"</span><span class="s">: </span><span class="s">"</span><span class="s">supported</span><span class="s">"</span><span class="s">, </span><span class="s">"</span><span class="s">evidence</span><span class="s">"</span><span class="s">: </span><span class="s">"</span><span class="s">...</span><span class="s">"</span><span class="s">, </span><span class="s">"</span><span class="s">note</span><span class="s">"</span><span class="s">: </span><span class="s">"</span><span class="s">...</span><span class="s">"</span><span class="s">}]}</span>
+<span class="ln">93</span>
+<span class="ln">94</span><span class="s">KAYNAK:</span>
+<span class="ln">95</span><span class="s">\"</span><span class="s">\"</span><span class="s">\"</span>
+<span class="ln">96</span><span class="s">{source}</span>
+<span class="ln">97</span><span class="s">\"</span><span class="s">\"</span><span class="s">\"</span>
+<span class="ln">98</span>
+<span class="ln">99</span><span class="s">İDDİALAR:</span>
+<span class="ln">100</span><span class="s">{claims}</span><span class="s">"""</span></code></pre></div><div class="note"><div class="rng">satır 81–100</div><h3>VERIFY_PROMPT: zincirin 2. aşamasının talimatı</h3><p>İki kritik cümle: "Kendi bilgini kullanma" doğrulayıcının parametrik bilgisini devre dışı bırakmaya çalışır (Ders 1.6 §4.1); "KAYNAKTAN BİREBİR kopyalanmış" kanıt talebi ise bir sonraki adımı hazırlar: alıntı birebirse <code>evidence_found</code> onu makineyle arayabilir. Satır sonlarındaki ters bölü (<code>\</code>) Python'da uzun bir metni birden fazla satıra bölmenin yoludur; metne satır sonu eklemez.</p></div></div>
+<div class="sec-head t-1" id="b-veri"><h2>Veri ve kayıt</h2><p>Fiyat, kaynak, soru, iddia ve tuzak dosyalarını okuyan; yanıt, iddia ve zincir kayıtlarını yazan fonksiyonlar.</p></div>
+<div class="seg t-1 a"><div class="code"><pre><code><span class="ln">103</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">104</span><span class="c"># Veri yükleme</span>
+<span class="ln">105</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">106</span>
+<span class="ln">107</span><span class="k">def</span> <span class="nf">load_pricing</span>(path: Path) -&gt; <span class="nb">dict</span>:
+<span class="ln">108</span>    <span class="sd">"""pricing.yaml dosyasını okur; zorunlu alanları ve rol atamalarını doğrular."""</span>
+<span class="ln">109</span>    <span class="k">with</span> <span class="nb">open</span>(path, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>) <span class="k">as</span> f:
+<span class="ln">110</span>        data = yaml.safe_load(f)
+<span class="ln">111</span>    <span class="k">for</span> model <span class="k">in</span> data[<span class="s">"</span><span class="s">models</span><span class="s">"</span>]:
+<span class="ln">112</span>        missing = [field <span class="k">for</span> field <span class="k">in</span> REQUIRED_MODEL_FIELDS <span class="k">if</span> field <span class="k">not</span> <span class="k">in</span> model]
+<span class="ln">113</span>        <span class="k">if</span> missing:
+<span class="ln">114</span>            <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">pricing.yaml: </span><span class="s">'</span><span class="s">{</span>model.get(<span class="s">'</span><span class="s">key</span><span class="s">'</span>, <span class="s">'</span><span class="s">?</span><span class="s">'</span>)<span class="s">}</span><span class="s">'</span><span class="s"> modelinde eksik alan: </span><span class="s">{</span><span class="s">'</span><span class="s">, </span><span class="s">'</span>.join(missing)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">115</span>    <span class="k">for</span> role <span class="k">in</span> (<span class="s">"</span><span class="s">uretici</span><span class="s">"</span>, <span class="s">"</span><span class="s">dogrulayici</span><span class="s">"</span>):
+<span class="ln">116</span>        <span class="k">if</span> role <span class="k">not</span> <span class="k">in</span> data.get(<span class="s">"</span><span class="s">roller</span><span class="s">"</span>, {}):
+<span class="ln">117</span>            <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">pricing.yaml: </span><span class="s">'</span><span class="s">roller</span><span class="s">'</span><span class="s"> altında </span><span class="s">'</span><span class="s">{</span>role<span class="s">}</span><span class="s">'</span><span class="s"> tanımlı değil.</span><span class="s">"</span>)
+<span class="ln">118</span>    <span class="k">return</span> data</code></pre></div><div class="note"><div class="rng">satır 103–118</div><h3>load_pricing: fiyat dosyasını oku ve kontrol et</h3><p><code>with open(...)</code> dosyayı açar ve blok bitince otomatik kapatır. <code>yaml.safe_load</code> YAML metnini bir Python sözlüğüne (<code>dict</code>) çevirir. Her modelde zorunlu alanlar ve <code>roller</code> altında iki rol kontrol edilir; eksik varsa <code>raise ValueError</code> ile program anlaşılır bir mesajla durur. Fiyatların ve rol atamalarının kodda değil dosyada durması, model değiştiğinde kodu değiştirmeden güncelleyebilmeni sağlar.</p></div></div>
+<div class="seg t-1 b"><div class="code"><pre><code><span class="ln">121</span><span class="k">def</span> <span class="nf">select_model</span>(pricing: <span class="nb">dict</span>, key: <span class="nb">str</span> | <span class="k">None</span>, role: <span class="nb">str</span>) -&gt; <span class="nb">dict</span>:
+<span class="ln">122</span>    <span class="sd">"""Komut satırında verilen anahtarı, verilmediyse pricing.yaml'daki rol atamasını kullanarak modeli seçer."""</span>
+<span class="ln">123</span>    key = key <span class="k">or</span> pricing[<span class="s">"</span><span class="s">roller</span><span class="s">"</span>][role]
+<span class="ln">124</span>    by_key = {m[<span class="s">"</span><span class="s">key</span><span class="s">"</span>]: m <span class="k">for</span> m <span class="k">in</span> pricing[<span class="s">"</span><span class="s">models</span><span class="s">"</span>]}
+<span class="ln">125</span>    <span class="k">if</span> key <span class="k">not</span> <span class="k">in</span> by_key:
+<span class="ln">126</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">Bilinmeyen model anahtarı: </span><span class="s">'</span><span class="s">{</span>key<span class="s">}</span><span class="s">'</span><span class="s">. Geçerli anahtarlar: </span><span class="s">{</span><span class="s">'</span><span class="s">, </span><span class="s">'</span>.join(by_key)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">127</span>    <span class="k">return</span> by_key[key]</code></pre></div><div class="note"><div class="rng">satır 121–127</div><h3>select_model: hangi model hangi rolde?</h3><p><code>key or pricing["roller"][role]</code> kalıbı: komut satırında <code>--generator</code> ya da <code>--verifier</code> verildiyse o anahtar, verilmediyse dosyadaki rol ataması kullanılır. Bilinmeyen bir anahtar geçerli anahtarları listeleyen bir hata verir; yazım hatası yapan kullanıcı ne yazması gerektiğini hemen görür.</p></div></div>
+<div class="seg t-1 a"><div class="code"><pre><code><span class="ln">130</span><span class="k">def</span> <span class="nf">read_text</span>(path: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">131</span>    <span class="sd">"""Bir metin dosyasını UTF-8 olarak okur; boş dosyayı reddeder."""</span>
+<span class="ln">132</span>    text = Path(path).read_text(encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>).strip()
+<span class="ln">133</span>    <span class="k">if</span> <span class="k">not</span> text:
+<span class="ln">134</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>path<span class="s">}</span><span class="s">: dosya boş.</span><span class="s">"</span>)
+<span class="ln">135</span>    <span class="k">return</span> text
+<span class="ln">136</span>
+<span class="ln">137</span>
+<span class="ln">138</span><span class="k">def</span> <span class="nf">read_question</span>(value: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">139</span>    <span class="sd">"""Soru bir dosya yoluysa dosyadan okunur; değilse metnin kendisi sorudur."""</span>
+<span class="ln">140</span>    <span class="k">if</span> Path(value).is_file():
+<span class="ln">141</span>        <span class="k">return</span> read_text(value)
+<span class="ln">142</span>    <span class="k">return</span> value.strip()</code></pre></div><div class="note"><div class="rng">satır 130–142</div><h3>read_text ve read_question: kaynak ve soru</h3><p><code>read_text</code> bir dosyayı UTF-8 olarak okur ve boş dosyayı reddeder; boş kaynakla çağrı yapmak para harcayıp anlamsız sonuç almaktır. <code>read_question</code> ise esnektir: argüman var olan bir dosyaysa soruyu dosyadan okur, değilse metnin kendisini soru sayar. Böylece hem <code>sorular/01_iptal.txt</code> hem de tırnak içinde yazılmış bir cümle çalışır.</p></div></div>
+<div class="seg t-1 b"><div class="code"><pre><code><span class="ln">145</span><span class="k">def</span> <span class="nf">load_claims</span>(path: <span class="nb">str</span>) -&gt; <span class="nb">list</span>[<span class="nb">str</span>]:
+<span class="ln">146</span>    <span class="sd">"""extract komutunun yazdığı iddia dosyasını okur."""</span>
+<span class="ln">147</span>    <span class="k">with</span> <span class="nb">open</span>(path, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>) <span class="k">as</span> f:
+<span class="ln">148</span>        data = json.load(f)
+<span class="ln">149</span>    claims = data.get(<span class="s">"</span><span class="s">claims</span><span class="s">"</span>) <span class="k">if</span> <span class="nb">isinstance</span>(data, <span class="nb">dict</span>) <span class="k">else</span> <span class="k">None</span>
+<span class="ln">150</span>    <span class="k">if</span> <span class="k">not</span> claims <span class="k">or</span> <span class="k">not</span> <span class="nb">all</span>(<span class="nb">isinstance</span>(c, <span class="nb">str</span>) <span class="k">and</span> c.strip() <span class="k">for</span> c <span class="k">in</span> claims):
+<span class="ln">151</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>path<span class="s">}</span><span class="s">: </span><span class="s">'</span><span class="s">claims</span><span class="s">'</span><span class="s"> listesi boş ya da hatalı. Önce </span><span class="s">'</span><span class="s">extract</span><span class="s">'</span><span class="s"> komutunu çalıştır.</span><span class="s">"</span>)
+<span class="ln">152</span>    <span class="k">return</span> claims</code></pre></div><div class="note"><div class="rng">satır 145–152</div><h3>load_claims: iddia dosyasını oku</h3><p><code>extract</code> komutunun yazdığı JSON okunur ve <code>claims</code> listesinin boş olmayan metinlerden oluştuğu doğrulanır. <code>isinstance(data, dict)</code> kontrolü, dosya bir liste ya da düz metinse hata vermeden önce çökmeyi önler.</p></div></div>
+<div class="seg t-1 a"><div class="code"><pre><code><span class="ln">155</span><span class="k">def</span> <span class="nf">load_traps</span>(path: <span class="nb">str</span>) -&gt; <span class="nb">dict</span>:
+<span class="ln">156</span>    <span class="sd">"""Tuzak setini okur ve her tuzakta gerekli alanların bulunduğunu doğrular."""</span>
+<span class="ln">157</span>    <span class="k">with</span> <span class="nb">open</span>(path, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>) <span class="k">as</span> f:
+<span class="ln">158</span>        data = yaml.safe_load(f)
+<span class="ln">159</span>    <span class="k">if</span> <span class="k">not</span> data <span class="k">or</span> <span class="k">not</span> data.get(<span class="s">"</span><span class="s">tuzaklar</span><span class="s">"</span>):
+<span class="ln">160</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>path<span class="s">}</span><span class="s">: </span><span class="s">'</span><span class="s">tuzaklar</span><span class="s">'</span><span class="s"> listesi boş ya da yok.</span><span class="s">"</span>)
+<span class="ln">161</span>    <span class="k">for</span> trap <span class="k">in</span> data[<span class="s">"</span><span class="s">tuzaklar</span><span class="s">"</span>]:
+<span class="ln">162</span>        <span class="k">for</span> field <span class="k">in</span> (<span class="s">"</span><span class="s">id</span><span class="s">"</span>, <span class="s">"</span><span class="s">tur</span><span class="s">"</span>, <span class="s">"</span><span class="s">anahtar</span><span class="s">"</span>, <span class="s">"</span><span class="s">beklenen</span><span class="s">"</span>):
+<span class="ln">163</span>            <span class="k">if</span> field <span class="k">not</span> <span class="k">in</span> trap:
+<span class="ln">164</span>                <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>path<span class="s">}</span><span class="s">: her tuzakta </span><span class="s">'</span><span class="s">{</span>field<span class="s">}</span><span class="s">'</span><span class="s"> alanı olmalı (eksik: </span><span class="s">{</span>trap.get(<span class="s">'</span><span class="s">id</span><span class="s">'</span>, <span class="s">'</span><span class="s">?</span><span class="s">'</span>)<span class="s">}</span><span class="s">).</span><span class="s">"</span>)
+<span class="ln">165</span>        <span class="k">if</span> trap[<span class="s">"</span><span class="s">beklenen</span><span class="s">"</span>] <span class="k">not</span> <span class="k">in</span> TRAP_EXPECTATIONS:
+<span class="ln">166</span>            <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>path<span class="s">}</span><span class="s">: </span><span class="s">'</span><span class="s">{</span>trap[<span class="s">'</span><span class="s">id</span><span class="s">'</span>]<span class="s">}</span><span class="s">'</span><span class="s"> tuzağında bilinmeyen beklenti: </span><span class="s">{</span>trap[<span class="s">'</span><span class="s">beklenen</span><span class="s">'</span>]<span class="s">}</span><span class="s">"</span>)
+<span class="ln">167</span>    <span class="k">return</span> data</code></pre></div><div class="note"><div class="rng">satır 155–167</div><h3>load_traps: tuzak setini oku ve doğrula</h3><p>Tuzak dosyası YAML'dır. Her tuzakta dört alanın bulunduğu ve <code>beklenen</code> değerinin <code>TRAP_EXPECTATIONS</code> içinde olduğu kontrol edilir. Yazım hatalı bir beklenti (geçerli değer <code>yakalanmali</code> iken <code>yakalanmalı</code> yazmak gibi) sessizce yok sayılmak yerine daha dosya yüklenirken yakalanır.</p></div></div>
+<div class="sec-head t-2" id="b-api"><h2>API çağrıları</h2><p>Anthropic API ile konuşan tek yer. Tek çağrı fonksiyonu ve zincirin üç aşamasının sarmalayıcıları.</p></div>
+<div class="seg t-2 a"><div class="code"><pre><code><span class="ln">170</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">171</span><span class="c"># API çağrıları</span>
+<span class="ln">172</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">173</span>
+<span class="ln">174</span><span class="k">def</span> <span class="nf">call_model</span>(client, model: <span class="nb">dict</span>, prompt: <span class="nb">str</span>, max_tokens: <span class="nb">int</span>, system: <span class="nb">str</span> | <span class="k">None</span> = <span class="k">None</span>) -&gt; <span class="nb">dict</span>:
+<span class="ln">175</span>    <span class="sd">"""Tek bir non-streaming çağrı yapar; metni, token sayılarını ve durma nedenini döndürür.</span>
+<span class="ln">176</span>
+<span class="ln">177</span><span class="sd">    Modelin `cagri_ayarlari` sözlüğü (pricing.yaml) isteğe olduğu gibi eklenir; kod ayarların</span>
+<span class="ln">178</span><span class="sd">    içeriğini bilmez. Yanıt bütün olarak işleneceği için streaming gerekmez (Ders 1.4 §4.4).</span>
+<span class="ln">179</span><span class="sd">    """</span>
+<span class="ln">180</span>    kwargs = {<span class="s">"</span><span class="s">model</span><span class="s">"</span>: model[<span class="s">"</span><span class="s">id</span><span class="s">"</span>], <span class="s">"</span><span class="s">max_tokens</span><span class="s">"</span>: max_tokens, <span class="s">"</span><span class="s">messages</span><span class="s">"</span>: [{<span class="s">"</span><span class="s">role</span><span class="s">"</span>: <span class="s">"</span><span class="s">user</span><span class="s">"</span>, <span class="s">"</span><span class="s">content</span><span class="s">"</span>: prompt}]}
+<span class="ln">181</span>    <span class="k">if</span> system:
+<span class="ln">182</span>        kwargs[<span class="s">"</span><span class="s">system</span><span class="s">"</span>] = system
+<span class="ln">183</span>    kwargs.update(model.get(<span class="s">"</span><span class="s">cagri_ayarlari</span><span class="s">"</span>) <span class="k">or</span> {})
+<span class="ln">184</span>    message = client.messages.create(**kwargs)
+<span class="ln">185</span>    text = <span class="s">"</span><span class="s">"</span>.join(block.text <span class="k">for</span> block <span class="k">in</span> message.content <span class="k">if</span> <span class="nb">getattr</span>(block, <span class="s">"</span><span class="s">type</span><span class="s">"</span>, <span class="s">"</span><span class="s">"</span>) == <span class="s">"</span><span class="s">text</span><span class="s">"</span>)
+<span class="ln">186</span>    <span class="k">return</span> {
+<span class="ln">187</span>        <span class="s">"</span><span class="s">text</span><span class="s">"</span>: text.strip(),
+<span class="ln">188</span>        <span class="s">"</span><span class="s">input_tokens</span><span class="s">"</span>: message.usage.input_tokens,
+<span class="ln">189</span>        <span class="s">"</span><span class="s">output_tokens</span><span class="s">"</span>: message.usage.output_tokens,
+<span class="ln">190</span>        <span class="s">"</span><span class="s">stop_reason</span><span class="s">"</span>: message.stop_reason,
+<span class="ln">191</span>    }</code></pre></div><div class="note"><div class="rng">satır 170–191</div><h3>call_model: API ile konuşan tek fonksiyon</h3><p><code>kwargs</code> sözlüğü isteğin parametrelerini toplar; <code>system</code> yalnızca varsa eklenir; <code>kwargs.update(model.get("cagri_ayarlari") or {})</code> modele özgü ek ayarları (pricing.yaml) isteğe katar. Kod ayarların içeriğini bilmez; bir model yeni bir parametre isterse yalnızca YAML değişir. <code>client.messages.create(**kwargs)</code> sözlüğü adlı parametreler olarak açar ve yanıtı bütün olarak alır; yanıt bütün işleneceği için streaming gerekmez (Ders 1.4 §4.4). <code>content</code> bir blok dizisidir; yalnızca <code>text</code> tipindeki bloklar birleştirilir.</p></div></div>
+<div class="seg t-2 b"><div class="code"><pre><code><span class="ln">194</span><span class="k">def</span> <span class="nf">generate_answer</span>(client, model: <span class="nb">dict</span>, source: <span class="nb">str</span>, question: <span class="nb">str</span>) -&gt; <span class="nb">dict</span>:
+<span class="ln">195</span>    <span class="sd">"""Üretici modelden kaynağa dayalı yanıt alır."""</span>
+<span class="ln">196</span>    prompt = <span class="s">f</span><span class="s">"</span><span class="s">DOKÜMAN:</span><span class="s">\n</span><span class="s">\"</span><span class="s">\"</span><span class="s">\"</span><span class="s">\n</span><span class="s">{</span>source<span class="s">}</span><span class="s">\n</span><span class="s">\"</span><span class="s">\"</span><span class="s">\"</span><span class="s">\n</span><span class="s">\n</span><span class="s">SORU: </span><span class="s">{</span>question<span class="s">}</span><span class="s">"</span>
+<span class="ln">197</span>    <span class="k">return</span> call_model(client, model, prompt, MAX_TOKENS[<span class="s">"</span><span class="s">answer</span><span class="s">"</span>], GENERATE_SYSTEM)</code></pre></div><div class="note"><div class="rng">satır 194–197</div><h3>generate_answer: kaynağa dayalı yanıt</h3><p>Doküman ve soru tek bir kullanıcı mesajında birleştirilir; davranış çerçevesi <code>GENERATE_SYSTEM</code> ile ayrı gider. Bu, Ders 1.6 §5.2'deki "retrieve" adımının en basit hâlidir: ilgili context'i bulmak yerine dokümanın tamamı verilir. Aşama 3'te bunun yerini RAG alır.</p></div></div>
+<div class="seg t-2 a"><div class="code"><pre><code><span class="ln">200</span><span class="k">def</span> <span class="nf">extract_claims</span>(client, model: <span class="nb">dict</span>, answer: <span class="nb">str</span>) -&gt; <span class="nb">tuple</span>[<span class="nb">list</span>[<span class="nb">str</span>], <span class="nb">dict</span>]:
+<span class="ln">201</span>    <span class="sd">"""Zincirin 1. aşaması: yanıtı atomik iddialara ayırır. JSON çözülemezse hata verir."""</span>
+<span class="ln">202</span>    result = call_model(client, model, EXTRACT_PROMPT.replace(<span class="s">"</span><span class="s">{answer}</span><span class="s">"</span>, answer), MAX_TOKENS[<span class="s">"</span><span class="s">extract</span><span class="s">"</span>])
+<span class="ln">203</span>    parsed = _parse_json(result[<span class="s">"</span><span class="s">text</span><span class="s">"</span>])
+<span class="ln">204</span>    claims = parsed.get(<span class="s">"</span><span class="s">claims</span><span class="s">"</span>) <span class="k">if</span> <span class="nb">isinstance</span>(parsed, <span class="nb">dict</span>) <span class="k">else</span> <span class="k">None</span>
+<span class="ln">205</span>    <span class="k">if</span> <span class="k">not</span> <span class="nb">isinstance</span>(claims, <span class="nb">list</span>) <span class="k">or</span> <span class="k">not</span> claims <span class="k">or</span> <span class="k">not</span> <span class="nb">all</span>(<span class="nb">isinstance</span>(c, <span class="nb">str</span>) <span class="k">and</span> c.strip() <span class="k">for</span> c <span class="k">in</span> claims):
+<span class="ln">206</span>        <span class="k">raise</span> ValueError(<span class="s">"</span><span class="s">İddia çıkarma: model geçerli bir </span><span class="s">{</span><span class="s">\"</span><span class="s">claims</span><span class="s">\"</span><span class="s">: [...]} JSON</span><span class="s">'</span><span class="s">u döndürmedi. Yanıt: </span><span class="s">"</span>
+<span class="ln">207</span>                         + result[<span class="s">"</span><span class="s">text</span><span class="s">"</span>][:<span class="m">120</span>].replace(<span class="s">"</span><span class="s">\n</span><span class="s">"</span>, <span class="s">"</span><span class="s"> </span><span class="s">"</span>))
+<span class="ln">208</span>    <span class="k">return</span> [c.strip() <span class="k">for</span> c <span class="k">in</span> claims], result</code></pre></div><div class="note"><div class="rng">satır 200–208</div><h3>extract_claims: 1. aşama</h3><p>Prompt doldurulur, çağrı yapılır, dönen metin <code>_parse_json</code> ile çözülür. Üç durumda <code>ValueError</code> fırlatılır: JSON çözülemedi, <code>claims</code> listesi yok ya da boş, listede metin olmayan öğe var. Hata mesajı modelin yanıtının ilk 120 karakterini taşır ki ne döndüğünü görebilesin. Fonksiyon iki değer döndürür: iddia listesi ve maliyet hesabı için ham çağrı sonucu.</p></div></div>
+<div class="seg t-2 b"><div class="code"><pre><code><span class="ln">211</span><span class="k">def</span> <span class="nf">verify_claims</span>(client, model: <span class="nb">dict</span>, source: <span class="nb">str</span>, claims: <span class="nb">list</span>[<span class="nb">str</span>]) -&gt; <span class="nb">tuple</span>[<span class="nb">list</span>[<span class="nb">dict</span>], <span class="nb">dict</span>]:
+<span class="ln">212</span>    <span class="sd">"""Zincirin 2. aşamasının LLM yarısı: her iddiayı kaynağa karşı değerlendirir."""</span>
+<span class="ln">213</span>    numbered = <span class="s">"</span><span class="s">\n</span><span class="s">"</span>.join(<span class="s">f</span><span class="s">"</span><span class="s">{</span>i<span class="s">}</span><span class="s">. </span><span class="s">{</span>claim<span class="s">}</span><span class="s">"</span> <span class="k">for</span> i, claim <span class="k">in</span> <span class="nb">enumerate</span>(claims, start=<span class="m">1</span>))
+<span class="ln">214</span>    prompt = VERIFY_PROMPT.replace(<span class="s">"</span><span class="s">{source}</span><span class="s">"</span>, source).replace(<span class="s">"</span><span class="s">{claims}</span><span class="s">"</span>, numbered)
+<span class="ln">215</span>    result = call_model(client, model, prompt, MAX_TOKENS[<span class="s">"</span><span class="s">verify</span><span class="s">"</span>])
+<span class="ln">216</span>    parsed = _parse_json(result[<span class="s">"</span><span class="s">text</span><span class="s">"</span>])
+<span class="ln">217</span>    rows = parsed.get(<span class="s">"</span><span class="s">results</span><span class="s">"</span>) <span class="k">if</span> <span class="nb">isinstance</span>(parsed, <span class="nb">dict</span>) <span class="k">else</span> <span class="k">None</span>
+<span class="ln">218</span>    <span class="k">if</span> <span class="k">not</span> <span class="nb">isinstance</span>(rows, <span class="nb">list</span>) <span class="k">or</span> <span class="nb">len</span>(rows) != <span class="nb">len</span>(claims):
+<span class="ln">219</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">Doğrulama: model </span><span class="s">{</span><span class="nb">len</span>(claims)<span class="s">}</span><span class="s"> iddia için </span><span class="s">{</span><span class="nb">len</span>(rows) <span class="k">if</span> <span class="nb">isinstance</span>(rows, <span class="nb">list</span>) <span class="k">else</span> <span class="m">0</span><span class="s">}</span><span class="s"> </span><span class="s">"</span>
+<span class="ln">220</span>                         <span class="s">"</span><span class="s">sonuç döndürdü; geçerli JSON bekleniyordu.</span><span class="s">"</span>)
+<span class="ln">221</span>    verdicts = []
+<span class="ln">222</span>    <span class="k">for</span> claim, row <span class="k">in</span> <span class="nb">zip</span>(claims, rows):
+<span class="ln">223</span>        verdict = <span class="nb">str</span>(row.get(<span class="s">"</span><span class="s">verdict</span><span class="s">"</span>, <span class="s">"</span><span class="s">"</span>)).strip().lower()
+<span class="ln">224</span>        <span class="k">if</span> verdict <span class="k">not</span> <span class="k">in</span> (<span class="s">"</span><span class="s">supported</span><span class="s">"</span>, <span class="s">"</span><span class="s">unsupported</span><span class="s">"</span>, <span class="s">"</span><span class="s">contradicted</span><span class="s">"</span>):
+<span class="ln">225</span>            <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">Doğrulama: bilinmeyen karar </span><span class="s">'</span><span class="s">{</span>verdict<span class="s">}</span><span class="s">'</span><span class="s"> (iddia: </span><span class="s">{</span>claim[:<span class="m">60</span>]<span class="s">}</span><span class="s">)</span><span class="s">"</span>)
+<span class="ln">226</span>        verdicts.append({<span class="s">"</span><span class="s">iddia</span><span class="s">"</span>: claim, <span class="s">"</span><span class="s">karar</span><span class="s">"</span>: verdict, <span class="s">"</span><span class="s">kanit</span><span class="s">"</span>: <span class="nb">str</span>(row.get(<span class="s">"</span><span class="s">evidence</span><span class="s">"</span>) <span class="k">or</span> <span class="s">"</span><span class="s">"</span>).strip(),
+<span class="ln">227</span>                         <span class="s">"</span><span class="s">not</span><span class="s">"</span>: <span class="nb">str</span>(row.get(<span class="s">"</span><span class="s">note</span><span class="s">"</span>) <span class="k">or</span> <span class="s">"</span><span class="s">"</span>).strip()})
+<span class="ln">228</span>    <span class="k">return</span> verdicts, result</code></pre></div><div class="note"><div class="rng">satır 211–228</div><h3>verify_claims: 2. aşamanın LLM yarısı</h3><p>İddialar numaralanıp tek çağrıda gönderilir (iddia başına çağrıdan N kat ucuz). Dönen <code>results</code> listesinin uzunluğu iddia sayısına eşit değilse, ya da bir karar üç geçerli değerden biri değilse program durur: doğrulayıcı da bir LLM'dir ve çıktısı da doğrulanır. <code>zip(claims, rows)</code> iddialarla sonuçları sırayla eşler; her satır Türkçe anahtarlı bir sözlüğe (<code>iddia</code>, <code>karar</code>, <code>kanit</code>, <code>not</code>) çevrilir.</p></div></div>
+<div class="sec-head t-3" id="b-hesap"><h2>Hesaplamalar</h2><p>API'ye dokunmayan fonksiyonlar; JSON çözme, kanıt denetimi, risk skoru, yönlendirme ve tuzak eşleştirmesi.</p></div>
+<div class="seg t-3 a"><div class="code"><pre><code><span class="ln">231</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">232</span><span class="c"># Hesaplamalar</span>
+<span class="ln">233</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">234</span>
+<span class="ln">235</span><span class="k">def</span> <span class="nf">estimate_cost</span>(model: <span class="nb">dict</span>, input_tokens: <span class="nb">int</span>, output_tokens: <span class="nb">int</span>) -&gt; <span class="nb">float</span>:
+<span class="ln">236</span>    <span class="sd">"""Tek çağrının USD maliyeti. Fiyatlar 1M token başına (Ders 1.4 §6.2)."""</span>
+<span class="ln">237</span>    <span class="k">return</span> (input_tokens * model[<span class="s">"</span><span class="s">input_per_mtok</span><span class="s">"</span>] + output_tokens * model[<span class="s">"</span><span class="s">output_per_mtok</span><span class="s">"</span>]) / <span class="m">1_000_000</span></code></pre></div><div class="note"><div class="rng">satır 231–237</div><h3>estimate_cost: tek çağrının maliyeti</h3><p>Girdi ve çıktı token'ları kendi fiyatlarıyla çarpılıp toplanır, sonra 1.000.000'a bölünür; fiyatlar milyon token başına verilir (Ders 1.4 §6.2). Token sayıları yanıtın <code>usage</code> alanından gelen kesin değerlerdir.</p></div></div>
+<div class="seg t-3 b"><div class="code"><pre><code><span class="ln">240</span><span class="k">def</span> <span class="nf">_parse_json</span>(text: <span class="nb">str</span>):
+<span class="ln">241</span>    <span class="sd">"""Model çıktısındaki JSON'u çözer; kod bloğu çitlerini (```json ... ```) ve JSON'un çevresindeki metni atar.</span>
+<span class="ln">242</span>
+<span class="ln">243</span><span class="sd">    Çözülemezse None döner. Önce metnin tamamı, sonra ilk '{' ile son '}' arasındaki parça denenir;</span>
+<span class="ln">244</span><span class="sd">    böylece "İşte iddialar:" gibi bir giriş cümlesi ayrıştırmayı bozmaz.</span>
+<span class="ln">245</span><span class="sd">    """</span>
+<span class="ln">246</span>    cleaned = text.strip()
+<span class="ln">247</span>    <span class="k">if</span> cleaned.startswith(<span class="s">"</span><span class="s">```</span><span class="s">"</span>):
+<span class="ln">248</span>        cleaned = re.sub(<span class="s">r</span><span class="s">"</span><span class="s">^```[a-zA-Z]*</span><span class="s">\</span><span class="s">s*|</span><span class="s">\</span><span class="s">s*```$</span><span class="s">"</span>, <span class="s">"</span><span class="s">"</span>, cleaned)
+<span class="ln">249</span>    candidates = [cleaned]
+<span class="ln">250</span>    <span class="k">if</span> <span class="s">"</span><span class="s">{</span><span class="s">"</span> <span class="k">in</span> cleaned <span class="k">and</span> <span class="s">"</span><span class="s">}</span><span class="s">"</span> <span class="k">in</span> cleaned:
+<span class="ln">251</span>        candidates.append(cleaned[cleaned.find(<span class="s">"</span><span class="s">{</span><span class="s">"</span>): cleaned.rfind(<span class="s">"</span><span class="s">}</span><span class="s">"</span>) + <span class="m">1</span>])
+<span class="ln">252</span>    <span class="k">for</span> candidate <span class="k">in</span> candidates:
+<span class="ln">253</span>        <span class="k">try</span>:
+<span class="ln">254</span>            <span class="k">return</span> json.loads(candidate)
+<span class="ln">255</span>        <span class="k">except</span> json.JSONDecodeError:
+<span class="ln">256</span>            <span class="k">continue</span>
+<span class="ln">257</span>    <span class="k">return</span> <span class="k">None</span></code></pre></div><div class="note"><div class="rng">satır 240–257</div><h3>_parse_json: model çıktısındaki JSON&#x27;u çöz</h3><p>Modeller JSON'u ara sıra <code>```json ... ```</code> kod bloğuna sarar. Düzenli ifade (<code>re.sub</code>) baştaki ve sondaki çitleri temizler, <code>json.loads</code> metni Python nesnesine çevirir. Çözülemezse <code>None</code> döner; karar çağıran fonksiyonundur. Baştaki alt çizgi, fonksiyonun dosya içi bir yardımcı olduğunu söyleyen bir Python geleneğidir.</p></div></div>
+<div class="seg t-3 a"><div class="code"><pre><code><span class="ln">260</span><span class="k">def</span> <span class="nf">tr_lower</span>(text: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">261</span>    <span class="sd">"""Türkçe'ye uygun küçük harf: I → ı, İ → i (Python'un lower() fonksiyonu bunu bilmez)."""</span>
+<span class="ln">262</span>    <span class="k">return</span> text.replace(<span class="s">"</span><span class="s">I</span><span class="s">"</span>, <span class="s">"</span><span class="s">ı</span><span class="s">"</span>).replace(<span class="s">"</span><span class="s">İ</span><span class="s">"</span>, <span class="s">"</span><span class="s">i</span><span class="s">"</span>).lower()
+<span class="ln">263</span>
+<span class="ln">264</span>
+<span class="ln">265</span><span class="k">def</span> <span class="nf">normalize_text</span>(text: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">266</span>    <span class="sd">"""Metni karşılaştırma için sadeleştirir: küçük harf, yalnızca harf ve rakam (boşluk ve noktalama atılır)."""</span>
+<span class="ln">267</span>    <span class="k">return</span> re.sub(<span class="s">r</span><span class="s">"</span><span class="s">[^0-9a-zçğıöşü]+</span><span class="s">"</span>, <span class="s">"</span><span class="s">"</span>, tr_lower(text))</code></pre></div><div class="note"><div class="rng">satır 260–267</div><h3>tr_lower ve normalize_text: karşılaştırma için sadeleştir</h3><p>Python'un <code>lower()</code> fonksiyonu Türkçe'yi bilmez: <code>"İ".lower()</code> noktalı i vermez, <code>"I".lower()</code> ise <code>i</code> verir, oysa Türkçe'de <code>ı</code> olmalı. <code>tr_lower</code> bu iki harfi önce elle çevirir. <code>normalize_text</code> ardından harf ve rakam dışındaki her şeyi siler; boşluk, noktalama ve ters tırnak farkları eşleşmeyi bozmaz. Düzenli ifadedeki <code>[^0-9a-zçğıöşü]+</code> "bunların dışındaki bir ya da daha fazla karakter" demektir.</p></div></div>
+<div class="seg t-3 b"><div class="code"><pre><code><span class="ln">270</span><span class="k">def</span> <span class="nf">evidence_found</span>(evidence: <span class="nb">str</span>, source: <span class="nb">str</span>) -&gt; <span class="nb">bool</span>:
+<span class="ln">271</span>    <span class="sd">"""Kanıt alıntısı kaynakta gerçekten geçiyor mu? Boş kanıt bulunmamış sayılır."""</span>
+<span class="ln">272</span>    normalized = normalize_text(evidence)
+<span class="ln">273</span>    <span class="k">return</span> <span class="nb">bool</span>(normalized) <span class="k">and</span> normalized <span class="k">in</span> normalize_text(source)
+<span class="ln">274</span>
+<span class="ln">275</span>
+<span class="ln">276</span><span class="k">def</span> <span class="nf">apply_evidence_check</span>(verdicts: <span class="nb">list</span>[<span class="nb">dict</span>], source: <span class="nb">str</span>) -&gt; <span class="nb">list</span>[<span class="nb">dict</span>]:
+<span class="ln">277</span>    <span class="sd">"""Zincirin 2. aşamasının deterministik yarısı: kanıtı kaynakta olmayan 'supported' karar 'suspect' olur.</span>
+<span class="ln">278</span>
+<span class="ln">279</span><span class="sd">    Modelin kaynak gösterir gibi görünmesi ile gerçekten kaynağa dayanması aynı şey değildir</span>
+<span class="ln">280</span><span class="sd">    (Ders 1.6 §3.4). Alıntı kaynakta yoksa kararın dayanağı yoktur; iddia şüpheli sayılır.</span>
+<span class="ln">281</span><span class="sd">    """</span>
+<span class="ln">282</span>    <span class="k">for</span> row <span class="k">in</span> verdicts:
+<span class="ln">283</span>        row[<span class="s">"</span><span class="s">kanit_bulundu</span><span class="s">"</span>] = evidence_found(row[<span class="s">"</span><span class="s">kanit</span><span class="s">"</span>], source)
+<span class="ln">284</span>        <span class="k">if</span> row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>] == <span class="s">"</span><span class="s">supported</span><span class="s">"</span> <span class="k">and</span> <span class="k">not</span> row[<span class="s">"</span><span class="s">kanit_bulundu</span><span class="s">"</span>]:
+<span class="ln">285</span>            row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>] = <span class="s">"</span><span class="s">suspect</span><span class="s">"</span>
+<span class="ln">286</span>    <span class="k">return</span> verdicts</code></pre></div><div class="note"><div class="rng">satır 270–286</div><h3>evidence_found ve apply_evidence_check: 2. aşamanın deterministik yarısı</h3><p>Kanıt alıntısı ve kaynak aynı biçimde sadeleştirilir, sonra alıntının kaynağın içinde geçip geçmediğine bakılır (<code>in</code> işleci alt dize arar). Boş alıntı bulunmamış sayılır. <code>apply_evidence_check</code> her satıra <code>kanit_bulundu</code> alanını ekler ve kanıtı bulunmayan <code>supported</code> kararı <code>suspect</code> yapar. Ders 1.6 §3.4: kaynak gösterir gibi görünmek ile kaynağa dayanmak aynı şey değildir; bu kontrol modelin dışında, metnin kendisine bakar.</p></div></div>
+<div class="seg t-3 a"><div class="code"><pre><code><span class="ln">289</span><span class="k">def</span> <span class="nf">risk_score</span>(verdicts: <span class="nb">list</span>[<span class="nb">dict</span>]) -&gt; <span class="nb">float</span>:
+<span class="ln">290</span>    <span class="sd">"""Kararların ağırlıklı ortalaması: 0 = tüm iddialar kaynaklı, 1 = hiçbiri değil."""</span>
+<span class="ln">291</span>    <span class="k">return</span> <span class="nb">sum</span>(RISK_WEIGHTS[row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>]] <span class="k">for</span> row <span class="k">in</span> verdicts) / <span class="nb">len</span>(verdicts)
+<span class="ln">292</span>
+<span class="ln">293</span>
+<span class="ln">294</span><span class="k">def</span> <span class="nf">route</span>(verdicts: <span class="nb">list</span>[<span class="nb">dict</span>], score: <span class="nb">float</span>, threshold: <span class="nb">float</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">295</span>    <span class="sd">"""Risk skorunu yönlendirmeye çevirir (Ders 1.6 §5.2 adım 6). Çelişen iddia tek başına RET demektir."""</span>
+<span class="ln">296</span>    <span class="k">if</span> <span class="nb">any</span>(row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>] == <span class="s">"</span><span class="s">contradicted</span><span class="s">"</span> <span class="k">for</span> row <span class="k">in</span> verdicts):
+<span class="ln">297</span>        <span class="k">return</span> ROUTE_REJECT
+<span class="ln">298</span>    <span class="k">if</span> score == <span class="m">0</span>:
+<span class="ln">299</span>        <span class="k">return</span> ROUTE_ACCEPT
+<span class="ln">300</span>    <span class="k">if</span> score &lt;= threshold:
+<span class="ln">301</span>        <span class="k">return</span> ROUTE_REVIEW
+<span class="ln">302</span>    <span class="k">return</span> ROUTE_REJECT</code></pre></div><div class="note"><div class="rng">satır 289–302</div><h3>risk_score ve route: skor ve yönlendirme</h3><p>Skor, kararların ağırlıklarının ortalamasıdır: 0 ise tüm iddialar kaynaklı, 1 ise hiçbiri. <code>route</code> kuralları sırayla uygular: önce çelişki (eşikten bağımsız <code>RET</code>), sonra sıfır skor (<code>KABUL</code>), sonra eşik karşılaştırması. Sıra önemlidir; çelişki kontrolü sona konsaydı düşük skorlu ama çelişen bir yanıt <code>İNCELE</code> ile geçebilirdi (Ders 1.6 §5.2 adım 5–6).</p></div></div>
+<div class="seg t-3 b"><div class="code"><pre><code><span class="ln">305</span><span class="k">def</span> <span class="nf">match_claims</span>(trap: <span class="nb">dict</span>, verdicts: <span class="nb">list</span>[<span class="nb">dict</span>]) -&gt; <span class="nb">list</span>[<span class="nb">dict</span>]:
+<span class="ln">306</span>    <span class="sd">"""Tuzağın anahtar parçalarını taşıyan iddiaları bulur. Her parça geçmeli; '|' alternatif ayırır."""</span>
+<span class="ln">307</span>    matched = []
+<span class="ln">308</span>    <span class="k">for</span> row <span class="k">in</span> verdicts:
+<span class="ln">309</span>        text = normalize_text(row[<span class="s">"</span><span class="s">iddia</span><span class="s">"</span>])
+<span class="ln">310</span>        <span class="k">if</span> <span class="nb">all</span>(<span class="nb">any</span>(normalize_text(alt) <span class="k">in</span> text <span class="k">for</span> alt <span class="k">in</span> part.split(<span class="s">"</span><span class="s">|</span><span class="s">"</span>)) <span class="k">for</span> part <span class="k">in</span> trap[<span class="s">"</span><span class="s">anahtar</span><span class="s">"</span>]):
+<span class="ln">311</span>            matched.append(row)
+<span class="ln">312</span>    <span class="k">return</span> matched
+<span class="ln">313</span>
+<span class="ln">314</span>
+<span class="ln">315</span><span class="k">def</span> <span class="nf">judge_trap</span>(trap: <span class="nb">dict</span>, matched: <span class="nb">list</span>[<span class="nb">dict</span>]) -&gt; <span class="nb">str</span>:
+<span class="ln">316</span>    <span class="sd">"""Tuzağın sonucunu adlandırır: yakalandı, kaçtı, doğru geçti, yanlış alarm ya da iddia çıkarılmadı."""</span>
+<span class="ln">317</span>    <span class="k">if</span> <span class="k">not</span> matched:
+<span class="ln">318</span>        <span class="k">return</span> <span class="s">"</span><span class="s">iddia çıkarılmadı</span><span class="s">"</span>
+<span class="ln">319</span>    flagged = <span class="nb">any</span>(row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>] != <span class="s">"</span><span class="s">supported</span><span class="s">"</span> <span class="k">for</span> row <span class="k">in</span> matched)
+<span class="ln">320</span>    <span class="k">if</span> trap[<span class="s">"</span><span class="s">beklenen</span><span class="s">"</span>] == <span class="s">"</span><span class="s">yakalanmali</span><span class="s">"</span>:
+<span class="ln">321</span>        <span class="k">return</span> <span class="s">"</span><span class="s">yakalandı</span><span class="s">"</span> <span class="k">if</span> flagged <span class="k">else</span> <span class="s">"</span><span class="s">kaçtı</span><span class="s">"</span>
+<span class="ln">322</span>    <span class="k">return</span> <span class="s">"</span><span class="s">yanlış alarm</span><span class="s">"</span> <span class="k">if</span> flagged <span class="k">else</span> <span class="s">"</span><span class="s">doğru geçti</span><span class="s">"</span></code></pre></div><div class="note"><div class="rng">satır 305–322</div><h3>match_claims ve judge_trap: tuzak eşleştirme ve değerlendirme</h3><p>Tuzak dosyasındaki her <code>anahtar</code> parçası iddiada geçmeli; <code>|</code> ile alternatif yazılabilir. <code>all(any(...))</code> kalıbı tam olarak bunu söyler: her parça için alternatiflerden en az biri bulunsun. <code>judge_trap</code> eşleşen iddia yoksa "iddia çıkarılmadı" der (çıkarıcının hatası, dedektörün değil); eşleşenlerden biri bile <code>supported</code> değilse tuzak işaretlenmiş sayılır. Beklenti <code>yakalanmali</code> ise bu "yakalandı", <code>gecmeli</code> (kontrol cümlesi) ise "yanlış alarm" demektir.</p></div></div>
+<div class="sec-head t-4" id="b-bicim"><h2>Biçimlendirme</h2><p>Türkçe sayı yazımı, metin kısaltma, hizalı tablo ve özet satırları.</p></div>
+<div class="seg t-4 a"><div class="code"><pre><code><span class="ln">325</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">326</span><span class="c"># Biçimlendirme (Türkçe sayı yazımı: binlik ayırıcı nokta, ondalık virgül)</span>
+<span class="ln">327</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">328</span>
+<span class="ln">329</span><span class="k">def</span> <span class="nf">_tr_number</span>(formatted: <span class="nb">str</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">330</span>    <span class="k">return</span> formatted.replace(<span class="s">"</span><span class="s">,</span><span class="s">"</span>, <span class="s">"</span><span class="s">§</span><span class="s">"</span>).replace(<span class="s">"</span><span class="s">.</span><span class="s">"</span>, <span class="s">"</span><span class="s">,</span><span class="s">"</span>).replace(<span class="s">"</span><span class="s">§</span><span class="s">"</span>, <span class="s">"</span><span class="s">.</span><span class="s">"</span>)
+<span class="ln">331</span>
+<span class="ln">332</span>
+<span class="ln">333</span><span class="k">def</span> <span class="nf">fmt_int</span>(n: <span class="nb">int</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">334</span>    <span class="k">return</span> _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span>n<span class="s">:</span><span class="s">,</span><span class="s">}</span><span class="s">"</span>)
+<span class="ln">335</span>
+<span class="ln">336</span>
+<span class="ln">337</span><span class="k">def</span> <span class="nf">fmt_usd</span>(x: <span class="nb">float</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">338</span>    <span class="k">if</span> x == <span class="m">0</span>:
+<span class="ln">339</span>        <span class="k">return</span> <span class="s">"</span><span class="s">$0</span><span class="s">"</span>
+<span class="ln">340</span>    <span class="c"># 1 doların altındaki tutarlarda ilk anlamlı basamaktan sonra bir basamak daha göster: 0,0035 → $0,0035</span>
+<span class="ln">341</span>    decimals = <span class="m">2</span> <span class="k">if</span> x &gt;= <span class="m">1</span> <span class="k">else</span> <span class="nb">min</span>(<span class="m">8</span>, -math.floor(math.log10(x)) + <span class="m">1</span>)
+<span class="ln">342</span>    <span class="k">return</span> <span class="s">"</span><span class="s">$</span><span class="s">"</span> + _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span>x<span class="s">:</span><span class="s">,.</span><span class="s">{</span>decimals<span class="s">}</span><span class="s">f</span><span class="s">}</span><span class="s">"</span>)
+<span class="ln">343</span>
+<span class="ln">344</span>
+<span class="ln">345</span><span class="k">def</span> <span class="nf">fmt_score</span>(score: <span class="nb">float</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">346</span>    <span class="k">return</span> _tr_number(<span class="s">f</span><span class="s">"</span><span class="s">{</span>score<span class="s">:</span><span class="s">.2f</span><span class="s">}</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 325–346</div><h3>Türkçe sayı yazımı: _tr_number, fmt_int, fmt_usd, fmt_score</h3><p>Python sayıları İngilizce yazar: binlik ayırıcı virgül, ondalık nokta. <code>_tr_number</code> ikisini yer değiştirir; aradaki <code>§</code> geçici bir işarettir. <code>fmt_usd</code> bir doların altındaki tutarlarda ilk anlamlı basamaktan sonra bir basamak daha gösterir: <code>$0,0021</code>, <code>$0,000067</code>; <code>math.log10</code> ilk anlamlı basamağın yerini bulur. <code>fmt_score</code> risk skorunu iki ondalıkla yazar.</p></div></div>
+<div class="seg t-4 b"><div class="code"><pre><code><span class="ln">349</span><span class="k">def</span> <span class="nf">fmt_usage</span>(result: <span class="nb">dict</span>, model: <span class="nb">dict</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">350</span>    <span class="sd">"""Bir çağrının özet satırı: model, token sayıları, maliyet ve durma nedeni."""</span>
+<span class="ln">351</span>    cost = estimate_cost(model, result[<span class="s">"</span><span class="s">input_tokens</span><span class="s">"</span>], result[<span class="s">"</span><span class="s">output_tokens</span><span class="s">"</span>])
+<span class="ln">352</span>    cut = <span class="s">"</span><span class="s">  |  UYARI: yanıt max_tokens sınırında kesildi</span><span class="s">"</span> <span class="k">if</span> result[<span class="s">"</span><span class="s">stop_reason</span><span class="s">"</span>] == <span class="s">"</span><span class="s">max_tokens</span><span class="s">"</span> <span class="k">else</span> <span class="s">"</span><span class="s">"</span>
+<span class="ln">353</span>    <span class="k">return</span> (<span class="s">f</span><span class="s">"</span><span class="s">{</span>model[<span class="s">'</span><span class="s">name</span><span class="s">'</span>]<span class="s">}</span><span class="s">  |  girdi </span><span class="s">{</span>fmt_int(result[<span class="s">'</span><span class="s">input_tokens</span><span class="s">'</span>])<span class="s">}</span><span class="s"> token, çıktı </span><span class="s">"</span>
+<span class="ln">354</span>            <span class="s">f</span><span class="s">"</span><span class="s">{</span>fmt_int(result[<span class="s">'</span><span class="s">output_tokens</span><span class="s">'</span>])<span class="s">}</span><span class="s"> token  |  </span><span class="s">{</span>fmt_usd(cost)<span class="s">}</span><span class="s">{</span>cut<span class="s">}</span><span class="s">"</span>)
+<span class="ln">355</span>
+<span class="ln">356</span>
+<span class="ln">357</span><span class="k">def</span> <span class="nf">wrap_text</span>(text: <span class="nb">str</span>, width: <span class="nb">int</span> = <span class="m">100</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">358</span>    <span class="sd">"""Uzun bir paragrafı terminalde okunur satırlara böler; dosyaya yazılan metin değişmez."""</span>
+<span class="ln">359</span>    <span class="k">return</span> <span class="s">"</span><span class="s">\n</span><span class="s">"</span>.join(textwrap.fill(p, width) <span class="k">for</span> p <span class="k">in</span> text.splitlines() <span class="k">if</span> p.strip())</code></pre></div><div class="note"><div class="rng">satır 349–359</div><h3>fmt_usage: çağrının özet satırı</h3><p>Model adı, girdi ve çıktı token sayıları, maliyet ve gerekirse kesilme uyarısı tek satırda. Uyarı <code>stop_reason == "max_tokens"</code> ise eklenir (Ders 1.4 §5.3): kesik bir yanıtı iddialara ayırmak yarım veriyle çalışmaktır.</p></div></div>
+<div class="seg t-4 a"><div class="code"><pre><code><span class="ln">362</span><span class="k">def</span> <span class="nf">shorten</span>(text: <span class="nb">str</span>, width: <span class="nb">int</span>) -&gt; <span class="nb">str</span>:
+<span class="ln">363</span>    <span class="k">return</span> text <span class="k">if</span> <span class="nb">len</span>(text) &lt;= width <span class="k">else</span> text[: width - <span class="m">1</span>].rstrip() + <span class="s">"</span><span class="s">…</span><span class="s">"</span>
+<span class="ln">364</span>
+<span class="ln">365</span>
+<span class="ln">366</span><span class="k">def</span> <span class="nf">print_table</span>(headers: <span class="nb">list</span>[<span class="nb">str</span>], rows: <span class="nb">list</span>[<span class="nb">list</span>[<span class="nb">str</span>]], right_align: <span class="nb">set</span>[<span class="nb">int</span>] = <span class="nb">frozenset</span>()) -&gt; <span class="k">None</span>:
+<span class="ln">367</span>    widths = [<span class="nb">max</span>(<span class="nb">len</span>(<span class="nb">str</span>(cell)) <span class="k">for</span> cell <span class="k">in</span> column) <span class="k">for</span> column <span class="k">in</span> <span class="nb">zip</span>(headers, *rows)]
+<span class="ln">368</span>
+<span class="ln">369</span>    <span class="k">def</span> <span class="nf">line</span>(cells):
+<span class="ln">370</span>        parts = []
+<span class="ln">371</span>        <span class="k">for</span> i, cell <span class="k">in</span> <span class="nb">enumerate</span>(cells):
+<span class="ln">372</span>            parts.append(<span class="nb">str</span>(cell).rjust(widths[i]) <span class="k">if</span> i <span class="k">in</span> right_align <span class="k">else</span> <span class="nb">str</span>(cell).ljust(widths[i]))
+<span class="ln">373</span>        <span class="k">return</span> <span class="s">"</span><span class="s">  </span><span class="s">"</span>.join(parts).rstrip()
+<span class="ln">374</span>
+<span class="ln">375</span>    <span class="nb">print</span>(line(headers))
+<span class="ln">376</span>    <span class="nb">print</span>(<span class="s">"</span><span class="s">  </span><span class="s">"</span>.join(<span class="s">"</span><span class="s">-</span><span class="s">"</span> * w <span class="k">for</span> w <span class="k">in</span> widths))
+<span class="ln">377</span>    <span class="k">for</span> row <span class="k">in</span> rows:
+<span class="ln">378</span>        <span class="nb">print</span>(line(row))</code></pre></div><div class="note"><div class="rng">satır 362–378</div><h3>shorten ve print_table: hizalı tablo</h3><p><code>shorten</code> uzun iddiaları tabloya sığdırmak için keser ve sonuna üç nokta koyar; kesilen metin kayıtta tam hâliyle durur. <code>print_table</code> her sütunun genişliğini en uzun hücreye göre hesaplar (<code>zip(headers, *rows)</code> sütunları gezer), sayısal sütunları sağa yaslar.</p></div></div>
+<div class="seg t-4 b"><div class="code"><pre><code><span class="ln">381</span><span class="k">def</span> <span class="nf">print_verdicts</span>(verdicts: <span class="nb">list</span>[<span class="nb">dict</span>]) -&gt; <span class="k">None</span>:
+<span class="ln">382</span>    <span class="sd">"""Doğrulama tablosu: iddia, karar, kanıt denetimi sonucu ve gerekçe."""</span>
+<span class="ln">383</span>    rows = []
+<span class="ln">384</span>    <span class="k">for</span> i, row <span class="k">in</span> <span class="nb">enumerate</span>(verdicts, start=<span class="m">1</span>):
+<span class="ln">385</span>        evidence = <span class="s">"</span><span class="s">kaynakta</span><span class="s">"</span> <span class="k">if</span> row[<span class="s">"</span><span class="s">kanit_bulundu</span><span class="s">"</span>] <span class="k">else</span> (<span class="s">"</span><span class="s">kaynakta YOK</span><span class="s">"</span> <span class="k">if</span> row[<span class="s">"</span><span class="s">kanit</span><span class="s">"</span>] <span class="k">else</span> <span class="s">"</span><span class="s">yok</span><span class="s">"</span>)
+<span class="ln">386</span>        rows.append([<span class="nb">str</span>(i), shorten(row[<span class="s">"</span><span class="s">iddia</span><span class="s">"</span>], <span class="m">56</span>), VERDICT_LABELS[row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>]], evidence, shorten(row[<span class="s">"</span><span class="s">not</span><span class="s">"</span>], <span class="m">44</span>)])
+<span class="ln">387</span>    print_table([<span class="s">"</span><span class="s">#</span><span class="s">"</span>, <span class="s">"</span><span class="s">İddia</span><span class="s">"</span>, <span class="s">"</span><span class="s">Karar</span><span class="s">"</span>, <span class="s">"</span><span class="s">Kanıt</span><span class="s">"</span>, <span class="s">"</span><span class="s">Not</span><span class="s">"</span>], rows, right_align={<span class="m">0</span>})
+<span class="ln">388</span>
+<span class="ln">389</span>
+<span class="ln">390</span><span class="k">def</span> <span class="nf">print_summary</span>(verdicts: <span class="nb">list</span>[<span class="nb">dict</span>], score: <span class="nb">float</span>, decision: <span class="nb">str</span>, threshold: <span class="nb">float</span>) -&gt; <span class="k">None</span>:
+<span class="ln">391</span>    <span class="sd">"""Karar dağılımı, risk skoru ve yönlendirme satırları."""</span>
+<span class="ln">392</span>    counts = {key: <span class="nb">sum</span>(<span class="m">1</span> <span class="k">for</span> row <span class="k">in</span> verdicts <span class="k">if</span> row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>] == key) <span class="k">for</span> key <span class="k">in</span> VERDICT_LABELS}
+<span class="ln">393</span>    parts = [<span class="s">f</span><span class="s">"</span><span class="s">{</span>counts[key]<span class="s">}</span><span class="s"> </span><span class="s">{</span>tr_lower(label)<span class="s">}</span><span class="s">"</span> <span class="k">for</span> key, label <span class="k">in</span> VERDICT_LABELS.items() <span class="k">if</span> counts[key]]
+<span class="ln">394</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">{</span><span class="nb">len</span>(verdicts)<span class="s">}</span><span class="s"> iddia: </span><span class="s">"</span> + <span class="s">"</span><span class="s">, </span><span class="s">"</span>.join(parts))
+<span class="ln">395</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Risk skoru: </span><span class="s">{</span>fmt_score(score)<span class="s">}</span><span class="s"> (eşik </span><span class="s">{</span>fmt_score(threshold)<span class="s">}</span><span class="s">)  →  </span><span class="s">{</span>decision<span class="s">}</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 381–395</div><h3>print_verdicts ve print_summary: karar tablosu ve özet</h3><p>Her iddia bir satır: numara, kısaltılmış iddia, Türkçe karar etiketi, kanıt durumu ve not. Kanıt sütunu üç değer alır: <code>kaynakta</code>, <code>kaynakta YOK</code> (alıntı verildi ama bulunamadı) ya da <code>yok</code> (alıntı verilmedi). <code>print_summary</code> karar dağılımını sayar, skoru, eşiği ve yönlendirmeyi basar.</p></div></div>
+<div class="sec-head t-1" id="b-veri"><h2>Veri ve kayıt</h2><p>Fiyat, kaynak, soru, iddia ve tuzak dosyalarını okuyan; yanıt, iddia ve zincir kayıtlarını yazan fonksiyonlar.</p></div>
+<div class="seg t-1 a"><div class="code"><pre><code><span class="ln">398</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">399</span><span class="c"># Kayıt (JSONL: her satır bir zincir çalıştırması)</span>
+<span class="ln">400</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">401</span>
+<span class="ln">402</span><span class="k">def</span> <span class="nf">answer_path</span>(question_path: <span class="nb">str</span>) -&gt; Path:
+<span class="ln">403</span>    stem = Path(question_path).stem <span class="k">if</span> Path(question_path).is_file() <span class="k">else</span> <span class="s">"</span><span class="s">yanit</span><span class="s">"</span>
+<span class="ln">404</span>    <span class="k">return</span> DEFAULT_RESULTS_DIR / <span class="s">f</span><span class="s">"</span><span class="s">{</span>stem<span class="s">}</span><span class="s">.md</span><span class="s">"</span>
+<span class="ln">405</span>
+<span class="ln">406</span>
+<span class="ln">407</span><span class="k">def</span> <span class="nf">claims_path</span>(answer_file: <span class="nb">str</span>) -&gt; Path:
+<span class="ln">408</span>    <span class="k">return</span> DEFAULT_RESULTS_DIR / <span class="s">f</span><span class="s">"</span><span class="s">{</span>Path(answer_file).stem<span class="s">}</span><span class="s">.iddialar.json</span><span class="s">"</span>
+<span class="ln">409</span>
+<span class="ln">410</span>
+<span class="ln">411</span><span class="k">def</span> <span class="nf">write_text</span>(path: Path, text: <span class="nb">str</span>) -&gt; <span class="k">None</span>:
+<span class="ln">412</span>    path.parent.mkdir(parents=<span class="k">True</span>, exist_ok=<span class="k">True</span>)
+<span class="ln">413</span>    path.write_text(text + <span class="s">"</span><span class="s">\n</span><span class="s">"</span>, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>)
+<span class="ln">414</span>
+<span class="ln">415</span>
+<span class="ln">416</span><span class="k">def</span> <span class="nf">save_record</span>(path: Path, record: <span class="nb">dict</span>) -&gt; <span class="k">None</span>:
+<span class="ln">417</span>    <span class="sd">"""Zincir kaydını JSONL dosyasının sonuna ekler."""</span>
+<span class="ln">418</span>    path.parent.mkdir(parents=<span class="k">True</span>, exist_ok=<span class="k">True</span>)
+<span class="ln">419</span>    <span class="k">with</span> <span class="nb">open</span>(path, <span class="s">"</span><span class="s">a</span><span class="s">"</span>, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>) <span class="k">as</span> f:
+<span class="ln">420</span>        f.write(json.dumps(record, ensure_ascii=<span class="k">False</span>) + <span class="s">"</span><span class="s">\n</span><span class="s">"</span>)</code></pre></div><div class="note"><div class="rng">satır 398–420</div><h3>Dosya yolları ve yazma: answer_path, claims_path, write_text, save_record</h3><p>Varsayılan yollar soru ya da yanıt dosyasının adından türetilir: <code>sorular/01_iptal.txt</code> → <code>sonuclar/01_iptal.md</code> → <code>sonuclar/01_iptal.iddialar.json</code>. <code>write_text</code> klasörü gerekirse oluşturur. <code>save_record</code> zincir kaydını JSONL dosyasının sonuna ekler (<code>"a"</code> = append): her satır bağımsız bir JSON nesnesidir, dosya büyüse de eski satırlar okunabilir kalır. <code>ensure_ascii=False</code> Türkçe karakterleri kaçış dizilerine çevirmeden yazar.</p></div></div>
+<div class="seg t-1 b"><div class="code"><pre><code><span class="ln">423</span><span class="k">def</span> <span class="nf">load_records</span>(path: <span class="nb">str</span>) -&gt; <span class="nb">list</span>[<span class="nb">dict</span>]:
+<span class="ln">424</span>    records = []
+<span class="ln">425</span>    <span class="k">with</span> <span class="nb">open</span>(path, encoding=<span class="s">"</span><span class="s">utf-8</span><span class="s">"</span>) <span class="k">as</span> f:
+<span class="ln">426</span>        <span class="k">for</span> line <span class="k">in</span> f:
+<span class="ln">427</span>            <span class="k">if</span> line.strip():
+<span class="ln">428</span>                records.append(json.loads(line))
+<span class="ln">429</span>    <span class="k">if</span> <span class="k">not</span> records:
+<span class="ln">430</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>path<span class="s">}</span><span class="s">: zincir kaydı yok. Önce </span><span class="s">'</span><span class="s">chain</span><span class="s">'</span><span class="s"> komutunu çalıştır.</span><span class="s">"</span>)
+<span class="ln">431</span>    <span class="k">return</span> records
+<span class="ln">432</span>
+<span class="ln">433</span>
+<span class="ln">434</span><span class="k">def</span> <span class="nf">shown</span>(path: Path) -&gt; <span class="nb">str</span>:
+<span class="ln">435</span>    <span class="sd">"""Yolu proje klasörüne göre, ters bölü kullanmadan yazar."""</span>
+<span class="ln">436</span>    <span class="k">return</span> (path.relative_to(PROJECT_DIR) <span class="k">if</span> path.is_relative_to(PROJECT_DIR) <span class="k">else</span> path).as_posix()</code></pre></div><div class="note"><div class="rng">satır 423–436</div><h3>load_records ve shown: kayıt okuma ve yol gösterimi</h3><p><code>load_records</code> JSONL dosyasını satır satır okur; boş dosya anlamlı bir hatayla reddedilir. <code>shown</code> bir yolu proje klasörüne göre ve ileri bölü ile yazar; Windows'ta ters bölü görünmesin diye <code>as_posix()</code> kullanılır.</p></div></div>
+<div class="sec-head t-5" id="b-komut"><h2>Komutlar</h2><p>answer, extract, verify, chain ve score komutlarının iş akışı: diğer bloklardaki fonksiyonları sırayla çağırır.</p></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">439</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">440</span><span class="c"># Komutlar</span>
+<span class="ln">441</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">442</span>
+<span class="ln">443</span><span class="k">def</span> <span class="nf">cmd_answer</span>(args, client, pricing: <span class="nb">dict</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">444</span>    model = select_model(pricing, args.generator, <span class="s">"</span><span class="s">uretici</span><span class="s">"</span>)
+<span class="ln">445</span>    source, question = read_text(args.source), read_question(args.question)
+<span class="ln">446</span>    result = generate_answer(client, model, source, question)
+<span class="ln">447</span>    out = Path(args.out) <span class="k">if</span> args.out <span class="k">else</span> answer_path(args.question)
+<span class="ln">448</span>    write_text(out, result[<span class="s">"</span><span class="s">text</span><span class="s">"</span>])
+<span class="ln">449</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Soru: </span><span class="s">{</span>question<span class="s">}</span><span class="s">"</span>)
+<span class="ln">450</span>    <span class="nb">print</span>()
+<span class="ln">451</span>    <span class="nb">print</span>(wrap_text(result[<span class="s">"</span><span class="s">text</span><span class="s">"</span>]))
+<span class="ln">452</span>    <span class="nb">print</span>()
+<span class="ln">453</span>    <span class="nb">print</span>(fmt_usage(result, model))
+<span class="ln">454</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Yanıt kaydedildi: </span><span class="s">{</span>shown(out)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">455</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 439–455</div><h3>cmd_answer: yanıt üret</h3><p>Üretici seçilir, kaynak ve soru okunur, yanıt alınır ve dosyaya yazılır. Ekranda soru, yanıt, çağrı özeti ve dosya yolu görünür. Fonksiyon <code>0</code> döndürür; <code>main</code> bu değeri programın çıkış kodu yapar.</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">458</span><span class="k">def</span> <span class="nf">cmd_extract</span>(args, client, pricing: <span class="nb">dict</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">459</span>    model = select_model(pricing, args.verifier, <span class="s">"</span><span class="s">dogrulayici</span><span class="s">"</span>)
+<span class="ln">460</span>    claims, result = extract_claims(client, model, read_text(args.answer))
+<span class="ln">461</span>    out = Path(args.out) <span class="k">if</span> args.out <span class="k">else</span> claims_path(args.answer)
+<span class="ln">462</span>    write_text(out, json.dumps({<span class="s">"</span><span class="s">claims</span><span class="s">"</span>: claims}, ensure_ascii=<span class="k">False</span>, indent=<span class="m">2</span>))
+<span class="ln">463</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">{</span><span class="nb">len</span>(claims)<span class="s">}</span><span class="s"> iddia çıkarıldı:</span><span class="s">"</span>)
+<span class="ln">464</span>    <span class="k">for</span> i, claim <span class="k">in</span> <span class="nb">enumerate</span>(claims, start=<span class="m">1</span>):
+<span class="ln">465</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">  </span><span class="s">{</span>i<span class="s">}</span><span class="s">. </span><span class="s">{</span>claim<span class="s">}</span><span class="s">"</span>)
+<span class="ln">466</span>    <span class="nb">print</span>()
+<span class="ln">467</span>    <span class="nb">print</span>(fmt_usage(result, model))
+<span class="ln">468</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">İddialar kaydedildi: </span><span class="s">{</span>shown(out)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">469</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 458–469</div><h3>cmd_extract: 1. aşamayı tek başına çalıştır</h3><p>Doğrulayıcı seçilir, yanıt dosyası okunur, iddialar çıkarılır ve <code>{"claims": [...]}</code> biçiminde dosyaya yazılır. <code>indent=2</code> JSON'u insan okuyabilsin diye girintiler. Ayrı bir komut olması, iddia listesini doğrulamadan önce elle inceleyip düzenleyebilmen içindir.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">472</span><span class="k">def</span> <span class="nf">cmd_verify</span>(args, client, pricing: <span class="nb">dict</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">473</span>    model = select_model(pricing, args.verifier, <span class="s">"</span><span class="s">dogrulayici</span><span class="s">"</span>)
+<span class="ln">474</span>    source = read_text(args.source)
+<span class="ln">475</span>    verdicts, result = verify_claims(client, model, source, load_claims(args.claims))
+<span class="ln">476</span>    apply_evidence_check(verdicts, source)
+<span class="ln">477</span>    score = risk_score(verdicts)
+<span class="ln">478</span>    print_verdicts(verdicts)
+<span class="ln">479</span>    <span class="nb">print</span>()
+<span class="ln">480</span>    print_summary(verdicts, score, route(verdicts, score, args.threshold), args.threshold)
+<span class="ln">481</span>    <span class="nb">print</span>(fmt_usage(result, model))
+<span class="ln">482</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 472–482</div><h3>cmd_verify: 2. aşamayı tek başına çalıştır</h3><p>Sıra önemlidir: önce <code>verify_claims</code> (LLM kararı), sonra <code>apply_evidence_check</code> (deterministik denetim), sonra skor ve yönlendirme, en son tablo ve özet. Denetim tabloya kadar yapılmazsa <code>print_verdicts</code> <code>kanit_bulundu</code> alanını bulamaz.</p></div></div>
+<div class="seg t-5 b"><div class="code"><pre><code><span class="ln">485</span><span class="k">def</span> <span class="nf">cmd_chain</span>(args, client, pricing: <span class="nb">dict</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">486</span>    generator = select_model(pricing, args.generator, <span class="s">"</span><span class="s">uretici</span><span class="s">"</span>)
+<span class="ln">487</span>    verifier = select_model(pricing, args.verifier, <span class="s">"</span><span class="s">dogrulayici</span><span class="s">"</span>)
+<span class="ln">488</span>    source, question = read_text(args.source), read_question(args.question)
+<span class="ln">489</span>    calls, cost = <span class="m">0</span>, <span class="m">0.0</span>
+<span class="ln">490</span>
+<span class="ln">491</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Soru: </span><span class="s">{</span>question<span class="s">}</span><span class="s">"</span>)
+<span class="ln">492</span>    <span class="k">if</span> args.answer:
+<span class="ln">493</span>        answer = read_text(args.answer)
+<span class="ln">494</span>        answer_file = args.answer
+<span class="ln">495</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Yanıt dosyadan okundu: </span><span class="s">{</span>answer_file<span class="s">}</span><span class="s"> (üretim atlandı)</span><span class="s">"</span>)
+<span class="ln">496</span>    <span class="k">else</span>:
+<span class="ln">497</span>        result = generate_answer(client, generator, source, question)
+<span class="ln">498</span>        answer, answer_file = result[<span class="s">"</span><span class="s">text</span><span class="s">"</span>], shown(answer_path(args.question))
+<span class="ln">499</span>        write_text(answer_path(args.question), answer)
+<span class="ln">500</span>        calls, cost = calls + <span class="m">1</span>, cost + estimate_cost(generator, result[<span class="s">"</span><span class="s">input_tokens</span><span class="s">"</span>], result[<span class="s">"</span><span class="s">output_tokens</span><span class="s">"</span>])
+<span class="ln">501</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Yanıt (</span><span class="s">{</span>generator[<span class="s">'</span><span class="s">name</span><span class="s">'</span>]<span class="s">}</span><span class="s">):</span><span class="s">"</span>)
+<span class="ln">502</span>        <span class="nb">print</span>(wrap_text(answer))
+<span class="ln">503</span>    <span class="nb">print</span>()
+<span class="ln">504</span>
+<span class="ln">505</span>    claims, result = extract_claims(client, verifier, answer)
+<span class="ln">506</span>    calls, cost = calls + <span class="m">1</span>, cost + estimate_cost(verifier, result[<span class="s">"</span><span class="s">input_tokens</span><span class="s">"</span>], result[<span class="s">"</span><span class="s">output_tokens</span><span class="s">"</span>])
+<span class="ln">507</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Aşama 1 — </span><span class="s">{</span><span class="nb">len</span>(claims)<span class="s">}</span><span class="s"> iddia çıkarıldı (</span><span class="s">{</span>verifier[<span class="s">'</span><span class="s">name</span><span class="s">'</span>]<span class="s">}</span><span class="s">)</span><span class="s">"</span>)
+<span class="ln">508</span>
+<span class="ln">509</span>    verdicts, result = verify_claims(client, verifier, source, claims)
+<span class="ln">510</span>    calls, cost = calls + <span class="m">1</span>, cost + estimate_cost(verifier, result[<span class="s">"</span><span class="s">input_tokens</span><span class="s">"</span>], result[<span class="s">"</span><span class="s">output_tokens</span><span class="s">"</span>])
+<span class="ln">511</span>    apply_evidence_check(verdicts, source)
+<span class="ln">512</span>    score = risk_score(verdicts)
+<span class="ln">513</span>    decision = route(verdicts, score, args.threshold)
+<span class="ln">514</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Aşama 2 — iddialar kaynağa karşı doğrulandı (</span><span class="s">{</span>verifier[<span class="s">'</span><span class="s">name</span><span class="s">'</span>]<span class="s">}</span><span class="s">)</span><span class="s">"</span>)
+<span class="ln">515</span>    <span class="nb">print</span>()
+<span class="ln">516</span>    print_verdicts(verdicts)
+<span class="ln">517</span>    <span class="nb">print</span>()
+<span class="ln">518</span>    print_summary(verdicts, score, decision, args.threshold)
+<span class="ln">519</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">{</span>calls<span class="s">}</span><span class="s"> çağrı, toplam </span><span class="s">{</span>fmt_usd(cost)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">520</span>
+<span class="ln">521</span>    out = Path(args.out) <span class="k">if</span> args.out <span class="k">else</span> DEFAULT_CHAIN_PATH
+<span class="ln">522</span>    save_record(out, {
+<span class="ln">523</span>        <span class="s">"</span><span class="s">zaman</span><span class="s">"</span>: datetime.now().isoformat(timespec=<span class="s">"</span><span class="s">seconds</span><span class="s">"</span>), <span class="s">"</span><span class="s">kaynak</span><span class="s">"</span>: args.source, <span class="s">"</span><span class="s">soru</span><span class="s">"</span>: question,
+<span class="ln">524</span>        <span class="s">"</span><span class="s">yanit_dosyasi</span><span class="s">"</span>: answer_file, <span class="s">"</span><span class="s">uretici</span><span class="s">"</span>: <span class="k">None</span> <span class="k">if</span> args.answer <span class="k">else</span> generator[<span class="s">"</span><span class="s">key</span><span class="s">"</span>], <span class="s">"</span><span class="s">dogrulayici</span><span class="s">"</span>: verifier[<span class="s">"</span><span class="s">key</span><span class="s">"</span>],
+<span class="ln">525</span>        <span class="s">"</span><span class="s">iddialar</span><span class="s">"</span>: verdicts, <span class="s">"</span><span class="s">skor</span><span class="s">"</span>: <span class="nb">round</span>(score, <span class="m">3</span>), <span class="s">"</span><span class="s">esik</span><span class="s">"</span>: args.threshold, <span class="s">"</span><span class="s">yonlendirme</span><span class="s">"</span>: decision,
+<span class="ln">526</span>        <span class="s">"</span><span class="s">cagri</span><span class="s">"</span>: calls, <span class="s">"</span><span class="s">maliyet</span><span class="s">"</span>: cost,
+<span class="ln">527</span>    })
+<span class="ln">528</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Kaydedildi: </span><span class="s">{</span>shown(out)<span class="s">}</span><span class="s">"</span>)
+<span class="ln">529</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 485–529</div><h3>cmd_chain: üç adım uç uca</h3><p><code>--answer</code> verildiyse yanıt dosyadan okunur ve üretim atlanır; verilmediyse üretici çağrılır ve yanıt dosyaya yazılır. Her çağrıdan sonra <code>calls</code> ve <code>cost</code> güncellenir; iki değişkeni tek satırda artıran <code>calls, cost = calls + 1, cost + ...</code> kalıbı çoklu atamadır. Sonda tüm kararlar, skor, eşik, yönlendirme, çağrı sayısı ve maliyet tek bir sözlük olarak kaydedilir; <code>uretici</code> alanı yanıt dosyadan geldiyse <code>None</code> olur.</p></div></div>
+<div class="seg t-5 a"><div class="code"><pre><code><span class="ln">532</span><span class="k">def</span> <span class="nf">cmd_score</span>(args) -&gt; <span class="nb">int</span>:
+<span class="ln">533</span>    traps = load_traps(args.traps)
+<span class="ln">534</span>    records = load_records(args.results)
+<span class="ln">535</span>    target = traps.get(<span class="s">"</span><span class="s">yanit</span><span class="s">"</span>)
+<span class="ln">536</span>    matching = [r <span class="k">for</span> r <span class="k">in</span> records <span class="k">if</span> r.get(<span class="s">"</span><span class="s">yanit_dosyasi</span><span class="s">"</span>) == target] <span class="k">if</span> target <span class="k">else</span> records
+<span class="ln">537</span>    <span class="k">if</span> <span class="k">not</span> matching:
+<span class="ln">538</span>        <span class="k">raise</span> ValueError(<span class="s">f</span><span class="s">"</span><span class="s">{</span>args.results<span class="s">}</span><span class="s">: </span><span class="s">'</span><span class="s">{</span>target<span class="s">}</span><span class="s">'</span><span class="s"> yanıtıyla çalıştırılmış zincir kaydı yok. </span><span class="s">"</span>
+<span class="ln">539</span>                         <span class="s">f</span><span class="s">"</span><span class="s">Önce: chain &lt;kaynak&gt; &lt;soru&gt; --answer </span><span class="s">{</span>target<span class="s">}</span><span class="s">"</span>)
+<span class="ln">540</span>    record = matching[-<span class="m">1</span>]
+<span class="ln">541</span>    verdicts = record[<span class="s">"</span><span class="s">iddialar</span><span class="s">"</span>]
+<span class="ln">542</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Zincir kaydı: </span><span class="s">{</span>record[<span class="s">'</span><span class="s">zaman</span><span class="s">'</span>]<span class="s">}</span><span class="s">  |  yanıt: </span><span class="s">{</span>record[<span class="s">'</span><span class="s">yanit_dosyasi</span><span class="s">'</span>]<span class="s">}</span><span class="s">  |  </span><span class="s">"</span>
+<span class="ln">543</span>          <span class="s">f</span><span class="s">"</span><span class="s">{</span><span class="nb">len</span>(verdicts)<span class="s">}</span><span class="s"> iddia, yönlendirme </span><span class="s">{</span>record[<span class="s">'</span><span class="s">yonlendirme</span><span class="s">'</span>]<span class="s">}</span><span class="s">"</span>)
+<span class="ln">544</span>    <span class="nb">print</span>()
+<span class="ln">545</span>
+<span class="ln">546</span>    rows, outcomes = [], []
+<span class="ln">547</span>    <span class="k">for</span> trap <span class="k">in</span> traps[<span class="s">"</span><span class="s">tuzaklar</span><span class="s">"</span>]:
+<span class="ln">548</span>        matched = match_claims(trap, verdicts)
+<span class="ln">549</span>        outcome = judge_trap(trap, matched)
+<span class="ln">550</span>        outcomes.append((trap, outcome))
+<span class="ln">551</span>        verdict_text = <span class="s">"</span><span class="s">, </span><span class="s">"</span>.join(VERDICT_LABELS[row[<span class="s">"</span><span class="s">karar</span><span class="s">"</span>]] <span class="k">for</span> row <span class="k">in</span> matched) <span class="k">or</span> <span class="s">"</span><span class="s">-</span><span class="s">"</span>
+<span class="ln">552</span>        rows.append([trap[<span class="s">"</span><span class="s">id</span><span class="s">"</span>], trap[<span class="s">"</span><span class="s">tur</span><span class="s">"</span>], <span class="s">"</span><span class="s"> + </span><span class="s">"</span>.join(trap[<span class="s">"</span><span class="s">anahtar</span><span class="s">"</span>]), <span class="nb">str</span>(<span class="nb">len</span>(matched)), verdict_text, outcome])
+<span class="ln">553</span>    print_table([<span class="s">"</span><span class="s">Tuzak</span><span class="s">"</span>, <span class="s">"</span><span class="s">Tür</span><span class="s">"</span>, <span class="s">"</span><span class="s">Anahtar</span><span class="s">"</span>, <span class="s">"</span><span class="s">İddia</span><span class="s">"</span>, <span class="s">"</span><span class="s">Karar</span><span class="s">"</span>, <span class="s">"</span><span class="s">Sonuç</span><span class="s">"</span>], rows, right_align={<span class="m">3</span>})
+<span class="ln">554</span>    <span class="nb">print</span>()
+<span class="ln">555</span>
+<span class="ln">556</span>    planted = [o <span class="k">for</span> t, o <span class="k">in</span> outcomes <span class="k">if</span> t[<span class="s">"</span><span class="s">beklenen</span><span class="s">"</span>] == <span class="s">"</span><span class="s">yakalanmali</span><span class="s">"</span>]
+<span class="ln">557</span>    controls = [o <span class="k">for</span> t, o <span class="k">in</span> outcomes <span class="k">if</span> t[<span class="s">"</span><span class="s">beklenen</span><span class="s">"</span>] == <span class="s">"</span><span class="s">gecmeli</span><span class="s">"</span>]
+<span class="ln">558</span>    caught = planted.count(<span class="s">"</span><span class="s">yakalandı</span><span class="s">"</span>)
+<span class="ln">559</span>    <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Yakalama: </span><span class="s">{</span>caught<span class="s">}</span><span class="s">/</span><span class="s">{</span><span class="nb">len</span>(planted)<span class="s">}</span><span class="s"> tuzak yakalandı</span><span class="s">"</span>
+<span class="ln">560</span>          + (<span class="s">f</span><span class="s">"</span><span class="s"> (</span><span class="s">{</span>planted.count(<span class="s">'</span><span class="s">iddia çıkarılmadı</span><span class="s">'</span>)<span class="s">}</span><span class="s"> tuzak iddia olarak çıkarılmadı)</span><span class="s">"</span> <span class="k">if</span> <span class="s">"</span><span class="s">iddia çıkarılmadı</span><span class="s">"</span> <span class="k">in</span> planted <span class="k">else</span> <span class="s">"</span><span class="s">"</span>))
+<span class="ln">561</span>    <span class="k">if</span> controls:
+<span class="ln">562</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Yanlış alarm: </span><span class="s">{</span>controls.count(<span class="s">'</span><span class="s">yanlış alarm</span><span class="s">'</span>)<span class="s">}</span><span class="s">/</span><span class="s">{</span><span class="nb">len</span>(controls)<span class="s">}</span><span class="s"> kontrol cümlesi haksız yere işaretlendi</span><span class="s">"</span>)
+<span class="ln">563</span>    <span class="k">return</span> <span class="m">0</span></code></pre></div><div class="note"><div class="rng">satır 532–563</div><h3>cmd_score: dedektör karnesi</h3><p>Tuzak seti ve zincir kayıtları okunur; tuzak setindeki yanıt dosyasıyla çalıştırılmış <b>son</b> kayıt seçilir (liste dilimi <code>[-1]</code> son öğedir). Her tuzak için eşleşen iddialar bulunur, sonuç adlandırılır ve tabloya yazılır. Altta yerleştirilen tuzaklar için yakalama oranı, kontrol cümleleri için yanlış alarm sayısı ayrı ayrı sayılır; ikisini birlikte okumadan dedektör hakkında karar verilmez.</p></div></div>
+<div class="sec-head t-6" id="b-giris"><h2>Giriş noktası</h2><p>Program buradan başlar: komut satırını okur ve işi doğru komuta yollar.</p></div>
+<div class="seg t-6 a"><div class="code"><pre><code><span class="ln">566</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">567</span><span class="c"># Giriş noktası</span>
+<span class="ln">568</span><span class="c"># ---------------------------------------------------------------------------</span>
+<span class="ln">569</span>
+<span class="ln">570</span><span class="k">def</span> <span class="nf">build_parser</span>() -&gt; argparse.ArgumentParser:
+<span class="ln">571</span>    parser = argparse.ArgumentParser(prog=<span class="s">"</span><span class="s">dedektor</span><span class="s">"</span>, description=<span class="s">"</span><span class="s">LLM yanıtını iddialara ayır, kaynağa karşı doğrula, risk skoruna göre yönlendir.</span><span class="s">"</span>)
+<span class="ln">572</span>    parser.add_argument(<span class="s">"</span><span class="s">--pricing</span><span class="s">"</span>, default=<span class="nb">str</span>(DEFAULT_PRICING_PATH), help=<span class="s">"</span><span class="s">Fiyat ve model dosyası (varsayılan: pricing.yaml)</span><span class="s">"</span>)
+<span class="ln">573</span>    parser.add_argument(<span class="s">"</span><span class="s">--generator</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Üretici model anahtarı (varsayılan: pricing.yaml &gt; roller &gt; uretici)</span><span class="s">"</span>)
+<span class="ln">574</span>    parser.add_argument(<span class="s">"</span><span class="s">--verifier</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Doğrulayıcı model anahtarı (varsayılan: pricing.yaml &gt; roller &gt; dogrulayici)</span><span class="s">"</span>)
+<span class="ln">575</span>    sub = parser.add_subparsers(dest=<span class="s">"</span><span class="s">command</span><span class="s">"</span>, required=<span class="k">True</span>)
+<span class="ln">576</span>
+<span class="ln">577</span>    p_answer = sub.add_parser(<span class="s">"</span><span class="s">answer</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Kaynağa dayalı yanıt üret ve dosyaya yaz (ücretli)</span><span class="s">"</span>)
+<span class="ln">578</span>    p_answer.add_argument(<span class="s">"</span><span class="s">source</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Kaynak doküman (Markdown ya da düz metin)</span><span class="s">"</span>)
+<span class="ln">579</span>    p_answer.add_argument(<span class="s">"</span><span class="s">question</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Soru metni ya da soruyu içeren dosya</span><span class="s">"</span>)
+<span class="ln">580</span>    p_answer.add_argument(<span class="s">"</span><span class="s">--out</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Yanıt dosyası (varsayılan: sonuclar/&lt;soru dosyası adı&gt;.md)</span><span class="s">"</span>)
+<span class="ln">581</span>
+<span class="ln">582</span>    p_extract = sub.add_parser(<span class="s">"</span><span class="s">extract</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Yanıtı atomik iddialara ayır ve JSON</span><span class="s">'</span><span class="s">a yaz (ücretli)</span><span class="s">"</span>)
+<span class="ln">583</span>    p_extract.add_argument(<span class="s">"</span><span class="s">answer</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">answer komutunun yazdığı yanıt dosyası</span><span class="s">"</span>)
+<span class="ln">584</span>    p_extract.add_argument(<span class="s">"</span><span class="s">--out</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">İddia dosyası (varsayılan: sonuclar/&lt;yanıt dosyası adı&gt;.iddialar.json)</span><span class="s">"</span>)
+<span class="ln">585</span>
+<span class="ln">586</span>    p_verify = sub.add_parser(<span class="s">"</span><span class="s">verify</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">İddiaları kaynağa karşı doğrula, kanıtı denetle, risk skoru ver (ücretli)</span><span class="s">"</span>)
+<span class="ln">587</span>    p_verify.add_argument(<span class="s">"</span><span class="s">source</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Kaynak doküman</span><span class="s">"</span>)
+<span class="ln">588</span>    p_verify.add_argument(<span class="s">"</span><span class="s">claims</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">extract komutunun yazdığı iddia dosyası</span><span class="s">"</span>)
+<span class="ln">589</span>    p_verify.add_argument(<span class="s">"</span><span class="s">--threshold</span><span class="s">"</span>, <span class="nb">type</span>=<span class="nb">float</span>, default=DEFAULT_THRESHOLD, help=<span class="s">"</span><span class="s">İNCELE için en yüksek risk skoru (varsayılan: 0.25)</span><span class="s">"</span>)
+<span class="ln">590</span>
+<span class="ln">591</span>    p_chain = sub.add_parser(<span class="s">"</span><span class="s">chain</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Üç adımı uç uca çalıştır ve sonucu kaydet (ücretli)</span><span class="s">"</span>)
+<span class="ln">592</span>    p_chain.add_argument(<span class="s">"</span><span class="s">source</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Kaynak doküman</span><span class="s">"</span>)
+<span class="ln">593</span>    p_chain.add_argument(<span class="s">"</span><span class="s">question</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Soru metni ya da soruyu içeren dosya</span><span class="s">"</span>)
+<span class="ln">594</span>    p_chain.add_argument(<span class="s">"</span><span class="s">--answer</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Hazır yanıt dosyası; verilirse üretim atlanır (tuzaklı yanıt için)</span><span class="s">"</span>)
+<span class="ln">595</span>    p_chain.add_argument(<span class="s">"</span><span class="s">--threshold</span><span class="s">"</span>, <span class="nb">type</span>=<span class="nb">float</span>, default=DEFAULT_THRESHOLD, help=<span class="s">"</span><span class="s">İNCELE için en yüksek risk skoru (varsayılan: 0.25)</span><span class="s">"</span>)
+<span class="ln">596</span>    p_chain.add_argument(<span class="s">"</span><span class="s">--out</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Kayıt dosyası (varsayılan: sonuclar/zincir.jsonl)</span><span class="s">"</span>)
+<span class="ln">597</span>
+<span class="ln">598</span>    p_score = sub.add_parser(<span class="s">"</span><span class="s">score</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Tuzak setini zincir kaydıyla karşılaştır (çağrı yapmaz)</span><span class="s">"</span>)
+<span class="ln">599</span>    p_score.add_argument(<span class="s">"</span><span class="s">results</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">chain komutunun yazdığı JSONL dosyası</span><span class="s">"</span>)
+<span class="ln">600</span>    p_score.add_argument(<span class="s">"</span><span class="s">traps</span><span class="s">"</span>, help=<span class="s">"</span><span class="s">Tuzak seti (YAML)</span><span class="s">"</span>)
+<span class="ln">601</span>    <span class="k">return</span> parser</code></pre></div><div class="note"><div class="rng">satır 566–601</div><h3>build_parser: komut satırının tarifi</h3><p><code>argparse</code> programın genel seçeneklerini (<code>--pricing</code>, <code>--generator</code>, <code>--verifier</code>) ve beş alt komutunu tarif eder. <code>add_subparsers</code> alt komutları oluşturur; her birinin kendi konumsal argümanları ve seçenekleri vardır. <code>help</code> metinleri <code>python cozum/dedektor.py chain --help</code> çıktısında ve demo kartının Parametreler sekmesinde görünür.</p></div></div>
+<div class="seg t-6 b"><div class="code"><pre><code><span class="ln">604</span><span class="k">def</span> <span class="nf">main</span>(argv: <span class="nb">list</span>[<span class="nb">str</span>] | <span class="k">None</span> = <span class="k">None</span>, client=<span class="k">None</span>) -&gt; <span class="nb">int</span>:
+<span class="ln">605</span>    args = build_parser().parse_args(argv)
+<span class="ln">606</span>
+<span class="ln">607</span>    <span class="k">try</span>:
+<span class="ln">608</span>        pricing = load_pricing(Path(args.pricing))
+<span class="ln">609</span>        <span class="k">if</span> args.command == <span class="s">"</span><span class="s">score</span><span class="s">"</span>:
+<span class="ln">610</span>            <span class="k">return</span> cmd_score(args)
+<span class="ln">611</span>
+<span class="ln">612</span>        <span class="k">if</span> client <span class="k">is</span> <span class="k">None</span>:
+<span class="ln">613</span>            <span class="k">if</span> <span class="k">not</span> os.environ.get(<span class="s">"</span><span class="s">ANTHROPIC_API_KEY</span><span class="s">"</span>):
+<span class="ln">614</span>                <span class="nb">print</span>(<span class="s">"</span><span class="s">Hata: ANTHROPIC_API_KEY ortam değişkeni tanımlı değil.</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">615</span>                <span class="k">return</span> <span class="m">2</span>
+<span class="ln">616</span>            client = anthropic.Anthropic()
+<span class="ln">617</span>        commands = {<span class="s">"</span><span class="s">answer</span><span class="s">"</span>: cmd_answer, <span class="s">"</span><span class="s">extract</span><span class="s">"</span>: cmd_extract, <span class="s">"</span><span class="s">verify</span><span class="s">"</span>: cmd_verify, <span class="s">"</span><span class="s">chain</span><span class="s">"</span>: cmd_chain}
+<span class="ln">618</span>        <span class="k">return</span> commands[args.command](args, client, pricing)
+<span class="ln">619</span>
+<span class="ln">620</span>    <span class="k">except</span> (ValueError, FileNotFoundError, json.JSONDecodeError) <span class="k">as</span> e:
+<span class="ln">621</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Hata: </span><span class="s">{</span>e<span class="s">}</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">622</span>        <span class="k">return</span> <span class="m">2</span>
+<span class="ln">623</span>    <span class="k">except</span> anthropic.AuthenticationError:
+<span class="ln">624</span>        <span class="nb">print</span>(<span class="s">"</span><span class="s">Hata: API anahtarı geçersiz. ANTHROPIC_API_KEY değerini kontrol et.</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">625</span>        <span class="k">return</span> <span class="m">2</span>
+<span class="ln">626</span>    <span class="k">except</span> anthropic.APIStatusError <span class="k">as</span> e:
+<span class="ln">627</span>        <span class="nb">print</span>(<span class="s">f</span><span class="s">"</span><span class="s">Hata: API isteği reddedildi (HTTP </span><span class="s">{</span>e.status_code<span class="s">}</span><span class="s">): </span><span class="s">{</span><span class="nb">getattr</span>(e, <span class="s">'</span><span class="s">message</span><span class="s">'</span>, e)<span class="s">}</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">628</span>        <span class="k">return</span> <span class="m">2</span>
+<span class="ln">629</span>    <span class="k">except</span> anthropic.APIConnectionError:
+<span class="ln">630</span>        <span class="nb">print</span>(<span class="s">"</span><span class="s">Hata: API</span><span class="s">'</span><span class="s">ye bağlanılamadı. Ağ bağlantını kontrol et.</span><span class="s">"</span>, file=sys.stderr)
+<span class="ln">631</span>        <span class="k">return</span> <span class="m">2</span></code></pre></div><div class="note"><div class="rng">satır 604–631</div><h3>main: işi doğru komuta yolla, hataları tek satıra indir</h3><p><code>score</code> API'ye gitmez; anahtar kontrolünden önce yönlendirilir. Diğer dört komut için önce <code>ANTHROPIC_API_KEY</code> kontrol edilir, yoksa program API'ye hiç gitmeden durur; varsa istemci kurulur. <code>client=None</code> parametresi testler içindir: testler sahte istemciyi buradan verir. <code>try / except</code> blokları beklenen hataları (dosya yok, bozuk JSON, geçersiz anahtar, HTTP hatası, bağlantı yok) tek satırlık mesaja çevirir ve <code>2</code> döndürür; Python hata dökümü kullanıcıya gösterilmez.</p></div></div>
+<div class="seg t-6 a"><div class="code"><pre><code><span class="ln">634</span><span class="k">if</span> __name__ == <span class="s">"</span><span class="s">__main__</span><span class="s">"</span>:
+<span class="ln">635</span>    sys.exit(main())</code></pre></div><div class="note"><div class="rng">satır 634–635</div><h3>Programın başladığı yer</h3><p>Dosya doğrudan çalıştırıldığında <code>main()</code> çağrılır ve döndürdüğü sayı <code>sys.exit</code> ile terminale çıkış kodu olarak iletilir (0 = başarılı, 2 = hata). Testler dosyayı import ettiğinde bu blok çalışmaz.</p></div></div>
+</main>
+<footer>Kodu ilk kez okuyorsan en alttaki "Programın başladığı yer" bölümünden başlayıp yukarı doğru, çağrılan fonksiyonları takip ederek ilerlemeyi de deneyebilirsin. Model, fiyat ve rol değerleri pricing.yaml dosyasından okunur.</footer>
+</div>
+</body>
+</html>

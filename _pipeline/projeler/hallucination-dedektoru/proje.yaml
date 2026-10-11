@@ -1,0 +1,200 @@
+# Proje hazırlama pipeline'ı: hallucination-dedektoru
+# Bu dosya pipeline'ın projeye özgü tek ayar dosyasıdır. Ayrıntı: _pipeline/README.md
+
+slug: hallucination-dedektoru
+baslik: Hallucination dedektörü
+yazim_modu: manuel          # manuel: öğrenci kodu kendisi yazar
+demo_kind: terminal
+
+# Tam çözüm ve ara sürümler (proje klasörüne göre). Ara sürümler tam çözümden
+# ara_surum_uret.py ile türetilir; elle düzenlenmez.
+cozum: cozum/dedektor.py
+ara_surumler:
+  - cozum/adim_1.py
+  - cozum/adim_2.py
+  - cozum/adim_3.py
+  - cozum/adim_4.py
+  - cozum/adim_5.py
+  - cozum/adim_6.py
+
+# Ölçüm: gerçek API ile çalıştırılan komutlar. Rehberdeki beklenen çıktılar ve demo bu
+# çıktılardan üretilir. Rehber ölçümleri ara sürümleri, demo ölçümleri tam çözümü çalıştırır.
+# Sıra önemlidir: extract bir önceki answer'ın yazdığı yanıtı, verify bir önceki extract'in
+# yazdığı iddia dosyasını, score bir önceki chain'in yazdığı kaydı okur. Rehber zincirleri
+# sonuclar/rehber.jsonl dosyasına yazar; demo zincirleri varsayılan sonuclar/zincir.jsonl
+# dosyasına yazar ve o dosya gerçek ölçüm örneği olarak repoda kalır.
+olcum:
+  hazirlik:
+    - python -c "import pathlib; [pathlib.Path(p).unlink(missing_ok=True) for p in ('sonuclar/zincir.jsonl', 'sonuclar/rehber.jsonl')]"
+  calistirmalar:
+    - {ad: rehber-1,  komut: "python cozum/adim_1.py answer kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt"}
+    - {ad: rehber-2,  komut: "python cozum/adim_2.py extract sonuclar/01_iptal.md"}
+    - {ad: rehber-3,  komut: "python cozum/adim_3.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json"}
+    - {ad: rehber-4a, komut: "python cozum/adim_4.py extract tuzaklar/01_iptal_tuzakli.md --out sonuclar/01_iptal_tuzakli.iddialar.json"}
+    - {ad: rehber-4b, komut: "python cozum/adim_4.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal_tuzakli.iddialar.json"}
+    - {ad: rehber-5a, komut: "python cozum/adim_5.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal_tuzakli.iddialar.json"}
+    - {ad: rehber-5b, komut: "python cozum/adim_5.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json --threshold 0.5"}
+    - {ad: rehber-6a, komut: "python cozum/adim_6.py chain kaynaklar/03_webhook_ve_hatalar.md sorular/03_webhook_imza.txt --out sonuclar/rehber.jsonl"}
+    - {ad: rehber-6b, komut: "python cozum/adim_6.py chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt --answer tuzaklar/01_iptal_tuzakli.md --out sonuclar/rehber.jsonl"}
+    - {ad: rehber-7,  komut: "python cozum/dedektor.py score sonuclar/rehber.jsonl tuzaklar/01_iptal_tuzaklar.yaml"}
+    - {ad: demo-answer,       komut: "python cozum/dedektor.py answer kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt"}
+    - {ad: demo-extract,      komut: "python cozum/dedektor.py extract sonuclar/01_iptal.md"}
+    - {ad: demo-verify,       komut: "python cozum/dedektor.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json"}
+    - {ad: demo-chain-bosluk, komut: "python cozum/dedektor.py chain kaynaklar/03_webhook_ve_hatalar.md sorular/03_webhook_imza.txt"}
+    - {ad: demo-chain-tuzak,  komut: "python cozum/dedektor.py chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt --answer tuzaklar/01_iptal_tuzakli.md"}
+    - {ad: demo-score,        komut: "python cozum/dedektor.py score sonuclar/zincir.jsonl tuzaklar/01_iptal_tuzaklar.yaml"}
+  # Rehberde komutlar ve çıktılar öğrencinin dosya yollarıyla gösterilir
+  gosterim:
+    cozum/adim_1.py: calisma/dedektor.py
+    cozum/adim_2.py: calisma/dedektor.py
+    cozum/adim_3.py: calisma/dedektor.py
+    cozum/adim_4.py: calisma/dedektor.py
+    cozum/adim_5.py: calisma/dedektor.py
+    cozum/adim_6.py: calisma/dedektor.py
+    cozum/dedektor.py: calisma/dedektor.py
+    " --out sonuclar/rehber.jsonl": ""
+    sonuclar/rehber.jsonl: sonuclar/zincir.jsonl
+  # Önizleme ölçümü (API anahtarı olmadan): bu dosyadaki SahteIstemci kullanılır
+  sahte_istemci: sahte_istemci.py
+
+# Üretilecek içerik: platform → _pipeline/cikti/{slug}/, repo → proje klasörü
+icerik:
+  - {sablon: project.template.mdx, hedef: project.mdx, yer: platform}
+  - {sablon: guide.template.md, hedef: Step-by-Step-GUIDE.md, yer: repo}
+
+demo:
+  baslik: "Hallucination dedektörü"
+  parser_fonksiyonu: build_parser
+  dosya_alanlari: [source, question, answer, claims, results, traps, out, pricing]
+  varsayilan_etiketleri:
+    pricing: pricing.yaml
+    generator: "pricing.yaml > roller > uretici (Claude Sonnet 5.5)"
+    verifier: "pricing.yaml > roller > dogrulayici (Claude Haiku 5.5)"
+    out: "komuta göre: sonuclar/<ad>.md, sonuclar/<ad>.iddialar.json ya da sonuclar/zincir.jsonl"
+  sahneler:
+    - olcum: demo-answer
+      baslik: Kaynaklı soru
+      aciklama: "Kurgusal bir API dokümanı ve bir soru: üretici model (Sonnet 5.5) dokümana dayanarak cevaplıyor; token sayıları ve maliyet altta."
+    - olcum: demo-extract
+      baslik: "Aşama 1 — iddialara ayır"
+      aciklama: "Aynı yanıt, doğrulayıcı modelle (Haiku 5.5) tek tek kontrol edilebilir atomik iddialara bölünüyor."
+    - olcum: demo-verify
+      baslik: "Aşama 2 — kaynağa karşı doğrula"
+      aciklama: "Her iddia için karar ve gerekçe; doğrulayıcının gösterdiği alıntının kaynakta gerçekten geçtiği metin eşlemesiyle denetleniyor. Altı iddianın altısı DESTEKLİ, skor 0 → KABUL."
+    - olcum: demo-chain-bosluk
+      baslik: Kaynağın cevaplamadığı soru
+      aciklama: "Soru dokümanın yanıtlamadığı iki ayrıntı içeriyor (imzanın geçerlilik süresi, zaman damgası). Sonnet boşluğu doldurmadı, 'dokümanda belirtilmiyor' dedi; dedektör bu cümleleri de iddia yapıp kaynağa göre DESTEKSİZ saydı: 7 destekli, 2 desteksiz, skor 0,22 → İNCELE. Dürüst yanıt, temkinli dedektör."
+    - olcum: demo-chain-tuzak
+      baslik: Tuzaklı yanıt
+      aciklama: "Partnerin yanıta üç tuzak yerleştirdi: var olmayan bir uç nokta (fabrication), uydurma bir süre (confabulation), yanlış bağlamda doğru bir terim (conflation). Üçü de DESTEKSİZ; kontrol cümlesi (409) DESTEKLİ. Dördüncü desteksiz iddia başka dokümanda doğru ama bu kaynakta yok. Skor 0,50 → RET."
+    - olcum: demo-score
+      baslik: Dedektör karnesi
+      aciklama: "Tuzak etiketleri zincir kararlarıyla karşılaştırılıyor: 3/3 tuzak yakalandı, kontrol cümlesi doğru geçti, yanlış alarm yok. Zincirin tamamı bir sentin onda birinden az."
+  parametreler:
+    genel --pricing:
+      aciklama: >-
+        Fiyat, model ve rol bilgilerinin okunacağı YAML dosyası. Verilmezse proje klasöründeki pricing.yaml kullanılır.
+        Alt komuttan önce yazılır.
+      ornek: python cozum/dedektor.py --pricing fiyatlar_2027.yaml chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt
+    genel --generator:
+      aciklama: >-
+        Yanıtı üretecek modelin pricing.yaml içindeki anahtarı (sonnet-5-5 ya da haiku-5-5). Verilmezse
+        pricing.yaml > roller > uretici kullanılır. Alt komuttan önce yazılır; yalnızca answer ve chain komutlarını etkiler.
+      ornek: --generator haiku-5-5
+    genel --verifier:
+      aciklama: >-
+        İddiaları çıkaracak ve doğrulayacak modelin pricing.yaml içindeki anahtarı. Verilmezse pricing.yaml > roller >
+        dogrulayici kullanılır. Alt komuttan önce yazılır. Pahalı bir doğrulayıcının daha çok tuzak yakalayıp
+        yakalamadığını denemek için kullanışlıdır.
+      ornek: --verifier sonnet-5-5
+    answer answer:
+      aciklama: >-
+        Kaynak dokümanı ve soruyu üretici modele gönderir, yanıtı ekrana ve sonuclar/ klasörüne yazar; çağrının
+        token sayılarını ve maliyetini gösterir. Yanıt max_tokens sınırında kesildiyse uyarır. Bir ücretli çağrı yapar.
+      ornek: python cozum/dedektor.py answer kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt
+    answer source:
+      aciklama: Kaynak doküman (Markdown ya da düz metin). Dokümanın tamamı modele gönderilir.
+      ornek: kaynaklar/02_gonderi_uc_noktalari.md
+    answer question:
+      aciklama: >-
+        Soru. Bir dosya yolu verilirse soru dosyadan okunur; değilse yazılan metin sorunun kendisidir
+        (boşluk içeriyorsa tırnak içine al).
+      ornek: sorular/01_iptal.txt
+    answer --out:
+      aciklama: >-
+        Yanıtın yazılacağı dosya. Verilmezse sonuclar/ altında soru dosyasıyla aynı adlı bir .md dosyası
+        oluşturulur (soru metin olarak verildiyse sonuclar/yanit.md) ve varsa üzerine yazılır.
+      ornek: --out sonuclar/deneme.md
+    extract extract:
+      aciklama: >-
+        Zincirin 1. aşaması. Yanıt dosyasını doğrulayıcı modele gönderir, dönen atomik iddia listesini ekrana ve
+        bir JSON dosyasına yazar. Model geçerli JSON döndürmezse tek satırlık hatayla durur. Bir ücretli çağrı yapar.
+      ornek: python cozum/dedektor.py extract sonuclar/01_iptal.md
+    extract answer:
+      aciklama: >-
+        İddialara ayrılacak yanıt dosyası: answer komutunun yazdığı dosya ya da elle düzenlenmiş (ör. tuzaklı) bir kopyası.
+      ornek: tuzaklar/01_iptal_tuzakli.md
+    extract --out:
+      aciklama: >-
+        İddia dosyası. Verilmezse sonuclar/ altında yanıt dosyasıyla aynı adlı bir .iddialar.json dosyası oluşturulur.
+      ornek: --out sonuclar/01_iptal_tuzakli.iddialar.json
+    verify verify:
+      aciklama: >-
+        Zincirin 2. aşaması. İddia dosyasını ve kaynağı doğrulayıcı modele gönderir; her iddia için karar
+        (DESTEKLİ / DESTEKSİZ / ÇELİŞİYOR), kanıt alıntısı ve gerekçe alır. Ardından alıntının kaynakta birebir geçip
+        geçmediğine bakar: kanıtı kaynakta olmayan DESTEKLİ karar ŞÜPHELİ olur. Risk skorunu ve yönlendirmeyi basar.
+        Bir ücretli çağrı yapar; tüm iddialar tek çağrıda doğrulanır.
+      ornek: python cozum/dedektor.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json
+    verify source:
+      aciklama: Kaynak doküman; iddialar bu metne karşı doğrulanır ve kanıt alıntıları bu metinde aranır.
+      ornek: kaynaklar/02_gonderi_uc_noktalari.md
+    verify claims:
+      aciklama: >-
+        extract komutunun yazdığı iddia dosyası: "claims" anahtarı altında metin listesi taşıyan bir JSON.
+      ornek: sonuclar/01_iptal.iddialar.json
+    verify --threshold:
+      aciklama: >-
+        İNCELE yönlendirmesi için en yüksek risk skoru. Skor 0 ise KABUL, eşiğin altında ya da eşitse İNCELE,
+        üstündeyse RET; ÇELİŞİYOR kararı olan yanıt eşikten bağımsız RET'tir. Hatanın maliyeti yüksek bir kullanım
+        alanında eşiği düşür (Ders 1.6 §5.3).
+      ornek: --threshold 0.1
+    chain chain:
+      aciklama: >-
+        Üç adımı uç uca çalıştırır: yanıt üret (ya da --answer ile hazır yanıtı oku), iddialara ayır, kaynağa karşı
+        doğrula ve yönlendir. Çağrı sayısını ve toplam maliyeti gösterir; sonucu JSONL dosyasının sonuna ekler.
+        Üretim yapıldığında üç, --answer ile iki ücretli çağrı yapar.
+      ornek: python cozum/dedektor.py chain kaynaklar/03_webhook_ve_hatalar.md sorular/03_webhook_imza.txt
+    chain source:
+      aciklama: Kaynak doküman.
+      ornek: kaynaklar/03_webhook_ve_hatalar.md
+    chain question:
+      aciklama: Soru metni ya da soruyu içeren dosya. --answer verildiğinde soru yalnızca kayda yazılır.
+      ornek: sorular/03_webhook_imza.txt
+    chain --answer:
+      aciklama: >-
+        Hazır yanıt dosyası. Verilirse üretici model çağrılmaz; dosyadaki metin doğrudan iddialara ayrılır. Partnerinin
+        tuzak yerleştirdiği yanıtı zincirden geçirmek için kullanılır.
+      ornek: --answer tuzaklar/01_iptal_tuzakli.md
+    chain --threshold:
+      aciklama: verify komutundaki eşikle aynı anlamdadır.
+      ornek: --threshold 0.1
+    chain --out:
+      aciklama: >-
+        Zincir kayıtlarının ekleneceği JSONL dosyası. Verilmezse sonuclar/zincir.jsonl kullanılır; her çalıştırma dosyanın
+        sonuna bir satır ekler, önceki kayıtlar silinmez.
+      ornek: --out sonuclar/deneme.jsonl
+    score score:
+      aciklama: >-
+        Tuzak setindeki her tuzak için ilgili iddiayı bulur ve dedektörün kararını beklentiyle karşılaştırır: yerleştirilen
+        hata yakalandı mı, kontrol cümlesi haksız yere işaretlendi mi? Yakalama oranını ve yanlış alarm sayısını basar.
+        API'ye gitmez, ücret yazmaz.
+      ornek: python cozum/dedektor.py score sonuclar/zincir.jsonl tuzaklar/01_iptal_tuzaklar.yaml
+    score results:
+      aciklama: >-
+        chain komutunun yazdığı JSONL dosyası. Tuzak setindeki yanıt dosyasıyla çalıştırılmış son kayıt kullanılır.
+      ornek: sonuclar/zincir.jsonl
+    score traps:
+      aciklama: >-
+        Tuzak seti (YAML): yanıt dosyası, kaynak ve her tuzak için tür, anahtar parçalar ve beklenti. Örnek yapı
+        tuzaklar/01_iptal_tuzaklar.yaml dosyasındadır.
+      ornek: tuzaklar/01_iptal_tuzaklar.yaml

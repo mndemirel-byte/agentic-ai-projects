@@ -1,0 +1,1 @@
+Oluşturduğum bir gönderiyi nasıl iptal ederim? Hangi durumda iptal edemem ve o zaman API ne döner?

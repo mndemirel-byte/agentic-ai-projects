@@ -1,0 +1,248 @@
+---
+title: "Hallucination dedektörü"
+slug: "hallucination-dedektoru"
+course: "agentic-ai-dev"
+phase: "llm-okuryazarligi"
+type: "ikili"
+difficulty: "orta"
+estimated_hours: 5
+description: "Kaynak dokümana dayalı LLM yanıtını iddialara ayırıp her iddiayı kaynağa karşı doğrulayan iki aşamalı bir zincir kur; risk skoruna göre yönlendir ve partnerinin yerleştirdiği tuzak iddiaların kaçını yakaladığını ölç."
+tags: ["hallucination", "grounding", "verification", "güvenilirlik", "eval"]
+repo_url: "https://github.com/mndemirel-byte/agentic-ai-projects/tree/main/hallucination-dedektoru"
+demo_kind: "terminal"
+prerequisites_lessons:
+  - "ilk-api-cagrisi"
+  - "model-parametreleri"
+  - "hallucination-anatomisi"
+---
+
+## Ne yapacaksın?
+
+Bir kaynak dokümana dayanarak soru cevaplayan bir LLM'in yanıtını, iki aşamalı bir zincirden geçiren bir komut satırı aracı yazacaksın: önce yanıt tek tek doğrulanabilir iddialara ayrılır, sonra her iddia kaynağa karşı doğrulanır ve modelin gösterdiği kanıtın kaynakta gerçekten geçip geçmediği denetlenir. Sonuç bir risk skoruna çevrilir ve yanıt kabul edilir, incelemeye gönderilir ya da reddedilir. Partnerinle birlikte yazacak, sonra birbirinizin dedektörünü yerleştirdiğiniz tuzak iddialarla sınayacaksınız.
+
+<ProjectDemo />
+
+## Bu proje neden var?
+
+Ders 1.6 hallucination'ı bir bug değil, next-token prediction'ın yapısal bir risk sınıfı olarak tanımladı ve çözümün prompt'ta değil pipeline'da olduğunu söyledi: üretmeden önce context sağla, ürettikten sonra iddia düzeyinde doğrula, risk skoruna göre yönlendir. Ders o pipeline'ın zihinsel modelini kurdu ve "aşama projesinde iki aşamalı doğrulama zinciri olarak pratiğe dökeceksin" dedi. Bu proje o zincirdir.
+
+Önceki iki proje çağrının çevresini ölçtü: token maliyet hesaplayıcı çağrıdan önce kaça mal olacağını, model karşılaştırma lab'ı çağrının ne kadar sürdüğünü ve kaça mal olduğunu. Bu proje çağrının içine bakıyor: yanıt doğru mu, neye dayanıyor, kullanmak güvenli mi. Aşama 3'te RAG kurduğunda unfaithfulness riskini bu araçla ölçebileceksin; Aşama 8'de aynı zincir guardrails ve eval pipeline'ının bir katmanı olacak.
+
+## İsterler
+
+Projenin sonunda `calisma/dedektor.py` dosyanız aşağıdaki işleri yapıyor olmalı. Bu liste aynı zamanda projeyi bitirip bitirmediğinizi kontrol edeceğiniz ölçüttür.
+
+### `answer` komutu
+
+`answer` bir kaynak doküman ve bir soru alır (soru metin ya da dosya olabilir), üretici modelden dokümana dayalı bir yanıt ister ve yanıtı `sonuclar/` altına yazar. Çağrının girdi ve çıktı token sayıları ile `pricing.yaml` fiyatlarıyla hesaplanan maliyeti gösterilir. `stop_reason` değeri `max_tokens` ise yanıtın kesildiği uyarısı verilir.
+
+### `extract` komutu — zincirin 1. aşaması
+
+`extract` bir yanıt dosyasını doğrulayıcı modele gönderir ve dönen atomik iddia listesini ekrana ve bir JSON dosyasına yazar. Model geçerli bir `{"claims": [...]}` JSON'u döndürmezse program tek satırlık bir hatayla durur; bozuk çıktı sessizce "sıfır iddia" sayılmaz.
+
+### `verify` komutu — zincirin 2. aşaması
+
+`verify` bir iddia dosyasını ve kaynağı doğrulayıcı modele tek çağrıda gönderir ve her iddia için karar (`DESTEKLİ`, `DESTEKSİZ`, `ÇELİŞİYOR`), kaynaktan birebir kanıt alıntısı ve gerekçe alır. Dönen sonuç sayısı iddia sayısına eşit değilse ya da karar tanınmıyorsa hata verilir.
+
+- **Kanıt denetimi:** Her kanıt alıntısı, noktalama ve büyük-küçük harf farkları yok sayılarak kaynakta aranır. Alıntısı kaynakta bulunmayan `DESTEKLİ` karar `ŞÜPHELİ` olur. Tabloda her iddianın kanıt durumu (`kaynakta`, `kaynakta YOK`, `yok`) görünür.
+- **Risk skoru:** `DESTEKSİZ` ve `ÇELİŞİYOR` 1, `ŞÜPHELİ` 0,5, `DESTEKLİ` 0 ağırlığıyla ortalama alınır.
+- **Yönlendirme:** Skor 0 ise `KABUL`; eşiğin (`--threshold`, varsayılan 0,25) altında ya da eşitse `İNCELE`; üstündeyse `RET`. `ÇELİŞİYOR` kararı olan yanıt eşikten bağımsız `RET`tir.
+
+### `chain` komutu
+
+`chain` üç adımı uç uca çalıştırır: yanıtı üretir (ya da `--answer` ile hazır bir yanıt dosyasını okur ve üretimi atlar), iddialara ayırır, doğrular, yönlendirir. Çağrı sayısını ve toplam maliyeti gösterir; sonucu (iddialar, kararlar, kanıt durumu, skor, yönlendirme, maliyet) `sonuclar/zincir.jsonl` dosyasının sonuna ekler.
+
+### `score` komutu
+
+`score` bir tuzak seti (YAML) ile bir zincir kaydını karşılaştırır. Her tuzak için anahtar parçaları taşıyan iddiaları bulur ve sonucu adlandırır: yerleştirilen hata için `yakalandı` ya da `kaçtı`, kontrol cümlesi için `doğru geçti` ya da `yanlış alarm`, hiçbir iddiaya dönüşmemiş cümle için `iddia çıkarılmadı`. Altta yakalama oranı ve yanlış alarm sayısı yazılır. Bu komut çağrı yapmaz.
+
+### Davranış kuralları
+
+- **Model verisi koddan ayrıdır.** Model kimlikleri, fiyatlar, rol atamaları ve modele özgü çağrı ayarları yalnızca `pricing.yaml` dosyasından okunur; `--generator` ve `--verifier` ile değiştirilebilir.
+- **Doğrulayıcının çıktısı da doğrulanır.** JSON çözülemiyorsa, sonuç sayısı tutmuyorsa ya da karar tanınmıyorsa program durur; eksik ya da uydurma karar tabloya girmez.
+- **Hatalar anlaşılırdır.** API anahtarı tanımlı değilse ücretli komutlar API'ye gitmeden durur. Dosya bulunamazsa, iddia dosyası bozuksa, tuzak setinde alan eksikse ya da model anahtarı yanlışsa tek satırlık bir hata mesajı basılır; Python hata dökümü (traceback) gösterilmez.
+- **Sayılar Türkçe yazılır.** Binlik ayırıcı nokta, ondalık ayırıcı virgüldür: `1.234` token, `$0,0021`, skor `0,36`.
+- **Türkçe karakterler korunur.** Dosyalar UTF-8 olarak okunur ve yazılır; metin karşılaştırmasında `İ`/`ı` ayrımı doğru ele alınır.
+
+## Roller
+
+Proje iki kişiliktir ve iki çalışma biçimini birleştirir.
+
+**Adım 1–6: pair programming.** Biriniz sürücü (klavyede), diğeriniz navigatör (rehberi okur, satırı sorgular, kontrol noktasını yürütür). Rol her adımda değişir; rehber her adımın başında kimin sürdüğünü söyler ve iki rol için ayrı kontrol noktası verir. Amaç kodu ikiye bölmek değil, her satırı iki kişinin okumasıdır: doğrulama mantığındaki bir hata (ör. kanıtı kaynakta değil kaynağı kanıtta aramak) tek kişinin kolayca kaçıracağı türdendir.
+
+**Adım 7: dedektör ve tuzakçı.** Tuzakçı, `answer` çıktısının bir kopyasına kaynakta olmayan üç cümle yerleştirir (fabrication, confabulation, conflation) ve bir kontrol cümlesi seçer; bunları bir YAML dosyasında etiketler. Dedektör yalnızca tuzaklı yanıtı alır, zinciri çalıştırır ve tabloya bakarak tuzakları tahmin eder. `score` komutu ikisini karşılaştırır. Sonra roller takas edilir. Bu, Aşama 8'deki red team / blue team tatbikatının ilk provasıdır.
+
+## Mimari
+
+Araç tek bir Python dosyasıdır ve sekiz bölümden oluşur. Prompt'lar bölümü üretim, iddia çıkarma ve doğrulama talimatlarını sabit metinler olarak tutar. Veri yükleme bölümü `pricing.yaml`, kaynak, soru, iddia ve tuzak dosyalarını okur ve doğrular. API çağrıları bölümü tek non-streaming çağrıyı yapan `call_model` ile üç aşamanın sarmalayıcılarını içerir; programın API ile konuşan tek yeri burasıdır. Hesaplamalar bölümü maliyeti, JSON çözmeyi, metin sadeleştirmeyi, kanıt denetimini, risk skorunu, yönlendirmeyi ve tuzak eşleştirmesini üretir; API'ye hiç dokunmaz. Biçimlendirme bölümü Türkçe sayı yazımını ve tabloları basar. Kayıt bölümü yanıt, iddia ve zincir dosyalarını yazar ve geri okur. Komutlar bölümü beş komutun akışını yönetir. Giriş noktası komut satırını okur ve işi doğru komuta yollar.
+
+Bir `chain` çağrısında veri şu yolu izler: kaynak ve soru okunur; üretici model yanıtı verir (ya da `--answer` dosyası okunur); doğrulayıcı model yanıtı iddialara ayırır ve JSON çözülür; doğrulayıcı model her iddia için karar ve kanıt verir; kanıt alıntıları kaynakta aranır ve bulunamayanlar `ŞÜPHELİ`ye düşürülür; kararlar skora, skor yönlendirmeye çevrilir; tablo ve özet basılır; kayıt JSONL dosyasına eklenir. `score` yalnızca bu dosyayı ve tuzak setini okur.
+
+Zincirin iki aşaması iki farklı güvence verir. Birinci aşama (iddia çıkarma) doğrulamanın birimini küçültür: bir yanıt bütün olarak değil, iddia iddia değerlendirilir. İkinci aşama iki yarımdır: LLM kararı (kaynak bu iddiayı destekliyor mu?) ve deterministik denetim (modelin gösterdiği kanıt gerçekten kaynakta mı?). İkinci yarım olmadan doğrulayıcının kendisi kaynak gösterir gibi yapabilir; Ders 1.6 §3.4'ün "source-looking ile source-grounded aynı şey değildir" uyarısı burada koda dönüşür.
+
+## Ön koşullar
+
+**Tamamlanmış olması gereken dersler**
+
+- `ilk-api-cagrisi` (Ders 1.4): SDK kullanımı, `messages` ve `system`, `usage`, `stop_reason`, hata modeli
+- `model-parametreleri` (Ders 1.5): `max_tokens`, JSON çıktı reçetesi ve sınırları, eval refleksi
+- `hallucination-anatomisi` (Ders 1.6): hata tipleri ve taksonomi, üç doğrulama katmanı, claim-level verification pipeline'ı, risk matrisi
+
+Önceki iki projeyi bitirmiş olmanız şart değil ama `pricing.yaml`, alt komutlu `argparse` iskeleti, JSONL kaydı ve Türkçe sayı biçimlendirmesi oradan tanıdık gelecek.
+
+**Gerekli araçlar**
+
+- Python 3.10 veya üzeri
+- Git ve bir GitHub hesabı
+- Bir Anthropic API anahtarı (ikinizden birinin olması yeter)
+- Bir terminal ve bir kod editörü
+
+<Callout type="tip">
+Bu projede `answer`, `extract`, `verify` ve `chain` komutları gerçek çağrı yapar; ancak dokümanlar kısa, yanıtlar bir paragraf ve doğrulayıcı model ucuz olduğu için rehberin tamamı birkaç sentte kalır. `score` çağrı yapmaz. Repodaki `sonuclar/zincir.jsonl` gerçek bir ölçümle gelir; `score` komutunu anahtar tanımlamadan önce o dosyayla deneyebilirsiniz.
+</Callout>
+
+<Callout type="warning">
+Ders 1.5 §7'deki "JSON için `temperature: 0`" reçetesi bu projede uygulanmaz: Ekim 2026 itibarıyla 5.x Claude modelleri varsayılan dışı `temperature`, `top_p` ve `top_k` değerlerini reddeder. Yapılandırılmış çıktıyı prompt'taki açık JSON şablonu, ayrıştırma ve hata kontrolü sağlar; düşünme ayarları `pricing.yaml > cagri_ayarlari` alanından gelir.
+</Callout>
+
+## Örnek repo nasıl kullanılır?
+
+Proje, `agentic-ai-projects` reposunun `hallucination-dedektoru` klasöründe duruyor. Klasörde kurgusal kaynak dokümanlar, sorular, örnek bir tuzak seti, adım adım ara sürümler, tam çözüm, iki kod rehberi ve gerçek bir ölçüm sonucu var. Hepsini aynı anda açmanız gerekmiyor; aşağıdaki tablo hangisine ne zaman başvuracağınızı gösteriyor.
+
+| Yol | Ne işe yarar | Ne zaman kullanılır |
+|-----|--------------|---------------------|
+| `calisma/` | Kendi `dedektor.py` dosyanızı yazacağınız boş klasör | Projenin başından sonuna |
+| `pricing.yaml` | İki modelin kimlik, fiyat, rol ve çağrı ayarları | 1. adımdan itibaren kodunuz okur |
+| `kaynaklar/` | Kurgusal "Kuzey Lojistik Kargo API'si" için üç Türkçe doküman | Başlamadan önce okuyun; her çağrıda kaynak olarak |
+| `sorular/` | Kaynağın tamamen ya da kısmen cevapladığı dört soru | 1. ve 6. adımlarda |
+| `tuzaklar/` | Tuzak yerleştirilmiş örnek yanıt ve etiketleri; kendi setinizi buraya yazarsınız | 4. adımdan itibaren; 7. adımda kendi setiniz |
+| `sonuclar/` | Yanıtların, iddia dosyalarının ve zincir kayıtlarının yazıldığı klasör; gerçek bir ölçüm örneğiyle gelir | 1. adımdan itibaren |
+| `cozum/adim_1.py` … `adim_6.py` | Her adımın sonunda dosyanın ulaşması gereken hâl | Bir adımı bitirdiğinizde karşılaştırmak için |
+| `cozum/dedektor.py` | Tam çözüm; 7. adımın sonu | Projeyi bitirdiğinizde ya da tamamen takıldığınızda |
+| `kod-rehberi.html` | `chain` ve `score` akışlarını fonksiyon fonksiyon anlatan etkileşimli sayfa; risk skoru hesaplayıcısı | Fonksiyonların hangi sırayla çağrıldığını görmek istediğinizde |
+| `kod-rehberi-yan-yana.html` | Tam çözüm solda, her parçanın açıklaması sağda | Belirli bir satırın neden öyle yazıldığını merak ettiğinizde |
+| `demo.html` | Bu sayfadaki demo kartının çevrimdışı açılabilen kopyası | Platform dışında demoyu izlemek istediğinizde |
+| `tests/` | Gerçek API çağrısı yapmayan testler | Çözümün mantığını incelemek istediğinizde |
+| `Step-by-Step-GUIDE.md` | Yedi adımlık rehber: roller, kod, komutlar, beklenen çıktılar | Projenin başından sonuna |
+
+### Adım adım rehber
+
+Projenin yedi adımı, her adımın sürücüsü, kodu, çalıştırma komutları, beklenen çıktıları ve iki rol için kontrol noktaları repodaki [Step-by-Step-GUIDE.md](https://github.com/mndemirel-byte/agentic-ai-projects/blob/main/hallucination-dedektoru/Step-by-Step-GUIDE.md) dosyasında. Rehber, kodu sıfırdan `calisma/dedektor.py` dosyasında adım adım büyütmeniz için yazıldı; projeye başladığınızda bu sayfadaki isterleri ve rolleri okuduktan sonra rehberi açın ve sırayla ilerleyin.
+
+### Önerilen çalışma biçimi
+
+1. **Başlamadan önce demoyu izleyin ve kaynakları okuyun.** Bu sayfanın başındaki demo kartı bitmiş aracın altı sahnesini gösteriyor; özellikle tuzaklı yanıt ve karne sahnelerini izleyin, projenin vardığı yer orası. Sonra `kaynaklar/` klasöründeki üç dokümanı birlikte okuyun; dokümanı tanımadan dedektörün kararlarını değerlendiremezsiniz.
+2. **Her adımda önce oku, sonra yaz.** Rehberdeki her adımın "Ne yapacaksınız" ve "Neden" kısımlarını okumadan koda geçmeyin. Navigatör sesli okur, sürücü yazar; kopyalayacaksanız bile her satırı okuyarak geçin.
+3. **Kontrol noktasında durun.** Her adımın sonundaki komutu çalıştırın ve çıktınızı beklenen çıktıyla karşılaştırın. Model kararları ve kanıt alıntıları sizin çalıştırmanızda farklı olabilir; yapı, sütunlar ve etiketler aynı olmalı.
+4. **Takıldığınızda ara sürümle karşılaştırın.** Dosyanızı ilgili ara sürümle satır satır karşılaştırın. Farkı görmek, çözümü baştan okumaktan daha öğreticidir.
+5. **Satırın nedenini rehberde arayın.** Bir satırı anlamadıysanız `kod-rehberi-yan-yana.html` sayfasında o fonksiyonun karşısındaki açıklamayı okuyun.
+
+Ara sürümle karşılaştırmak için:
+
+```bash
+diff calisma/dedektor.py cozum/adim_4.py
+```
+
+Ara sürüm dosyaları kendi başına da çalışır. Bir adımda dosyanız bozulduysa ve ilerlemek istiyorsanız, o adımın ara sürümünü çalışma klasörüne kopyalayıp oradan devam edebilirsiniz:
+
+```bash
+cp cozum/adim_4.py calisma/dedektor.py
+```
+
+<Callout type="trap">
+Tuzak adımında dedektör rolündeki partnerin tuzak YAML dosyasını zincirden önce açması, bu projenin en değerli deneyini boşa çıkarır: tuzakları bilerek tabloya bakmak dedektörü değil hafızayı sınar. Tuzakçı dosyayı `score` çalıştırılana kadar açıklamaz. Aynı şekilde tam çözümü baştan okuyup "anladık" demek de projenin amacını boşa çıkarır; çözümü yalnızca karşılaştırma için açın.
+</Callout>
+
+<Callout type="trap">
+Dedektörün tüm tuzakları yakalaması "iyi dedektör" demek değildir. Her iddiayı işaretleyen bir araç da tüm tuzakları yakalar. Karneyi okurken yakalama oranıyla yanlış alarm sayısını birlikte okuyun; kontrol cümlesi bunun için var (Ders 1.6 §5.3: doğrulama maliyeti ile hata maliyeti arasındaki denge).
+</Callout>
+
+## Kurulum
+
+Önce repoyu GitHub'da kendi hesabınıza fork'layın, sonra kendi kopyanızı bilgisayarınıza indirin. Aşağıdaki komutlarda `KULLANICI_ADIN` yerine kendi GitHub kullanıcı adınızı yazın. Önceki projeler için repoyu zaten indirdiyseniz yalnızca klasör değiştirin.
+
+```bash
+git clone https://github.com/KULLANICI_ADIN/agentic-ai-projects.git
+cd agentic-ai-projects/hallucination-dedektoru
+```
+
+Bir sanal ortam oluşturun ve bağımlılıkları kurun:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Windows'ta sanal ortamı etkinleştirmek için ikinci satır yerine `.venv\Scripts\activate` komutunu kullanın.
+
+API anahtarını ortam değişkeni olarak tanımlayın:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+Windows PowerShell'de bunun karşılığı `$env:ANTHROPIC_API_KEY="sk-ant-..."` komutudur. Kurulumun tamamlandığını şu komutla doğrulayın:
+
+```bash
+python -c "import anthropic, yaml; print('Kurulum tamam')"
+```
+
+Ekranda `Kurulum tamam` yazısını görüyorsanız hazırsınız.
+
+<Callout type="warning">
+API anahtarını hiçbir zaman bir dosyaya yazıp repoya göndermeyin; partnerinizle de sohbet uygulamasından paylaşmayın. Anahtar yalnızca ortam değişkeninde durmalı. Repodaki `.gitignore` dosyası `.env` dosyalarını ve `sonuclar/` altındaki kendi çıktılarınızı zaten dışarıda bırakıyor. `sonuclar/` klasörüne yazılan dosyalarda anahtar bulunmaz; yalnızca yanıtlar, iddialar ve kararlar vardır.
+</Callout>
+
+## Kontrol noktaları
+
+Projeyi teslim edilmiş saymadan önce aşağıdaki listeyi birlikte gözden geçirin. Her madde, İsterler bölümündeki bir gereksinime karşılık gelir.
+
+- [ ] `answer` komutu soruyu hem dosyadan (`sorular/01_iptal.txt`) hem metin olarak (`"Sandbox nedir?"`) kabul ediyor; yanıtı `sonuclar/` altına yazıyor ve token sayılarıyla maliyeti gösteriyor.
+- [ ] `MAX_TOKENS["answer"]` değerini 40'a indirince çıktıda `yanıt max_tokens sınırında kesildi` uyarısı görünüyor.
+- [ ] `extract` çıktısındaki iddialar tek olgu taşıyor ve zamir içermiyor; nezaket cümlesi iddiaya dönüşmüyor.
+- [ ] İddia dosyasına elle eklenen kaynak dışı bir iddia `verify` tablosunda `DESTEKSİZ` çıkıyor.
+- [ ] Kanıt denetimi çalışıyor: `normalize_text` içindeki `tr_lower` çağrısını `lower()` ile değiştirince `İ` harfi içeren alıntılar `kaynakta YOK` oluyor (sonra geri aldınız).
+- [ ] Tuzaklı iddialarda skoru elle hesapladınız (ağırlık toplamı / iddia sayısı) ve ekrandaki değerle tuttu.
+- [ ] `--threshold 1.0` ile çelişkisiz tuzaklı yanıt `İNCELE`ye, varsayılan eşikle `RET`e gidiyor; skor 0 olan yanıt `KABUL` alıyor.
+- [ ] `chain` üretimli çalışmada `3 çağrı`, `--answer` ile `2 çağrı` gösteriyor; kayıt dosyasında `uretici` alanı ikincisinde `null`.
+- [ ] `score` çıktısında her tuzak için sonuç (`yakalandı`, `kaçtı`, `doğru geçti`, `yanlış alarm` ya da `iddia çıkarılmadı`) ve altta yakalama ile yanlış alarm satırları var; `score` çağrı yapmıyor (anahtar tanımsızken de çalışıyor).
+- [ ] Kendi tuzak setinizi kurdunuz: üç tuzak türü ve bir kontrol cümlesi; roller takas edildi ve iki karne de alındı.
+- [ ] Modelin JSON yerine açıklama döndürdüğü durumda (`EXTRACT_PROMPT` içindeki JSON talimatını geçici olarak silerek deneyin) program traceback yerine tek satırlık hatayla duruyor.
+- [ ] API anahtarı tanımlı değilken (`unset ANTHROPIC_API_KEY`) `answer` tek satırlık mesajla duruyor; `score` çalışıyor.
+- [ ] `--verifier sonnet-5-5` ile aynı tuzaklı zinciri çalıştırdınız ve maliyet ile kararları varsayılan doğrulayıcıyla karşılaştırdınız.
+- [ ] Kodda hiçbir fiyat, model kimliği ya da düşünme ayarı yazılı değil; hepsi `pricing.yaml` dosyasından geliyor.
+
+## Bu projede pratik yaptığın kavramlar
+
+**Claim-level verification pipeline'ı** (Ders 1.6 §5.2). Retrieve → generate → extract claims → verify → risk score → routing akışını tek bir araçta kurdunuz. Yanıtı bütün olarak değil iddia iddia değerlendirmenin, beş iddiadan birinin yanlış olduğu durumu neden yakaladığını kendi tablonuzda gördünüz.
+
+**Üç doğrulama katmanı** (Ders 1.6 §5.1). Syntactic verification'ı JSON ayrıştırmasıyla (`_parse_json`, sonuç sayısı kontrolü), grounding verification'ı doğrulayıcı modelle ve kanıt denetimiyle uyguladınız. Semantic verification (registry/docs kontrolü) bu projenin dışında kaldı; genişletme fikirlerinde var.
+
+**Source-looking ile source-grounded ayrımı** (Ders 1.6 §3.4). Doğrulayıcının gösterdiği alıntıyı kaynakta aradınız ve bulunamayan alıntıların kararını düşürdünüz. "Kaynak göstermek yeterli değildir" uyarısını koda çevirdiniz.
+
+**Hallucination taksonomisi** (Ders 1.6 §3). Tuzak setini fabrication, confabulation ve conflation olarak etiketlediniz; dedektörün hangi tipi daha kolay yakaladığını ölçtünüz.
+
+**Parametric, contextual ve tool-grounded bilgi** (Ders 1.6 §4.1). Kurgusal bir doküman kullanarak modelin parametrik bilgisini devre dışı bıraktınız; doğrulayıcıya "kendi bilgini kullanma" talimatı verdiniz ve bunun neden tek başına yetmediğini kanıt denetimiyle gördünüz.
+
+**Risk matrisi ve eşik** (Ders 1.6 §5.3). Hatanın geri dönüş maliyetine göre eşiği değiştirip aynı yanıtın `İNCELE` ile `RET` arasında nasıl yer değiştirdiğini izlediniz.
+
+**`usage`, `stop_reason` ve zincir maliyeti** (Ders 1.4 §5.3, §6). Her çağrının maliyetini `usage` alanından hesapladınız; kesik yanıtı işaretlediniz; üç çağrılık bir zincirde doğrulama katmanının toplam maliyetteki payını gördünüz.
+
+**Ucuz doğrulayıcı, pahalı üretici** (Ders 1.7, toplam sahip olma maliyeti). Üretici ve doğrulayıcı rollerini farklı modellere verdiniz ve `--verifier` ile yer değiştirdiğinizde yakalama oranının ve maliyetin nasıl değiştiğini karşılaştırdınız.
+
+**Eval refleksi** (Ders 1.5 §6). Dedektörü cevabını bildiğiniz hatalarla sınadınız; yakalama oranını yanlış alarm sayısıyla birlikte okudunuz.
+
+## Genişletme fikirleri
+
+Projeyi bitirdiyseniz ve daha ileri gitmek istiyorsanız, aşağıdaki özelliklerden birini ekleyebilirsiniz. Her biri sonraki aşamalardaki bir konuya köprü kurar.
+
+- **Hata tipi sınıflandırma.** `verify` prompt'una `DESTEKSİZ` iddialar için bir `type` alanı ekleyin (fabrication, confabulation, conflation) ve `score` komutunda tuzağın türüyle karşılaştırın. Modelin hata tipini doğru adlandırıp adlandırmadığı Aşama 2'deki structured output derslerinin ilk sorusudur.
+- **Semantic verification katmanı.** Kaynakta olmayan ama dış dünyada doğrulanabilir iddialar için (ör. "`requests` paketi PyPI'da var") bir registry kontrolü ekleyin: iddiadan paket adını çıkarın, PyPI JSON API'sini sorgulayın. Bu, Aşama 3'teki tool use'un ilk tohumudur: modelin iddiasını bir araçla doğrulamak.
+- **İddia başına çağrı.** Tüm iddiaları tek çağrıda doğrulamak yerine her iddiayı ayrı çağrıyla doğrulayın ve aynı tuzak setinde yakalama oranı ile maliyeti karşılaştırın. Bağımsızlık ile maliyet arasındaki bu takas, Aşama 4'teki parallelization pattern'inde yeniden karşınıza çıkar.
+- **Yönlendirmeyi çıkış koduna bağlayın.** `chain` komutu `KABUL` için 0, `İNCELE` için 3, `RET` için 4 döndürsün; böylece araç bir CI adımı ya da başka bir script içinde kapı olarak kullanılabilir. Aşama 8'deki eval pipeline'ı tam olarak bu tür kapılardan kurulur.
+- **"Bilmiyorum" talimatı.** `GENERATE_SYSTEM` prompt'una "dokümanda olmayan bilgiyi uydurma, dokümanda yok de" talimatını ekleyin ve kısmen cevaplanan sorularda (`sorular/03_webhook_imza.txt`, `04_sandbox.txt`) `DESTEKSİZ` iddia sayısının değişip değişmediğini ölçün. Ders 1.6 §5'in "prompt düzeyi tek başına yetmez" iddiasını kendi verinizle sınayın.
+
+## Bitirdiğinde elinde ne olacak?
+
+Herhangi bir kaynak doküman ve soru için LLM yanıtını iddialara ayıran, her iddiayı kaynağa karşı doğrulayan, kanıtı denetleyen, risk skoruyla yönlendiren ve etiketli tuzak setiyle kendi başarısını ölçen, çalışan bir CLI aracı. İkiniz de portfolyonuza aynı projeyi koyabilirsiniz; farkı tuzak setleriniz ve karneleriniz anlatır. Programın geri kalanında ve kendi işinizde "bu yanıta güvenebilir miyim?" sorusunu göz kararıyla değil, iddia düzeyinde bir tabloyla cevaplayacaksınız.

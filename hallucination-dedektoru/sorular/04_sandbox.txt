@@ -1,0 +1,1 @@
+Test anahtarıyla sandbox ortamında dakikada kaç istek yapabilirim ve sandbox'ta oluşturduğum gönderiler ne zaman silinir?

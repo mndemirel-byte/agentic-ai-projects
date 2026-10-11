@@ -6,7 +6,8 @@
   {{FN:yol:ad}}            bir fonksiyonun tamamı
   {{SABIT:yol:ad}}         bir sabit, üstündeki yorumlarla
   {{OLCUM:ad[,ad...]}}     ölçüm çıktıları, kısa bir girişle ve komutlarıyla birlikte ```text blokları olarak
-                           (önizlemede boş kalır; rehberde yapay sayı bulunmaz)
+                           (önizlemede boş kalır; rehberde yapay sayı bulunmaz). proje.yaml > olcum > gosterim
+                           eşlemesi hem komuta hem çıktıya uygulanır (ör. cozum/adim_3.py → calisma/arac.py).
 Kod parçaları elle kopyalanmaz; her üretimde kaynaktan çekilir.
 """
 
@@ -25,6 +26,7 @@ def _olcum_blok(proje: Proje, olcumler: dict, ad: str, onizleme: bool) -> str:
     gosterim = proje.ayar["olcum"].get("gosterim", {})
     for eski, yeni in gosterim.items():
         komut = komut.replace(eski, yeni)
+        cikti = cikti.replace(eski, yeni)
     return f"```text\n$ {komut}\n{cikti}\n```"
 
 

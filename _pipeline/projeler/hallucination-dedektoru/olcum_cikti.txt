@@ -1,0 +1,312 @@
+# Ölçüm tarihi: 2026-10-11
+
+==================================================================
+## rehber-1
+$ python cozum/adim_1.py answer kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt
+------------------------------------------------------------------
+Soru: Oluşturduğum bir gönderiyi nasıl iptal ederim? Hangi durumda iptal edemem ve o zaman API ne döner?
+
+Gönderiyi iptal etmek için `DELETE /v3/gonderiler/{takip_no}` isteği gönderebilirsiniz. İptal
+yalnızca gönderi `olusturuldu` durumundayken mümkündür; kurye gönderiyi topladıktan sonra (yani
+durum `olusturuldu` dışına çıktığında) iptal edemezsiniz ve API `409 Conflict` döner. Bu durumda
+iptal için müşteri hizmetleriyle iletişime geçmeniz gerekir.
+
+Claude Sonnet 5.5  |  girdi 1.250 token, çıktı 183 token  |  $0,0043
+Yanıt kaydedildi: sonuclar/01_iptal.md
+
+==================================================================
+## rehber-2
+$ python cozum/adim_2.py extract sonuclar/01_iptal.md
+------------------------------------------------------------------
+6 iddia çıkarıldı:
+  1. Gönderiyi iptal etmek için `DELETE /v3/gonderiler/{takip_no}` isteği gönderilebilir.
+  2. Gönderi iptali yalnızca gönderi `olusturuldu` durumundayken mümkündür.
+  3. Kurye gönderiyi topladıktan sonra gönderi iptal edilemez.
+  4. Gönderi durumu `olusturuldu` dışına çıktığında iptal edilemez.
+  5. Gönderi iptal edilemediğinde API `409 Conflict` döner.
+  6. Gönderi iptal edilemediğinde iptal için müşteri hizmetleriyle iletişime geçilmesi gerekir.
+
+Claude Haiku 5.5  |  girdi 612 token, çıktı 239 token  |  $0,00018
+İddialar kaydedildi: sonuclar/01_iptal.iddialar.json
+
+==================================================================
+## rehber-3
+$ python cozum/adim_3.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json
+------------------------------------------------------------------
+#  İddia                                                     Karar      Kanıt                                     Not
+-  --------------------------------------------------------  ---------  ----------------------------------------  --------------------------------------------
+1  Gönderiyi iptal etmek için `DELETE /v3/gonderiler/{taki…  DESTEKLİ   `DELETE /v3/gonderiler/{takip_no}` gönd…  Doküman, bu uç noktanın gönderiyi iptal ett…
+2  Gönderi iptali yalnızca gönderi `olusturuldu` durumunda…  DESTEKLİ   İptal yalnızca `olusturuldu` durumundak…  Doküman iptalin yalnızca bu durumda mümkün…
+3  Kurye gönderiyi topladıktan sonra gönderi iptal edileme…  DESTEKLİ   kurye gönderiyi topladıktan sonra iptal…  Kurye toplama sonrası iptal isteğinin redde…
+4  Gönderi durumu `olusturuldu` dışına çıktığında iptal ed…  DESTEKLİ   İptal yalnızca `olusturuldu` durumundak…  Yalnızca bu durumda iptal mümkün olduğundan…
+5  Gönderi iptal edilemediğinde API `409 Conflict` döner.    DESTEKLİ   kurye gönderiyi topladıktan sonra iptal…  Doküman, iptal isteğinin 409 döndüğü durumu…
+6  Gönderi iptal edilemediğinde iptal için müşteri hizmetl…  DESTEKSİZ  -                                         Doküman, müşteri hizmetleriyle iletişim ger…
+
+Claude Haiku 5.5  |  girdi 1.700 token, çıktı 799 token  |  $0,00057
+
+==================================================================
+## rehber-4a
+$ python cozum/adim_4.py extract tuzaklar/01_iptal_tuzakli.md --out sonuclar/01_iptal_tuzakli.iddialar.json
+------------------------------------------------------------------
+8 iddia çıkarıldı:
+  1. Bir gönderiyi iptal etmek için `DELETE /v3/gonderiler/{takip_no}` isteği gönderilir.
+  2. Gönderi iptali yalnızca gönderi `olusturuldu` durumundayken mümkündür.
+  3. Toplanmış bir gönderi için iptal çağrısı 409 koduyla reddedilir.
+  4. Toplanmış bir gönderi için iptal çağrısının yanıtında `iptal_edilemez` hata kodu döner.
+  5. Toplanmış bir gönderinin iptali için müşteri hizmetleriyle iletişime geçilmesi gerekir.
+  6. İptal isteği, gönderi oluşturulduktan sonraki 2 saat içinde yapılmalıdır.
+  7. Birden fazla gönderiyi tek seferde iptal etmek için `POST /v3/gonderiler/toplu-iptal` uç noktası kullanılabilir.
+  8. İptal edilen gönderinin `durum` alanı `iade` değerini alır.
+
+Claude Haiku 5.5  |  girdi 730 token, çıktı 356 token  |  $0,00025
+İddialar kaydedildi: sonuclar/01_iptal_tuzakli.iddialar.json
+
+==================================================================
+## rehber-4b
+$ python cozum/adim_4.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal_tuzakli.iddialar.json
+------------------------------------------------------------------
+#  İddia                                                     Karar      Kanıt     Not
+-  --------------------------------------------------------  ---------  --------  --------------------------------------------
+1  Bir gönderiyi iptal etmek için `DELETE /v3/gonderiler/{…  DESTEKLİ   kaynakta  Kaynak, iptalin DELETE /v3/gonderiler/{taki…
+2  Gönderi iptali yalnızca gönderi `olusturuldu` durumunda…  DESTEKLİ   kaynakta  Kaynak, iptalin yalnızca olusturuldu durumu…
+3  Toplanmış bir gönderi için iptal çağrısı 409 koduyla re…  DESTEKLİ   kaynakta  Kaynak, toplanmış gönderi için iptal isteği…
+4  Toplanmış bir gönderi için iptal çağrısının yanıtında `…  DESTEKSİZ  yok       Kaynak, 409 yanıtında dönen hata kodu adını…
+5  Toplanmış bir gönderinin iptali için müşteri hizmetleri…  DESTEKLİ   kaynakta  Kaynak, toplanmış gönderi iptali için müşte…
+6  İptal isteği, gönderi oluşturulduktan sonraki 2 saat iç…  DESTEKSİZ  yok       Kaynakta iptal için 2 saatlik bir süre sını…
+7  Birden fazla gönderiyi tek seferde iptal etmek için `PO…  DESTEKSİZ  yok       Kaynakta toplu iptal uç noktası (POST /v3/g…
+8  İptal edilen gönderinin `durum` alanı `iade` değerini a…  DESTEKSİZ  yok       Kaynak, iptal edilen gönderilerin durum ala…
+
+Claude Haiku 5.5  |  girdi 1.819 token, çıktı 798 token  |  $0,00058
+
+==================================================================
+## rehber-5a
+$ python cozum/adim_5.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal_tuzakli.iddialar.json
+------------------------------------------------------------------
+#  İddia                                                     Karar      Kanıt     Not
+-  --------------------------------------------------------  ---------  --------  --------------------------------------------
+1  Bir gönderiyi iptal etmek için `DELETE /v3/gonderiler/{…  DESTEKLİ   kaynakta  Doküman, iptal için DELETE isteğinin kullan…
+2  Gönderi iptali yalnızca gönderi `olusturuldu` durumunda…  DESTEKLİ   kaynakta  Doküman, iptalin yalnızca olusturuldu durum…
+3  Toplanmış bir gönderi için iptal çağrısı 409 koduyla re…  DESTEKLİ   kaynakta  Doküman, toplanmış gönderi için iptal isteğ…
+4  Toplanmış bir gönderi için iptal çağrısının yanıtında `…  DESTEKSİZ  yok       Doküman, 409 yanıtında dönen hata kodunun a…
+5  Toplanmış bir gönderinin iptali için müşteri hizmetleri…  DESTEKLİ   kaynakta  Doküman, toplanmış gönderinin iptali için m…
+6  İptal isteği, gönderi oluşturulduktan sonraki 2 saat iç…  DESTEKSİZ  yok       Doküman, iptal için gönderi oluşturulduktan…
+7  Birden fazla gönderiyi tek seferde iptal etmek için `PO…  DESTEKSİZ  yok       Doküman toplu iptal uç noktasından ve POST…
+8  İptal edilen gönderinin `durum` alanı `iade` değerini a…  DESTEKSİZ  yok       Doküman iptal edilen gönderilerin durum ala…
+
+8 iddia: 4 destekli, 4 desteksiz
+Risk skoru: 0,50 (eşik 0,25)  →  RET
+Claude Haiku 5.5  |  girdi 1.819 token, çıktı 774 token  |  $0,00057
+
+==================================================================
+## rehber-5b
+$ python cozum/adim_5.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json --threshold 0.5
+------------------------------------------------------------------
+#  İddia                                                     Karar      Kanıt     Not
+-  --------------------------------------------------------  ---------  --------  --------------------------------------------
+1  Gönderiyi iptal etmek için `DELETE /v3/gonderiler/{taki…  DESTEKLİ   kaynakta  Doküman, bu uç noktanın gönderiyi iptal ett…
+2  Gönderi iptali yalnızca gönderi `olusturuldu` durumunda…  DESTEKLİ   kaynakta  Doküman, iptalin yalnızca bu durumdaki gönd…
+3  Kurye gönderiyi topladıktan sonra gönderi iptal edileme…  DESTEKLİ   kaynakta  Kurye gönderiyi topladıktan sonra iptal ist…
+4  Gönderi durumu `olusturuldu` dışına çıktığında iptal ed…  DESTEKLİ   kaynakta  İptal yalnızca `olusturuldu` durumunda mümk…
+5  Gönderi iptal edilemediğinde API `409 Conflict` döner.    DESTEKSİZ  yok       Kaynak, iptal isteği reddedildiğinde (kurye…
+6  Gönderi iptal edilemediğinde iptal için müşteri hizmetl…  DESTEKSİZ  yok       Kaynak, kurye toplamasından sonra iptal içi…
+
+6 iddia: 4 destekli, 2 desteksiz
+Risk skoru: 0,33 (eşik 0,50)  →  İNCELE
+Claude Haiku 5.5  |  girdi 1.700 token, çıktı 791 token  |  $0,00057
+
+==================================================================
+## rehber-6a
+$ python cozum/adim_6.py chain kaynaklar/03_webhook_ve_hatalar.md sorular/03_webhook_imza.txt --out sonuclar/rehber.jsonl
+------------------------------------------------------------------
+Soru: Webhook isteklerinin imzasını nasıl doğrularım? İmza kaç saniye geçerli ve zaman damgası imza hesabına dahil mi?
+Yanıt (Claude Sonnet 5.5):
+İmza, `X-Kuzey-Imza` başlığında gelir; bunu doğrulamak için istek gövdesini ham bayt dizisi olarak
+alıp panelde gösterilen webhook gizli anahtarıyla HMAC-SHA256 ile hesaplamalı, sonucu hex olarak
+kodlayıp başlıktaki değerle karşılaştırmalı ve eşleşmeyen istekleri reddetmelisiniz. JSON'u yeniden
+biçimlendirirseniz imza tutmaz. Ancak dokümanda imzanın kaç saniye geçerli olduğuna dair bir bilgi
+yok; zaman damgasının imza hesabına dahil olup olmadığı da belirtilmemiş. Dokümana göre imza
+yalnızca istek gövdesi üzerinden hesaplanıyor, gövdede `zaman` alanı bulunsa da bunun ayrıca imzaya
+katıldığına dair bir ifade yok.
+
+Aşama 1 — 10 iddia çıkarıldı (Claude Haiku 5.5)
+Aşama 2 — iddialar kaynağa karşı doğrulandı (Claude Haiku 5.5)
+
+ #  İddia                                                     Karar      Kanıt     Not
+--  --------------------------------------------------------  ---------  --------  --------------------------------------------
+ 1  İmza, X-Kuzey-Imza başlığında gelir.                      DESTEKLİ   kaynakta  Doküman imzanın bu başlıkta geldiğini açıkç…
+ 2  İmzayı doğrulamak için istek gövdesi ham bayt dizisi ol…  DESTEKLİ   kaynakta  Doküman imza hesabında gövdenin ham bayt di…
+ 3  İmza, istek gövdesi ham bayt dizisi üzerinden panelde g…  DESTEKLİ   kaynakta  Doküman hesaplama yöntemini HMAC-SHA256, an…
+ 4  HMAC-SHA256 sonucu hex olarak kodlanıp başlıktaki değer…  DESTEKLİ   kaynakta  Doküman imzanın hex olarak kodlandığını ve…
+ 5  Başlıktaki değerle eşleşmeyen istekler reddedilmelidir.   DESTEKLİ   kaynakta  Doküman eşleşmeyen isteklerin reddedilmesi…
+ 6  JSON yeniden biçimlendirilirse imza geçersiz hale gelir.  DESTEKLİ   kaynakta  Doküman yeniden biçimlendirmenin imzayı geç…
+ 7  Doküman imzanın kaç saniye geçerli olduğunu belirtmez.    DESTEKSİZ  yok       Doküman imzanın geçerlilik süresine dair he…
+ 8  Doküman zaman damgasının imza hesabına dahil olup olmad…  DESTEKSİZ  yok       Doküman zaman damgasının imza hesabına dahi…
+ 9  Dokümana göre imza yalnızca istek gövdesi üzerinden hes…  DESTEKLİ   kaynakta  Doküman imzanın yalnızca istek gövdesi üzer…
+10  Gövdede zaman alanı bulunsa da doküman bu alanın ayrıca…  DESTEKSİZ  yok       Doküman gövdedeki zaman alanının imzaya kat…
+
+10 iddia: 7 destekli, 3 desteksiz
+Risk skoru: 0,30 (eşik 0,25)  →  RET
+3 çağrı, toplam $0,0071
+Kaydedildi: sonuclar/rehber.jsonl
+
+==================================================================
+## rehber-6b
+$ python cozum/adim_6.py chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt --answer tuzaklar/01_iptal_tuzakli.md --out sonuclar/rehber.jsonl
+------------------------------------------------------------------
+Soru: Oluşturduğum bir gönderiyi nasıl iptal ederim? Hangi durumda iptal edemem ve o zaman API ne döner?
+Yanıt dosyadan okundu: tuzaklar/01_iptal_tuzakli.md (üretim atlandı)
+
+Aşama 1 — 8 iddia çıkarıldı (Claude Haiku 5.5)
+Aşama 2 — iddialar kaynağa karşı doğrulandı (Claude Haiku 5.5)
+
+#  İddia                                                     Karar      Kanıt     Not
+-  --------------------------------------------------------  ---------  --------  --------------------------------------------
+1  Bir gönderiyi iptal etmek için `DELETE /v3/gonderiler/{…  DESTEKLİ   kaynakta  Kaynak, iptalin bu uç nokta ile yapıldığını…
+2  Bir gönderinin iptali yalnızca gönderi `olusturuldu` du…  DESTEKLİ   kaynakta  Kaynak, iptalin yalnızca bu durumda mümkün…
+3  Toplanmış bir gönderi için iptal çağrısı 409 koduyla re…  DESTEKLİ   kaynakta  Kaynak, toplanmış gönderi için iptal isteği…
+4  Toplanmış bir gönderi için iptal çağrısının yanıtında `…  DESTEKSİZ  yok       Kaynak yanıttaki hata kodlarının adlarını (…
+5  Toplanmış bir gönderinin iptali için müşteri hizmetleri…  DESTEKLİ   kaynakta  Kaynak, toplanmış gönderilerin iptali için…
+6  İptal isteği, gönderi oluşturulduktan sonraki 2 saat iç…  DESTEKSİZ  yok       Kaynakta oluşturma sonrası iptal için bir z…
+7  Birden fazla gönderiyi tek seferde iptal etmek için `PO…  DESTEKSİZ  yok       Kaynakta `POST /v3/gonderiler/toplu-iptal`…
+8  İptal edilen gönderinin `durum` alanı `iade` değerini a…  DESTEKSİZ  yok       Kaynak, iptal edilen gönderilerin `durum` a…
+
+8 iddia: 4 destekli, 4 desteksiz
+Risk skoru: 0,50 (eşik 0,25)  →  RET
+2 çağrı, toplam $0,00083
+Kaydedildi: sonuclar/rehber.jsonl
+
+==================================================================
+## rehber-7
+$ python cozum/dedektor.py score sonuclar/rehber.jsonl tuzaklar/01_iptal_tuzaklar.yaml
+------------------------------------------------------------------
+Zincir kaydı: 2026-10-11T23:36:58  |  yanıt: tuzaklar/01_iptal_tuzakli.md  |  8 iddia, yönlendirme RET
+
+Tuzak  Tür            Anahtar                  İddia  Karar      Sonuç
+-----  -------------  -----------------------  -----  ---------  -----------
+T1     fabrication    toplu-iptal|toplu iptal      1  DESTEKSİZ  yakalandı
+T2     confabulation  2 saat|iki saat              1  DESTEKSİZ  yakalandı
+T3     conflation     iade                         1  DESTEKSİZ  yakalandı
+K1     kontrol        409                          1  DESTEKLİ   doğru geçti
+
+Yakalama: 3/3 tuzak yakalandı
+Yanlış alarm: 0/1 kontrol cümlesi haksız yere işaretlendi
+
+==================================================================
+## demo-answer
+$ python cozum/dedektor.py answer kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt
+------------------------------------------------------------------
+Soru: Oluşturduğum bir gönderiyi nasıl iptal ederim? Hangi durumda iptal edemem ve o zaman API ne döner?
+
+Gönderiyi iptal etmek için `DELETE /v3/gonderiler/{takip_no}` isteği göndermeniz yeterli. İptal
+yalnızca gönderi `olusturuldu` durumundayken mümkündür; kurye gönderiyi topladıktan sonra (yani
+`toplandi` ve sonraki durumlarda) iptal edemezsiniz. Bu durumda API `409 Conflict` döner ve iptal
+için müşteri hizmetleriyle iletişime geçmeniz gerekir.
+
+Claude Sonnet 5.5  |  girdi 1.250 token, çıktı 182 token  |  $0,0043
+Yanıt kaydedildi: sonuclar/01_iptal.md
+
+==================================================================
+## demo-extract
+$ python cozum/dedektor.py extract sonuclar/01_iptal.md
+------------------------------------------------------------------
+6 iddia çıkarıldı:
+  1. Gönderiyi iptal etmek için DELETE /v3/gonderiler/{takip_no} isteği gönderilir.
+  2. Gönderi iptali yalnızca gönderi olusturuldu durumundayken mümkündür.
+  3. Kurye gönderiyi topladıktan sonra gönderi iptal edilemez.
+  4. Gönderi toplandi ve sonraki durumlarda iken iptal işlemi yapılamaz.
+  5. Toplandı ve sonraki durumlardaki gönderi için API 409 Conflict yanıtı döner.
+  6. Toplandı ve sonraki durumlardaki gönderinin iptali için müşteri hizmetleriyle iletişime geçilmesi gerekir.
+
+Claude Haiku 5.5  |  girdi 611 token, çıktı 255 token  |  $0,00019
+İddialar kaydedildi: sonuclar/01_iptal.iddialar.json
+
+==================================================================
+## demo-verify
+$ python cozum/dedektor.py verify kaynaklar/02_gonderi_uc_noktalari.md sonuclar/01_iptal.iddialar.json
+------------------------------------------------------------------
+#  İddia                                                     Karar     Kanıt     Not
+-  --------------------------------------------------------  --------  --------  --------------------------------------------
+1  Gönderiyi iptal etmek için DELETE /v3/gonderiler/{takip…  DESTEKLİ  kaynakta  Kaynak, iptal işleminin bu uç noktayla yapı…
+2  Gönderi iptali yalnızca gönderi olusturuldu durumundayk…  DESTEKLİ  kaynakta  Kaynak, iptalin yalnızca olusturuldu durumu…
+3  Kurye gönderiyi topladıktan sonra gönderi iptal edileme…  DESTEKLİ  kaynakta  Kaynak, toplama sonrası iptal isteğinin red…
+4  Gönderi toplandi ve sonraki durumlarda iken iptal işlem…  DESTEKLİ  kaynakta  Kaynak, olusturuldu dışındaki durumlarda ip…
+5  Toplandı ve sonraki durumlardaki gönderi için API 409 C…  DESTEKLİ  kaynakta  Kaynak, toplandıktan sonraki iptal isteğini…
+6  Toplandı ve sonraki durumlardaki gönderinin iptali için…  DESTEKLİ  kaynakta  Kaynak, toplandıktan sonra iptal için müşte…
+
+6 iddia: 6 destekli
+Risk skoru: 0,00 (eşik 0,25)  →  KABUL
+Claude Haiku 5.5  |  girdi 1.716 token, çıktı 769 token  |  $0,00056
+
+==================================================================
+## demo-chain-bosluk
+$ python cozum/dedektor.py chain kaynaklar/03_webhook_ve_hatalar.md sorular/03_webhook_imza.txt
+------------------------------------------------------------------
+Soru: Webhook isteklerinin imzasını nasıl doğrularım? İmza kaç saniye geçerli ve zaman damgası imza hesabına dahil mi?
+Yanıt (Claude Sonnet 5.5):
+İmza doğrulamak için istek gövdesini ham bayt dizisi olarak alıp panelde gösterilen webhook gizli
+anahtarıyla HMAC-SHA256 ile hesaplamanız, sonucu hex olarak kodlayıp `X-Kuzey-Imza` başlığındaki
+değerle karşılaştırmanız gerekir; eşleşmeyen istekleri reddedin. JSON'u yeniden biçimlendirirseniz
+imza tutmaz. İmzanın kaç saniye geçerli olduğu ve zaman damgasının imza hesabına dahil olup olmadığı
+dokümanda belirtilmiyor; yalnızca gövdenin imzalandığı anlatılıyor.
+
+Aşama 1 — 9 iddia çıkarıldı (Claude Haiku 5.5)
+Aşama 2 — iddialar kaynağa karşı doğrulandı (Claude Haiku 5.5)
+
+#  İddia                                                     Karar      Kanıt     Not
+-  --------------------------------------------------------  ---------  --------  --------------------------------------------
+1  Webhook isteklerini doğrulamak için istek gövdesi ham b…  DESTEKLİ   kaynakta  Doküman imza hesabında gövdenin ham bayt di…
+2  Webhook imzası, panelde gösterilen webhook gizli anahta…  DESTEKLİ   kaynakta  Doküman imzanın panelde gösterilen gizli an…
+3  HMAC-SHA256 sonucu hex olarak kodlanmalıdır.              DESTEKLİ   kaynakta  Doküman imzanın hex olarak kodlandığını açı…
+4  Hesaplanan imza, X-Kuzey-Imza başlığındaki değerle karş…  DESTEKLİ   kaynakta  Doküman alıcının hesaplanan imzayı gelen X-…
+5  Karşılaştırmada eşleşmeyen istekler reddedilmelidir.      DESTEKLİ   kaynakta  Doküman eşleşmeyen isteklerin reddedilmesi…
+6  JSON yeniden biçimlendirilirse imza geçersiz olur.        DESTEKLİ   kaynakta  Doküman JSON'un yeniden biçimlendirilmesini…
+7  Doküman, imzanın kaç saniye geçerli olduğunu belirtmez.   DESTEKSİZ  yok       Doküman imzanın geçerlilik süresine dair bi…
+8  Doküman, zaman damgasının imza hesabına dahil olup olma…  DESTEKSİZ  yok       Doküman zaman damgasının imza hesabına dahi…
+9  Dokümanda yalnızca gövdenin imzalandığı anlatılmaktadır.  DESTEKLİ   kaynakta  Doküman imzanın yalnızca istek gövdesi üzer…
+
+9 iddia: 7 destekli, 2 desteksiz
+Risk skoru: 0,22 (eşik 0,25)  →  İNCELE
+3 çağrı, toplam $0,0062
+Kaydedildi: sonuclar/zincir.jsonl
+
+==================================================================
+## demo-chain-tuzak
+$ python cozum/dedektor.py chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt --answer tuzaklar/01_iptal_tuzakli.md
+------------------------------------------------------------------
+Soru: Oluşturduğum bir gönderiyi nasıl iptal ederim? Hangi durumda iptal edemem ve o zaman API ne döner?
+Yanıt dosyadan okundu: tuzaklar/01_iptal_tuzakli.md (üretim atlandı)
+
+Aşama 1 — 8 iddia çıkarıldı (Claude Haiku 5.5)
+Aşama 2 — iddialar kaynağa karşı doğrulandı (Claude Haiku 5.5)
+
+#  İddia                                                     Karar      Kanıt     Not
+-  --------------------------------------------------------  ---------  --------  --------------------------------------------
+1  Bir gönderiyi iptal etmek için `DELETE /v3/gonderiler/{…  DESTEKLİ   kaynakta  Kaynak, iptal işleminin bu uç nokta ile yap…
+2  Gönderi iptali yalnızca gönderi `olusturuldu` durumunda…  DESTEKLİ   kaynakta  Kaynak, iptalin yalnızca olusturuldu durumu…
+3  Toplanmış bir gönderi için iptal çağrısı 409 koduyla re…  DESTEKLİ   kaynakta  Kaynak, toplanmış gönderi için iptal isteği…
+4  Toplanmış bir gönderi için iptal çağrısının yanıtında `…  DESTEKSİZ  yok       Kaynakta yanıtın hata kodunun 409 dışında b…
+5  Toplanmış bir gönderinin iptali için müşteri hizmetleri…  DESTEKLİ   kaynakta  Kaynak, toplanmış gönderinin iptali için mü…
+6  İptal isteği, gönderi oluşturulduktan sonraki 2 saat iç…  DESTEKSİZ  yok       Kaynakta iptal için gönderi oluşturulduktan…
+7  Birden fazla gönderiyi tek seferde iptal etmek için `PO…  DESTEKSİZ  yok       Kaynakta toplu iptal işlemi ya da `POST /v3…
+8  İptal edilen gönderinin `durum` alanı `iade` değerini a…  DESTEKSİZ  yok       Kaynakta iptal edilen gönderilerin `durum`…
+
+8 iddia: 4 destekli, 4 desteksiz
+Risk skoru: 0,50 (eşik 0,25)  →  RET
+2 çağrı, toplam $0,00084
+Kaydedildi: sonuclar/zincir.jsonl
+
+==================================================================
+## demo-score
+$ python cozum/dedektor.py score sonuclar/zincir.jsonl tuzaklar/01_iptal_tuzaklar.yaml
+------------------------------------------------------------------
+Zincir kaydı: 2026-10-11T23:37:32  |  yanıt: tuzaklar/01_iptal_tuzakli.md  |  8 iddia, yönlendirme RET
+
+Tuzak  Tür            Anahtar                  İddia  Karar      Sonuç
+-----  -------------  -----------------------  -----  ---------  -----------
+T1     fabrication    toplu-iptal|toplu iptal      1  DESTEKSİZ  yakalandı
+T2     confabulation  2 saat|iki saat              1  DESTEKSİZ  yakalandı
+T3     conflation     iade                         1  DESTEKSİZ  yakalandı
+K1     kontrol        409                          1  DESTEKLİ   doğru geçti
+
+Yakalama: 3/3 tuzak yakalandı
+Yanlış alarm: 0/1 kontrol cümlesi haksız yere işaretlendi

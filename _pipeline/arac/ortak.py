@@ -83,11 +83,21 @@ def fonksiyon_satirlari(kaynak: str, ad: str) -> tuple[int, int]:
     raise PipelineHatasi(f"Fonksiyon bulunamadı: {ad}")
 
 
+def _hedef_adlari(dugum: ast.Assign) -> list[str]:
+    """Bir atamanın hedef adları; 'A, B = ...' biçimindeki çoklu atamada tüm adlar."""
+    adlar = []
+    for hedef in dugum.targets:
+        for parca in (hedef.elts if isinstance(hedef, ast.Tuple) else [hedef]):
+            if getattr(parca, "id", None):
+                adlar.append(parca.id)
+    return adlar
+
+
 def sabit(kaynak: str, ad: str) -> str:
     """Bir atamayı, hemen üstündeki yorum satırlarıyla birlikte döndürür."""
     satirlar = kaynak.split("\n")
     for dugum in ast.parse(kaynak).body:
-        if isinstance(dugum, ast.Assign) and any(getattr(h, "id", None) == ad for h in dugum.targets):
+        if isinstance(dugum, ast.Assign) and ad in _hedef_adlari(dugum):
             bas = dugum.lineno - 1
             while bas > 0 and satirlar[bas - 1].startswith("#"):
                 bas -= 1

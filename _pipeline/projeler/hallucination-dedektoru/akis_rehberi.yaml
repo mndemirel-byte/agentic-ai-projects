@@ -1,0 +1,347 @@
+# Akış kod rehberi (kod-rehberi.html) girdisi.
+# konum: {fn: fonksiyon_adı} fonksiyonun satır aralığını, {capa: metin, uzunluk: n} çapadan başlayan n satırı gösterir.
+# kod alanı öğretici kısaltılmış koddur; birebir kaynak değildir.
+
+baslik: dedektor.py kod rehberi
+giris: Bir komutu terminale yazdığın andan yönlendirme kararının ekrana basılmasına kadar kodun hangi fonksiyonlardan,
+  hangi sırayla geçtiğini adım adım izle. İki akış var; chain üç ücretli çağrıyla zinciri çalıştırır, score kaydedilmiş
+  sonuçla tuzak setini karşılaştırır. Her adımda kodun ne yaptığını, ilgili kod parçasını ve neden öyle yazıldığını
+  bulacaksın.
+ekstra: akis_ekstra.html
+bloklar:
+- anahtar: giris
+  bolum: Giriş noktası
+  aciklama: Komut satırını okur, işi doğru komuta yollar.
+- anahtar: prompt
+  bolum: Prompt'lar
+  aciklama: Üretim, iddia çıkarma ve doğrulama talimatları.
+- anahtar: veri
+  bolum: Veri yükleme
+  aciklama: pricing.yaml, kaynak, soru, iddia ve tuzak dosyalarını okur.
+- anahtar: api
+  bolum: API çağrıları
+  aciklama: Tek çağrı fonksiyonu ve üç aşamanın sarmalayıcıları.
+- anahtar: hesap
+  bolum: Hesaplamalar
+  aciklama: JSON çözme, kanıt denetimi, risk skoru, yönlendirme, tuzak eşleştirme.
+- anahtar: bicim
+  bolum: Biçimlendirme
+  aciklama: Türkçe sayı yazımı, tablo ve özet satırları.
+- anahtar: kayit
+  bolum: Kayıt
+  aciklama: Yanıt, iddia ve zincir dosyalarını yazar ve okur.
+- anahtar: komut
+  bolum: Komutlar
+  aciklama: answer, extract, verify, chain ve score iş akışları.
+ortak_adimlar:
+- blok: giris
+  etiket: __main__
+  konum:
+    capa: if __name__
+    uzunluk: 2
+  baslik: Komutu yazarsın
+  ne: >-
+    Terminale komutu yazdığında Python dosyayı yukarıdan aşağıya okur. Bu sırada fonksiyonları yalnızca tanımlar,
+    hiçbirini çalıştırmaz. Dosyanın en altındaki iki satıra gelince asıl iş başlar: main() fonksiyonu çağrılır.
+  kod: |-
+    $ python cozum/dedektor.py chain kaynaklar/02_gonderi_uc_noktalari.md sorular/01_iptal.txt --answer tuzaklar/01_iptal_tuzakli.md
+
+    if __name__ == "__main__":
+        sys.exit(main())
+  neden: >-
+    if __name__ == "__main__" kalıbı, dosya doğrudan çalıştırıldığında main()'i başlatır; testler dosyayı import
+    ettiğinde ise hiçbir şey kendiliğinden çalışmaz. sys.exit, main()'in döndürdüğü sayıyı (0 = başarılı, 2 = hata)
+    terminale çıkış kodu olarak iletir.
+- blok: giris
+  etiket: build_parser()
+  konum:
+    fn: build_parser
+  baslik: Komut satırını parçala
+  ne: >-
+    build_parser(), argparse ile programın üç genel seçeneğini ve beş alt komutunu tarif eder. parse_args()
+    terminaldeki yazıyı bu tarife göre parçalayıp tek bir args nesnesine koyar. Artık her seçeneğe nokta ile
+    erişilir.
+  kod: |-
+    args = build_parser().parse_args(argv)
+
+    args.command    # "chain"
+    args.source     # "kaynaklar/02_gonderi_uc_noktalari.md"
+    args.question   # "sorular/01_iptal.txt"
+    args.answer     # "tuzaklar/01_iptal_tuzakli.md"
+    args.threshold  # 0.25  (varsayılan)
+    args.verifier   # None  (verilmedi: pricing.yaml > roller)
+  neden: >-
+    args bir sipariş fişi gibidir: kullanıcı ne istediyse fişe yazılır, kodun geri kalanı yalnızca fişe bakar.
+    --threshold gibi seçenekler Python'da aynı adla, tireler alt çizgiye dönüşerek okunur.
+- blok: veri
+  etiket: load_pricing()
+  konum:
+    fn: load_pricing
+  baslik: Fiyat, model ve rol dosyasını yükle
+  ne: >-
+    load_pricing(), pricing.yaml dosyasını açıp Python sözlüğüne çevirir; her modelde zorunlu alanların ve roller
+    altında iki rolün bulunduğunu kontrol eder. Beş komut da bu dosyayı okur; score bile fiyat kaynağını buradan alır.
+  kod: |-
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    for model in data["models"]:
+        missing = [field for field in REQUIRED_MODEL_FIELDS if field not in model]
+        if missing:
+            raise ValueError(f"... eksik alan: {missing}")
+    for role in ("uretici", "dogrulayici"):
+        if role not in data.get("roller", {}):
+            raise ValueError(f"... '{role}' tanımlı değil.")
+  neden: >-
+    Model kimlikleri, fiyatlar, rol atamaları ve düşünme ayarları değişir; kodu değiştirmeden yalnızca yaml dosyasını
+    güncellersin. Bu, veriyi mantıktan ayırma ilkesidir.
+- blok: giris
+  etiket: main()
+  konum:
+    fn: main
+  baslik: İşi doğru komuta yolla
+  ne: >-
+    score API'ye gitmez; main() onu hemen cmd_score'a yollar. Diğer dört komut için önce ANTHROPIC_API_KEY kontrol
+    edilir, yoksa program API'ye hiç gitmeden anlaşılır bir mesajla durur; varsa anthropic.Anthropic() istemcisi
+    kurulur ve komut bir sözlükten seçilip çağrılır.
+  kod: |-
+    if args.command == "score":
+        return cmd_score(args)
+
+    if client is None:
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            print("Hata: ANTHROPIC_API_KEY ... tanımlı değil.")
+            return 2
+        client = anthropic.Anthropic()
+    commands = {"answer": cmd_answer, "extract": cmd_extract,
+                "verify": cmd_verify, "chain": cmd_chain}
+    return commands[args.command](args, client, pricing)
+  neden: >-
+    "if client is None" kontrolü testler için var: testler kendi sahte istemcilerini main()'e verir ve kod gerçek
+    API'ye para harcamadan denenir. Komutları bir sözlükten seçmek, yeni komut eklerken uzun if zincirleri yazmaktan
+    kurtarır.
+akislar:
+- ad: chain
+  adimlar:
+  - blok: komut
+    etiket: cmd_chain()
+    konum:
+      fn: cmd_chain
+    baslik: Yanıtı al ya da üret
+    ne: >-
+      cmd_chain önce üretici ve doğrulayıcı modelleri seçer, kaynağı ve soruyu okur. --answer verildiyse yanıt
+      dosyadan okunur ve üretim atlanır; verilmediyse generate_answer üreticiyi çağırır, yanıt dosyaya yazılır,
+      çağrı sayacı ve maliyet güncellenir.
+    kod: |-
+      generator = select_model(pricing, args.generator, "uretici")
+      verifier = select_model(pricing, args.verifier, "dogrulayici")
+      source, question = read_text(args.source), read_question(args.question)
+
+      if args.answer:
+          answer = read_text(args.answer)            # üretim atlandı
+      else:
+          result = generate_answer(client, generator, source, question)
+          answer = result["text"]
+          calls, cost = calls + 1, cost + estimate_cost(generator, ...)
+    neden: >-
+      Tuzaklı bir yanıtı sınamak için üretim gerekmez; --answer zincirin ilk halkasını atlar ve iki çağrı tasarruf
+      eder. Üretim yapıldığında yanıt dosyaya yazılır ki partnerin kopyalayıp tuzak yerleştirebilsin.
+  - blok: api
+    etiket: call_model()
+    konum:
+      fn: call_model
+    baslik: Tek çağrı, üç kez
+    ne: >-
+      generate_answer, extract_claims ve verify_claims üçü de call_model'i çağırır. kwargs sözlüğü kurulur, modelin
+      cagri_ayarlari eklenir, client.messages.create ile yanıt bütün olarak alınır. Yanıtın text blokları
+      birleştirilir; usage ve stop_reason döndürülür.
+    kod: |-
+      kwargs = {"model": model["id"], "max_tokens": max_tokens,
+                "messages": [{"role": "user", "content": prompt}]}
+      if system:
+          kwargs["system"] = system
+      kwargs.update(model.get("cagri_ayarlari") or {})   # pricing.yaml
+      message = client.messages.create(**kwargs)
+      text = "".join(b.text for b in message.content if b.type == "text")
+    neden: >-
+      Yanıt bütün olarak işleneceği için streaming gerekmez (Ders 1.4 §4.4). Ek ayarlar koda değil veri dosyasına
+      yazılır: 5.x modelleri düşünmeyi varsayılan olarak açar ve düşünme token'ları faturaya girer; her model farklı
+      bir parametre istediği için ayar YAML'dadır.
+  - blok: api
+    etiket: extract_claims()
+    konum:
+      fn: extract_claims
+    baslik: 1. aşama — yanıtı iddialara ayır
+    ne: >-
+      EXTRACT_PROMPT yanıtla doldurulur ve doğrulayıcıya gönderilir. Dönen metin _parse_json ile çözülür; claims
+      listesi yoksa, boşsa ya da metin dışı öğe içeriyorsa ValueError fırlatılır ve main bunu tek satırlık hataya
+      çevirir.
+    kod: |-
+      result = call_model(client, model, EXTRACT_PROMPT.replace("{answer}", answer), MAX_TOKENS["extract"])
+      parsed = _parse_json(result["text"])
+      claims = parsed.get("claims") if isinstance(parsed, dict) else None
+      if not isinstance(claims, list) or not claims or ...:
+          raise ValueError("İddia çıkarma: model geçerli bir JSON döndürmedi ...")
+      return [c.strip() for c in claims], result
+    neden: >-
+      Ders 1.6 §5.2 adım 3: bir yanıttaki beş iddiadan biri yanlış olabilir; bütüncül karar bunu kaçırır. JSON
+      ayrıştırması syntactic verification'ın kendisidir: bozuk çıktı sessizce "sıfır iddia" sayılmaz, program durur.
+  - blok: api
+    etiket: verify_claims()
+    konum:
+      fn: verify_claims
+    baslik: 2. aşama, LLM yarısı — iddiaları kaynağa karşı değerlendir
+    ne: >-
+      İddialar numaralanır, VERIFY_PROMPT kaynak ve iddialarla doldurulur, tek çağrı yapılır. Dönen results listesi
+      iddia sayısıyla karşılaştırılır; her kararın üç geçerli değerden biri olduğu doğrulanır. Her satır iddia, karar,
+      kanıt ve not alanlı bir sözlüğe çevrilir.
+    kod: |-
+      numbered = "\n".join(f"{i}. {claim}" for i, claim in enumerate(claims, start=1))
+      result = call_model(client, model, VERIFY_PROMPT.replace("{source}", source).replace("{claims}", numbered), ...)
+      rows = _parse_json(result["text"]).get("results")
+      if len(rows) != len(claims):
+          raise ValueError("Doğrulama: model N iddia için M sonuç döndürdü ...")
+      for claim, row in zip(claims, rows):
+          verdict = row["verdict"]            # supported | unsupported | contradicted
+          verdicts.append({"iddia": claim, "karar": verdict, "kanit": row["evidence"], "not": row["note"]})
+    neden: >-
+      Grounding verification (Ders 1.6 §5.1) genellikle ikinci bir LLM çağrısı gerektirir; o çağrı budur. Prompt
+      "kendi bilgini kullanma" der ve kanıtı kaynaktan birebir ister: birebir alıntı bir sonraki adımda makineyle
+      aranabilir. Doğrulayıcı da bir LLM'dir; çıktısı da doğrulanır.
+  - blok: hesap
+    etiket: apply_evidence_check()
+    konum:
+      fn: apply_evidence_check
+    baslik: 2. aşama, deterministik yarısı — kanıt kaynakta mı?
+    ne: >-
+      Her satır için kanıt alıntısı ve kaynak normalize_text ile sadeleştirilir (Türkçe küçük harf, yalnızca harf ve
+      rakam) ve alıntının kaynağın içinde geçip geçmediğine bakılır. Kanıtı bulunmayan supported karar suspect olur;
+      sonuç kanit_bulundu alanına yazılır.
+    kod: |-
+      for row in verdicts:
+          row["kanit_bulundu"] = evidence_found(row["kanit"], source)
+          if row["karar"] == "supported" and not row["kanit_bulundu"]:
+              row["karar"] = "suspect"
+
+      # evidence_found içinde:
+      normalized = normalize_text(evidence)
+      return bool(normalized) and normalized in normalize_text(source)
+    neden: >-
+      Ders 1.6 §3.4: kaynak gösterir gibi görünmek ile kaynağa dayanmak aynı şey değildir. Doğrulayıcı bir iddiayı
+      DESTEKLİ ilan edip kaynağa benzeyen ama kaynakta olmayan bir alıntı yazabilir. Bu kontrol modelin dışında,
+      metnin kendisine bakar; aynı modele ikinci kez sormaktan daha güvenilirdir.
+  - blok: hesap
+    etiket: route()
+    konum:
+      fn: route
+    baslik: Skor ve yönlendirme
+    ne: >-
+      risk_score kararların ağırlıklı ortalamasını alır (DESTEKSİZ ve ÇELİŞİYOR 1, ŞÜPHELİ 0,5, DESTEKLİ 0). route
+      önce çelişkiye bakar (eşikten bağımsız RET), sonra sıfır skora (KABUL), sonra eşiğe (İNCELE ya da RET).
+    kod: |-
+      score = risk_score(verdicts)
+      decision = route(verdicts, score, args.threshold)
+
+      # route içinde:
+      if any(row["karar"] == "contradicted" for row in verdicts):
+          return ROUTE_REJECT
+      if score == 0:
+          return ROUTE_ACCEPT
+      return ROUTE_REVIEW if score <= threshold else ROUTE_REJECT
+    neden: >-
+      Ders 1.6 §5.2'nin son iki adımı ve §5.3'teki risk matrisi: hatanın geri dönüş maliyeti yüksekse eşik düşer,
+      daha çok yanıt insana gider. Kaynağın aksini söyleyen bir yanıt skoru ne olursa olsun kullanıcıya gitmemelidir.
+  - blok: kayit
+    etiket: save_record()
+    konum:
+      fn: save_record
+    baslik: Tabloyu bas, kaydı ekle
+    ne: >-
+      print_verdicts karar tablosunu, print_summary dağılımı, skoru ve yönlendirmeyi basar; çağrı sayısı ve toplam
+      maliyet yazılır. Tüm kararlar, skor, eşik, yönlendirme ve maliyet tek bir sözlük olarak JSONL dosyasının sonuna
+      eklenir. cmd_chain 0 döndürür.
+    kod: |-
+      print_verdicts(verdicts)
+      print_summary(verdicts, score, decision, args.threshold)
+      print(f"{calls} çağrı, toplam {fmt_usd(cost)}")
+
+      save_record(out, {"soru": question, "yanit_dosyasi": answer_file,
+                        "iddialar": verdicts, "skor": round(score, 3),
+                        "yonlendirme": decision, "cagri": calls, "maliyet": cost})
+    neden: >-
+      Ücretli zincir bir kez çalışır ve sonucu dosyada kalır; score komutu bu dosyadan çalışır. JSONL'de her satır
+      bağımsız bir nesnedir, bu yüzden dosyanın sonuna eklemek güvenlidir ve eski kayıtlar silinmez.
+- ad: score
+  adimlar:
+  - blok: veri
+    etiket: load_traps()
+    konum:
+      fn: load_traps
+    baslik: Tuzak setini ve kayıtları oku
+    ne: >-
+      cmd_score önce tuzak YAML dosyasını (yanıt dosyası, kaynak, tuzak listesi) ve zincir kayıtlarını okur. Tuzak
+      setindeki yanıt dosyasıyla çalıştırılmış son kayıt seçilir; yoksa hangi komutun çalıştırılması gerektiğini
+      söyleyen bir hata verilir. API'ye gidilmez.
+    kod: |-
+      $ python cozum/dedektor.py score sonuclar/zincir.jsonl tuzaklar/01_iptal_tuzaklar.yaml
+
+      traps = load_traps(args.traps)
+      records = load_records(args.results)
+      matching = [r for r in records if r.get("yanit_dosyasi") == traps["yanit"]]
+      record = matching[-1]
+    neden: >-
+      Dedektörün başarısı yalnızca cevabı bilinen hatalarla ölçülebilir (Ders 1.5 §6'daki eval refleksi). Tuzak
+      dosyası o cevabı taşır; kayıt dosyası dedektörün ne dediğini.
+  - blok: hesap
+    etiket: match_claims()
+    konum:
+      fn: match_claims
+    baslik: Tuzağı iddiaya bağla
+    ne: >-
+      Her tuzak için anahtar parçaları taşıyan iddialar bulunur. Her parça iddiada geçmeli; "|" ile alternatif
+      yazılabilir. Karşılaştırma normalize_text ile yapılır, böylece noktalama ve büyük-küçük harf farkları eşleşmeyi
+      bozmaz.
+    kod: |-
+      for row in verdicts:
+          text = normalize_text(row["iddia"])
+          if all(any(normalize_text(alt) in text for alt in part.split("|"))
+                 for part in trap["anahtar"]):
+              matched.append(row)
+    neden: >-
+      Çıkarıcı yanıttaki cümleyi yeniden ifade eder; cümlenin tamamını aramak hiçbir zaman eşleşmezdi. Ayırt edici
+      parça (bir uç nokta adı, bir süre) hem sağlam hem de tuzak dosyasında okunabilir bir bağ kurar.
+  - blok: hesap
+    etiket: judge_trap()
+    konum:
+      fn: judge_trap
+    baslik: Sonucu adlandır
+    ne: >-
+      Eşleşen iddia yoksa "iddia çıkarılmadı". Eşleşenlerden biri bile DESTEKLİ değilse tuzak işaretlenmiş sayılır:
+      yerleştirilen hata için bu "yakalandı", kontrol cümlesi için "yanlış alarm"dır. İşaretlenmediyse sırasıyla
+      "kaçtı" ve "doğru geçti".
+    kod: |-
+      if not matched:
+          return "iddia çıkarılmadı"
+      flagged = any(row["karar"] != "supported" for row in matched)
+      if trap["beklenen"] == "yakalanmali":
+          return "yakalandı" if flagged else "kaçtı"
+      return "yanlış alarm" if flagged else "doğru geçti"
+    neden: >-
+      "iddia çıkarılmadı" ayrı bir sonuçtur çünkü hata dedektörün değil çıkarıcının; düzeltme EXTRACT_PROMPT'ta
+      yapılır. Kontrol cümlesi olmadan yakalama oranı yanıltır: her iddiayı işaretleyen bir araç tüm tuzakları yakalar
+      ama işe yaramaz.
+  - blok: komut
+    etiket: cmd_score()
+    konum:
+      fn: cmd_score
+    baslik: Karneyi bas
+    ne: >-
+      Tuzak başına bir satır (tür, anahtar, eşleşen iddia sayısı, kararlar, sonuç) tabloya yazılır. Yerleştirilen
+      tuzaklar için yakalama oranı, kontrol cümleleri için yanlış alarm sayısı ayrı satırlarda basılır.
+    kod: |-
+      planted = [o for t, o in outcomes if t["beklenen"] == "yakalanmali"]
+      controls = [o for t, o in outcomes if t["beklenen"] == "gecmeli"]
+      print(f"Yakalama: {planted.count('yakalandı')}/{len(planted)} tuzak yakalandı")
+      print(f"Yanlış alarm: {controls.count('yanlış alarm')}/{len(controls)} kontrol cümlesi ...")
+    neden: >-
+      İki sayı birlikte okunur (Ders 1.6 §5.3: doğrulama maliyeti ile hata maliyeti dengesi). Yakalama oranını
+      artıran her ayar (daha katı denetim, daha düşük eşik) yanlış alarmı da artırabilir; karne bu takası görünür kılar.

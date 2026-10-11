@@ -1,0 +1,100 @@
+# Step-by-Step-GUIDE.md talimatlarının makine tarafından okunabilir karşılığı.
+# Simülasyon, adım 1 dosyasından başlayıp bu işlemleri sırayla uygular ve her adımın
+# sonunda dosyanın hedef ara sürümle aynı olduğunu doğrular. Rehberdeki bir talimat
+# değişirse burası da aynı şekilde güncellenmelidir.
+#
+# Ara sürümler tam çözümden ara_surum_uret.py ile türetilir; önce o çalıştırılır.
+
+baslangic: cozum/adim_1.py
+
+adimlar:
+  - ad: Adım 2
+    hedef: cozum/adim_2.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "import argparse", icerik: {metin: "import json"}}
+      - {islem: satir_sonrasi, capa: "import os", icerik: {metin: "import re"}}
+      - {islem: fn_oncesi, fn: load_pricing, icerik: {sabit: [cozum/adim_2.py, EXTRACT_PROMPT]}}
+      - {islem: fn_sonrasi, fn: generate_answer, icerik: {fn: [cozum/adim_2.py, extract_claims]}}
+      - {islem: fn_sonrasi, fn: estimate_cost, icerik: {fn: [cozum/adim_2.py, _parse_json]}}
+      - {islem: fn_sonrasi, fn: answer_path, icerik: {fn: [cozum/adim_2.py, claims_path]}}
+      - {islem: fn_sonrasi, fn: cmd_answer, icerik: {fn: [cozum/adim_2.py, cmd_extract]}}
+      - {islem: fn_degistir, fn: build_parser, icerik: {fn: [cozum/adim_2.py, build_parser]}}
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_2.py, main]}}
+
+  - ad: Adım 3
+    hedef: cozum/adim_3.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "MAX_TOKENS = ", bosluk_once: true, icerik: {sabit: [cozum/adim_3.py, VERDICT_LABELS]}}
+      - {islem: fn_oncesi, fn: load_pricing, icerik: {sabit: [cozum/adim_3.py, VERIFY_PROMPT]}}
+      - {islem: fn_sonrasi, fn: read_question, icerik: {fn: [cozum/adim_3.py, load_claims]}}
+      - {islem: fn_sonrasi, fn: extract_claims, icerik: {fn: [cozum/adim_3.py, verify_claims]}}
+      - {islem: fn_sonrasi, fn: wrap_text, icerik: {fnler: [cozum/adim_3.py, [shorten, print_table, print_verdicts]]}}
+      - {islem: fn_sonrasi, fn: cmd_extract, icerik: {fn: [cozum/adim_3.py, cmd_verify]}}
+      - {islem: fn_degistir, fn: build_parser, icerik: {fn: [cozum/adim_3.py, build_parser]}}
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_3.py, main]}}
+
+  - ad: Adım 4
+    hedef: cozum/adim_4.py
+    islemler:
+      - {islem: fn_sonrasi, fn: _parse_json, icerik: {fnler: [cozum/adim_4.py, [tr_lower, normalize_text, evidence_found, apply_evidence_check]]}}
+      - {islem: fn_degistir, fn: print_verdicts, icerik: {fn: [cozum/adim_4.py, print_verdicts]}}
+      - {islem: fn_degistir, fn: cmd_verify, icerik: {fn: [cozum/adim_4.py, cmd_verify]}}
+
+  - ad: Adım 5
+    hedef: cozum/adim_5.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "VERDICT_LABELS = ", bosluk_once: true, icerik: {sabit: [cozum/adim_5.py, RISK_WEIGHTS]}}
+      - {islem: satir_sonrasi, capa: "RISK_WEIGHTS = ", bosluk_once: true, icerik: {sabit: [cozum/adim_5.py, ROUTE_ACCEPT]}}
+      - {islem: satir_sonrasi, capa: "ROUTE_ACCEPT, ROUTE_REVIEW, ROUTE_REJECT = ", icerik: {sabit: [cozum/adim_5.py, DEFAULT_THRESHOLD]}}
+      - {islem: fn_sonrasi, fn: apply_evidence_check, icerik: {fnler: [cozum/adim_5.py, [risk_score, route]]}}
+      - {islem: fn_sonrasi, fn: fmt_usd, icerik: {fn: [cozum/adim_5.py, fmt_score]}}
+      - {islem: fn_sonrasi, fn: print_verdicts, icerik: {fn: [cozum/adim_5.py, print_summary]}}
+      - {islem: fn_degistir, fn: cmd_verify, icerik: {fn: [cozum/adim_5.py, cmd_verify]}}
+      - islem: satir_sonrasi
+        capa: 'p_verify.add_argument("claims"'
+        icerik:
+          girinti: 4
+          metin: |
+            p_verify.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help="İNCELE için en yüksek risk skoru (varsayılan: 0.25)")
+
+  - ad: Adım 6
+    hedef: cozum/adim_6.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "import textwrap", bosluk_once: true, icerik: {metin: "from datetime import datetime"}}
+      - {islem: satir_sonrasi, capa: "DEFAULT_RESULTS_DIR = ", icerik: {sabit: [cozum/adim_6.py, DEFAULT_CHAIN_PATH]}}
+      - {islem: fn_sonrasi, fn: write_text, icerik: {fn: [cozum/adim_6.py, save_record]}}
+      - {islem: fn_sonrasi, fn: cmd_verify, icerik: {fn: [cozum/adim_6.py, cmd_chain]}}
+      - islem: fn_icinde_once
+        fn: build_parser
+        satir: "    return parser"
+        icerik:
+          girinti: 4
+          metin: |
+
+            p_chain = sub.add_parser("chain", help="Üç adımı uç uca çalıştır ve sonucu kaydet (ücretli)")
+            p_chain.add_argument("source", help="Kaynak doküman")
+            p_chain.add_argument("question", help="Soru metni ya da soruyu içeren dosya")
+            p_chain.add_argument("--answer", help="Hazır yanıt dosyası; verilirse üretim atlanır (tuzaklı yanıt için)")
+            p_chain.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help="İNCELE için en yüksek risk skoru (varsayılan: 0.25)")
+            p_chain.add_argument("--out", help="Kayıt dosyası (varsayılan: sonuclar/zincir.jsonl)")
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/adim_6.py, main]}}
+
+  - ad: Adım 7
+    hedef: cozum/dedektor.py
+    islemler:
+      - {islem: satir_sonrasi, capa: "DEFAULT_THRESHOLD = ", bosluk_once: true, icerik: {sabit: [cozum/dedektor.py, TRAP_EXPECTATIONS]}}
+      - {islem: fn_sonrasi, fn: load_claims, icerik: {fn: [cozum/dedektor.py, load_traps]}}
+      - {islem: fn_sonrasi, fn: route, icerik: {fnler: [cozum/dedektor.py, [match_claims, judge_trap]]}}
+      - {islem: fn_sonrasi, fn: save_record, icerik: {fn: [cozum/dedektor.py, load_records]}}
+      - {islem: fn_sonrasi, fn: cmd_chain, icerik: {fn: [cozum/dedektor.py, cmd_score]}}
+      - islem: fn_icinde_once
+        fn: build_parser
+        satir: "    return parser"
+        icerik:
+          girinti: 4
+          metin: |
+
+            p_score = sub.add_parser("score", help="Tuzak setini zincir kaydıyla karşılaştır (çağrı yapmaz)")
+            p_score.add_argument("results", help="chain komutunun yazdığı JSONL dosyası")
+            p_score.add_argument("traps", help="Tuzak seti (YAML)")
+      - {islem: fn_degistir, fn: main, icerik: {fn: [cozum/dedektor.py, main]}}
